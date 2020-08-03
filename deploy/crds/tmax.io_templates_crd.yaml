@@ -1,0 +1,125 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: templates.tmax.io
+spec:
+  group: tmax.io
+  names:
+    kind: Template
+    listKind: TemplateList
+    plural: templates
+    singular: template
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: Template is the Schema for the templates API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: TemplateSpec defines the desired state of Template
+          properties:
+            LongDescription:
+              type: string
+            UrlDescription:
+              type: string
+            imageUrl:
+              type: string
+            markDownDescription:
+              type: string
+            objectKinds:
+              items:
+                type: string
+              type: array
+            objects:
+              items:
+                properties:
+                  fields:
+                    description: "FieldsV1 stores a set of fields in a data structure
+                      like a Trie, in JSON format. \n Each key is either a '.' representing
+                      the field itself, and will always map to an empty set, or a
+                      string representing a sub-field or item. The string will follow
+                      one of these four formats: 'f:<name>', where <name> is the name
+                      of a field in a struct, or key in a map 'v:<value>', where <value>
+                      is the exact json formatted value of a list item 'i:<index>',
+                      where <index> is position of a item in a list 'k:<keys>', where
+                      <keys> is a map of  a list item's key fields to their unique
+                      values If a key maps to an empty Fields value, the field that
+                      key represents is part of the set. \n The exact format is defined
+                      in sigs.k8s.io/structured-merge-diff"
+                    type: object
+                type: object
+              type: array
+            operatorStartTime:
+              type: string
+            parameters:
+              items:
+                properties:
+                  description:
+                    type: string
+                  displayName:
+                    type: string
+                  from:
+                    type: string
+                  generate:
+                    type: string
+                  name:
+                    type: string
+                  required:
+                    type: boolean
+                  value:
+                    type: string
+                  valueType:
+                    type: string
+                type: object
+              type: array
+            plans:
+              items:
+                properties:
+                  fields:
+                    description: "FieldsV1 stores a set of fields in a data structure
+                      like a Trie, in JSON format. \n Each key is either a '.' representing
+                      the field itself, and will always map to an empty set, or a
+                      string representing a sub-field or item. The string will follow
+                      one of these four formats: 'f:<name>', where <name> is the name
+                      of a field in a struct, or key in a map 'v:<value>', where <value>
+                      is the exact json formatted value of a list item 'i:<index>',
+                      where <index> is position of a item in a list 'k:<keys>', where
+                      <keys> is a map of  a list item's key fields to their unique
+                      values If a key maps to an empty Fields value, the field that
+                      key represents is part of the set. \n The exact format is defined
+                      in sigs.k8s.io/structured-merge-diff"
+                    type: object
+                type: object
+              type: array
+            provider:
+              type: string
+            recommend:
+              type: boolean
+            shortDescription:
+              type: string
+            tags:
+              items:
+                type: string
+              type: array
+          required:
+          - parameters
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
