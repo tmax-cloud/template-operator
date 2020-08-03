@@ -1,4 +1,4 @@
-module hypercloud-operator
+module github.com/youngind/hypercloud-operator
 
 go 1.13
 
