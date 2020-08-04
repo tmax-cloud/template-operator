@@ -7,6 +7,8 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+// +kubebuilder:validation:XPreserveUnknownFields
+// +kubebuilder:validation:XEmbeddedResource
 type ObjectSpec struct {
 	Fields metav1.FieldsV1 `json:"fields,omitempty"`
 }
@@ -20,10 +22,20 @@ type ParamSpec struct {
 	DisplayName string `json:"displayName,omitempty"`
 	From        string `json:"from,omitempty"`
 	Generate    string `json:"generate,omitempty"`
-	Name        string `json:"name,omitempty"`
+	Name        string `json:"name"`
 	Required    bool   `json:"required,omitempty"`
 	Value       string `json:"value,omitempty"`
 	ValueType   string `json:"valueType,omitempty"`
+}
+
+type LabelSpec struct {
+	AdditionalProperties string `json:"additionalProperties,omitempty"`
+}
+
+type MetadataSpec struct {
+	GenerateName      string `json:"generateName,omitempty"`
+	Name              string `json:"name,omitempty"`
+	metav1.ObjectMeta `json:"type,omitempty"`
 }
 
 // +kubebuilder:resource:shortName="tp"
@@ -32,8 +44,11 @@ type TemplateSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-
 	OperatorStartTime   string       `json:"operatorStartTime,omitempty"`
+	ApiVersion          string       `json:"apiVersion,omitempty"`
+	Kind                string       `json:"kind,omitempty"`
+	Labels              LabelSpec    `json:"labels,omitempty"`
+	Message             string       `json:"message,omitempty"`
 	ShortDescription    string       `json:"shortDescription,omitempty"`
 	LongDescription     string       `json:"LongDescription,omitempty"`
 	UrlDescription      string       `json:"UrlDescription,omitempty"`
@@ -43,6 +58,7 @@ type TemplateSpec struct {
 	Recommand           bool         `json:"recommend,omitempty"`
 	Tags                []string     `json:"tags,omitempty"`
 	ObjectKinds         []string     `json:"objectKinds,omitempty"`
+	Metadata            MetadataSpec `json:"metadata,omitempty"`
 	Objects             []ObjectSpec `json:"objects,omitempty"`
 	Plans               []PlanSpec   `json:"plans,omitempty"`
 	Parameters          []ParamSpec  `json:"parameters"`

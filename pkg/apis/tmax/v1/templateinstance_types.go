@@ -25,44 +25,6 @@ type SecretSpec struct {
 	metav1.ObjectMeta `json:"type,omitempty"`
 }
 
-type LabelSpec struct {
-	AdditionalProperties string `json:"additionalProperties,omitempty"`
-	metav1.ObjectMeta    `json:"type,omitempty"`
-}
-
-type MetadataSpec struct {
-	GenerateName      string `json:"generateName,omitempty"`
-	Name              string `json:"name,omitempty"`
-	metav1.ObjectMeta `json:"type,omitempty"`
-}
-
-// +kubebuilder:validation:XPreserveUnknownFields
-// +kubebuilder:validation:XEmbeddedResource
-type TemplateObjectSpec struct {
-}
-
-type ParameterSpec struct {
-	Description       string `json:"description,omitempty"`
-	DisplayName       string `json:"displayName,omitempty"`
-	From              string `json:"from,omitempty"`
-	Generate          string `json:"generate,omitempty"`
-	Name              string `json:"name"`
-	Required          bool   `json:"required,omitempty"`
-	Value             string `json:"value"`
-	metav1.ObjectMeta `json:"type,omitempty"`
-}
-
-type TemplatesSpec struct {
-	ApiVersion        string               `json:"apiVersion,omitempty"`
-	Kind              string               `json:"kind,omitempty"`
-	Labels            LabelSpec            `json:"labels,omitempty"`
-	Message           string               `json:"message,omitempty"`
-	Metadata          MetadataSpec         `json:"metadata,omitempty"`
-	Objects           []TemplateObjectSpec `json:"objects,omitempty"`
-	Parameters        []ParameterSpec      `json:"parameters,omitempty"`
-	metav1.ObjectMeta `json:"type,omitempty"`
-}
-
 // +kubebuilder:resource:shortName="ti"
 // TemplateInstanceSpec defines the desired state of TemplateInstance
 type TemplateInstanceSpec struct {
@@ -71,7 +33,7 @@ type TemplateInstanceSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 	Requester RequesterSpec `json:"requester,omitempty"`
 	Secret    SecretSpec    `json:"secret,omitempty"`
-	Template  TemplatesSpec `json:"template,omitempty"`
+	Template  TemplateSpec  `json:"template,omitempty"`
 }
 
 type RefSpec struct {

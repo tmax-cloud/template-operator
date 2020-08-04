@@ -35,10 +35,30 @@ spec:
               type: string
             UrlDescription:
               type: string
+            apiVersion:
+              type: string
             imageUrl:
               type: string
+            kind:
+              type: string
+            labels:
+              properties:
+                additionalProperties:
+                  type: string
+              type: object
             markDownDescription:
               type: string
+            message:
+              type: string
+            metadata:
+              properties:
+                generateName:
+                  type: string
+                name:
+                  type: string
+                type:
+                  type: object
+              type: object
             objectKinds:
               items:
                 type: string
@@ -61,8 +81,14 @@ spec:
                       in sigs.k8s.io/structured-merge-diff"
                     type: object
                 type: object
+                x-kubernetes-embedded-resource: true
+                x-kubernetes-preserve-unknown-fields: true
               type: array
             operatorStartTime:
+              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                Important: Run "operator-sdk generate k8s" to regenerate code after
+                modifying this file Add custom validation using kubebuilder tags:
+                https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
               type: string
             parameters:
               items:
@@ -83,6 +109,8 @@ spec:
                     type: string
                   valueType:
                     type: string
+                required:
+                - name
                 type: object
               type: array
             plans:

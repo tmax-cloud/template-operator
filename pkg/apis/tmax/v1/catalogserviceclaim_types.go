@@ -10,7 +10,7 @@ import (
 type CatalogServiceClaimSpec struct {
 	ApiVersion          string        `json:"apiVersion"`
 	Kind                string        `json:"kind"`
-	Labels              LabelsSpec    `json:"labels,omitempty"`
+	Labels              LabelSpec     `json:"labels,omitempty"`
 	ShortDescription    string        `json:"shortDescription,omitempty"`
 	LongDescription     string        `json:"longDescription,omitempty"`
 	UrlDescription      string        `json:"urlDescription,omitempty"`
@@ -22,7 +22,7 @@ type CatalogServiceClaimSpec struct {
 	Metadata            MetadataSpec  `json:"metadata"`
 	Objects             []ObjectsSpec `json:"objects"`
 	Plans               []ObjectsSpec `json:"plans,omitempty"`
-	Params              []ParamsSpec  `json:"parameters"`
+	Parameters          []ParamSpec   `json:"parameters"`
 }
 
 type CatalogServiceClaimStatus struct {
@@ -39,21 +39,6 @@ type ObjectsSpec struct {
 	Fields metav1.FieldsV1 `json:"fields,omitempty"`
 }
 
-type ParamsSpec struct {
-	Description string `json:"description,omitempty"`
-	DisplayName string `json:"displayName,omitempty"`
-	From        string `json:"from,omitempty"`
-	Generate    string `json:"generate,omitempty"`
-	Name        string `json:"name"`
-	Required    bool   `json:"required,omitempty"`
-	Value       string `json:"value,omitempty"`
-	ValueType   string `json:"valueType,omitempty"`
-}
-
-type LabelsSpec struct {
-	AdditionalProperties string `json:"additionalProperties,omitempty"`
-}
-
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // CatalogServiceClaim is the Schema for the catalogserviceclaims API
@@ -63,10 +48,10 @@ type CatalogServiceClaim struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
 
-	OperatorStartTime string     `json:"operatorStartTime,omitempty"`
-	ApiVersion        string     `json:"apiVersion"`
-	Kind              string     `json:"kind"`
-	Labels            LabelsSpec `json:"labels,omitempty"`
+	OperatorStartTime string    `json:"operatorStartTime,omitempty"`
+	ApiVersion        string    `json:"apiVersion"`
+	Kind              string    `json:"kind"`
+	Labels            LabelSpec `json:"labels,omitempty"`
 
 	Spec   CatalogServiceClaimSpec   `json:"spec"`
 	Status CatalogServiceClaimStatus `json:"status,omitempty"`

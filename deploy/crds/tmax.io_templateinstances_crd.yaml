@@ -60,8 +60,15 @@ spec:
                   type: object
               type: object
             template:
+              description: TemplateSpec defines the desired state of Template
               properties:
+                LongDescription:
+                  type: string
+                UrlDescription:
+                  type: string
                 apiVersion:
+                  type: string
+                imageUrl:
                   type: string
                 kind:
                   type: string
@@ -69,9 +76,9 @@ spec:
                   properties:
                     additionalProperties:
                       type: string
-                    type:
-                      type: object
                   type: object
+                markDownDescription:
+                  type: string
                 message:
                   type: string
                 metadata:
@@ -83,12 +90,37 @@ spec:
                     type:
                       type: object
                   type: object
+                objectKinds:
+                  items:
+                    type: string
+                  type: array
                 objects:
                   items:
+                    properties:
+                      fields:
+                        description: "FieldsV1 stores a set of fields in a data structure
+                          like a Trie, in JSON format. \n Each key is either a '.'
+                          representing the field itself, and will always map to an
+                          empty set, or a string representing a sub-field or item.
+                          The string will follow one of these four formats: 'f:<name>',
+                          where <name> is the name of a field in a struct, or key
+                          in a map 'v:<value>', where <value> is the exact json formatted
+                          value of a list item 'i:<index>', where <index> is position
+                          of a item in a list 'k:<keys>', where <keys> is a map of
+                          \ a list item's key fields to their unique values If a key
+                          maps to an empty Fields value, the field that key represents
+                          is part of the set. \n The exact format is defined in sigs.k8s.io/structured-merge-diff"
+                        type: object
                     type: object
                     x-kubernetes-embedded-resource: true
                     x-kubernetes-preserve-unknown-fields: true
                   type: array
+                operatorStartTime:
+                  description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                    Important: Run "operator-sdk generate k8s" to regenerate code
+                    after modifying this file Add custom validation using kubebuilder
+                    tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+                  type: string
                 parameters:
                   items:
                     properties:
@@ -104,17 +136,45 @@ spec:
                         type: string
                       required:
                         type: boolean
-                      type:
-                        type: object
                       value:
+                        type: string
+                      valueType:
                         type: string
                     required:
                     - name
-                    - value
                     type: object
                   type: array
-                type:
-                  type: object
+                plans:
+                  items:
+                    properties:
+                      fields:
+                        description: "FieldsV1 stores a set of fields in a data structure
+                          like a Trie, in JSON format. \n Each key is either a '.'
+                          representing the field itself, and will always map to an
+                          empty set, or a string representing a sub-field or item.
+                          The string will follow one of these four formats: 'f:<name>',
+                          where <name> is the name of a field in a struct, or key
+                          in a map 'v:<value>', where <value> is the exact json formatted
+                          value of a list item 'i:<index>', where <index> is position
+                          of a item in a list 'k:<keys>', where <keys> is a map of
+                          \ a list item's key fields to their unique values If a key
+                          maps to an empty Fields value, the field that key represents
+                          is part of the set. \n The exact format is defined in sigs.k8s.io/structured-merge-diff"
+                        type: object
+                    type: object
+                  type: array
+                provider:
+                  type: string
+                recommend:
+                  type: boolean
+                shortDescription:
+                  type: string
+                tags:
+                  items:
+                    type: string
+                  type: array
+              required:
+              - parameters
               type: object
           type: object
         status:
