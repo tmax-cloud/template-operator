@@ -9,14 +9,46 @@ import (
 
 // +kubebuilder:validation:XPreserveUnknownFields
 // +kubebuilder:validation:XEmbeddedResource
+
 type ObjectSpec struct {
 	Fields metav1.FieldsV1 `json:"fields,omitempty"`
 }
 
+// +kubebuilder:validation:XPreserveUnknownFields
 type PlanSpec struct {
-	Fields metav1.FieldsV1 `json:"fields,omitempty"`
+	Id                     string            `json:"id"`
+	Name                   string            `json:"name"`
+	Description            string            `json:"description,omitempty"`
+	Metadata               map[string]string `json:"metadata,omitempty"`
+	Free                   bool              `json:"free,omitempty"`
+	Bindable               bool              `json:"bindable,omitempty"`
+	PlanUpdateable         bool              `json:"plan_updateable"`
+	Schemas                Schemas           `json:"schemas,omitempty"`
+	MaximumPollingDuration int               `json:"maximum_polling_duration,omitempty"`
+	MaintenanceInfo        MaintenanceInfo   `json:"maintenance_info,omitempty"`
 }
 
+type MaintenanceInfo struct {
+	Version     string `json:"version"`
+	Description string `json:"description,omitempty"`
+}
+type Schemas struct {
+	ServiceInstance ServiceInstanceSchema `json:"service_instance,omitempty"`
+	ServiceBinding  ServiceBindingSchema  `json:"service_binding,omitempty"`
+}
+
+type ServiceInstanceSchema struct {
+	Create SchemaParameters `json:"create,omitempty"`
+	Update SchemaParameters `json:"update,omitempty"`
+}
+
+type ServiceBindingSchema struct {
+	Create SchemaParameters `json:"create,omitempty"`
+}
+
+type SchemaParameters struct {
+	Parameters map[string]string `json:"parameters,omitempty"`
+}
 type ParamSpec struct {
 	Description string `json:"description,omitempty"`
 	DisplayName string `json:"displayName,omitempty"`

@@ -21,7 +21,7 @@ type CatalogServiceClaimSpec struct {
 	Tags                []string      `json:"tags,omitempty"`
 	Metadata            MetadataSpec  `json:"metadata"`
 	Objects             []ObjectsSpec `json:"objects"`
-	Plans               []ObjectsSpec `json:"plans,omitempty"`
+	Plans               []PlanSpec    `json:"plans,omitempty"`
 	Parameters          []ParamSpec   `json:"parameters"`
 }
 
@@ -35,6 +35,7 @@ type CatalogServiceClaimStatus struct {
 }
 
 // +kubebuilder:validation:XPreserveUnknownFields
+
 type ObjectsSpec struct {
 	Fields metav1.FieldsV1 `json:"fields,omitempty"`
 }
