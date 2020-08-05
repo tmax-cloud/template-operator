@@ -3,7 +3,7 @@ package catalogserviceclaim
 import (
 	"context"
 
-	tmaxv1 "hypercloud-operator/pkg/apis/tmax/v1"
+	tmaxv1 "github.com/youngind/hypercloud-operator/pkg/apis/tmax/v1"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -109,7 +109,7 @@ func (r *ReconcileCatalogServiceClaim) Reconcile(request reconcile.Request) (rec
 
 	switch Event {
 	case "Create": // case 1: wait for admin permission -> pathStatus ( Event == Create)
-		instance.Status.Status = "Awaiting"
+		instance.Status.Status = "Success"
 		instance.Status.Reason = "wait for admin permission"
 
 		if err = r.client.Status().Update(context.TODO(), instance); err != nil {
