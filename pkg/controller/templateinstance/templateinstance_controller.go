@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	tmaxv1 "hypercloud-operator/pkg/apis/tmax/v1"
+	tmaxv1 "github.com/youngind/hypercloud-operator/pkg/apis/tmax/v1"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"

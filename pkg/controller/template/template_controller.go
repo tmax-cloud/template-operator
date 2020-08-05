@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	tmaxv1 "hypercloud-operator/pkg/apis/tmax/v1"
+	tmaxv1 "github.com/youngind/hypercloud-operator/pkg/apis/tmax/v1"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -104,6 +104,8 @@ func (r *ReconcileTemplate) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, err
 	}
 
+	convert2, err := json.Marshal(instance.Spec.Parameters)
+	reqLogger.Info(string(convert2))
 	// types.go에서 struct의 type을 map[]interface{}, interface{}가 제공이 안된다.
 	// 임시로 objects, plans field에 Fields metav1.FieldsV1 `json:"fields,omitempty"` 라는 값 추가해서 사용
 	// CRD generation : map values must be a named type, not *ast.StarExpr #2485
