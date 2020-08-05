@@ -10,13 +10,14 @@
 package client
 
 import (
-	"io/ioutil"
-	"net/url"
-	"net/http"
-	"strings"
-	"golang.org/x/net/context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
+
+	"golang.org/x/net/context"
 )
 
 // Linger please
@@ -26,24 +27,23 @@ var (
 
 type CustomObjectsApiService service
 
-
-/* CustomObjectsApiService 
- Creates a cluster scoped Custom object
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param group The custom resource&#39;s group name
- @param version The custom resource&#39;s version
- @param plural The custom resource&#39;s plural name. For TPRs this would be lowercase plural kind.
- @param body The JSON schema of the Resource to create.
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "pretty" (string) If &#39;true&#39;, then the output is pretty printed.
- @return interface{}*/
-func (a *CustomObjectsApiService) CreateClusterCustomObject(ctx context.Context, group string, version string, plural string, body interface{}, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+/* CustomObjectsApiService
+Creates a cluster scoped Custom object
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param group The custom resource&#39;s group name
+@param version The custom resource&#39;s version
+@param plural The custom resource&#39;s plural name. For TPRs this would be lowercase plural kind.
+@param body The JSON schema of the Resource to create.
+@param optional (nil or map[string]interface{}) with one or more of:
+    @param "pretty" (string) If &#39;true&#39;, then the output is pretty printed.
+@return interface{}*/
+func (a *CustomObjectsApiService) CreateClusterCustomObject(ctx context.Context, group string, version string, plural string, body interface{}, localVarOptionals map[string]interface{}) (interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     interface{}
 	)
 
 	// create path and map variables
@@ -64,7 +64,7 @@ func (a *CustomObjectsApiService) CreateClusterCustomObject(ctx context.Context,
 		localVarQueryParams.Add("pretty", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -75,7 +75,7 @@ func (a *CustomObjectsApiService) CreateClusterCustomObject(ctx context.Context,
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"application/json",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -115,33 +115,37 @@ func (a *CustomObjectsApiService) CreateClusterCustomObject(ctx context.Context,
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
-/* CustomObjectsApiService 
- Creates a namespace scoped Custom object
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param group The custom resource&#39;s group name
- @param version The custom resource&#39;s version
- @param namespace The custom resource&#39;s namespace
- @param plural The custom resource&#39;s plural name. For TPRs this would be lowercase plural kind.
- @param body The JSON schema of the Resource to create.
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "pretty" (string) If &#39;true&#39;, then the output is pretty printed.
- @return interface{}*/
-func (a *CustomObjectsApiService) CreateNamespacedCustomObject(ctx context.Context, group string, version string, namespace string, plural string, body interface{}, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+/* CustomObjectsApiService
+Creates a namespace scoped Custom object
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param group The custom resource&#39;s group name
+@param version The custom resource&#39;s version
+@param namespace The custom resource&#39;s namespace
+@param plural The custom resource&#39;s plural name. For TPRs this would be lowercase plural kind.
+@param body The JSON schema of the Resource to create.
+@param optional (nil or map[string]interface{}) with one or more of:
+    @param "pretty" (string) If &#39;true&#39;, then the output is pretty printed.
+@return interface{}*/
+func (a *CustomObjectsApiService) CreateNamespacedCustomObject(ctx context.Context, group string, version string, namespace string, plural string, body interface{}, localVarOptionals map[string]interface{}) (interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     interface{}
 	)
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/apis/{group}/{version}/namespaces/{namespace}/{plural}"
-	localVarPath = strings.Replace(localVarPath, "{"+"group"+"}", fmt.Sprintf("%v", group), -1)
+	if len(group) == 0 {
+		// ex) service, pod, configmap...
+		localVarPath = strings.Replace(localVarPath, "/apis/{group}/", "/api/", -1)
+	} else {
+		localVarPath = strings.Replace(localVarPath, "{"+"group"+"}", fmt.Sprintf("%v", group), -1)
+	}
 	localVarPath = strings.Replace(localVarPath, "{"+"version"+"}", fmt.Sprintf("%v", version), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"namespace"+"}", fmt.Sprintf("%v", namespace), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"plural"+"}", fmt.Sprintf("%v", plural), -1)
@@ -158,7 +162,7 @@ func (a *CustomObjectsApiService) CreateNamespacedCustomObject(ctx context.Conte
 		localVarQueryParams.Add("pretty", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{  }
+	localVarHttpContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -169,7 +173,7 @@ func (a *CustomObjectsApiService) CreateNamespacedCustomObject(ctx context.Conte
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"application/json",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -209,30 +213,29 @@ func (a *CustomObjectsApiService) CreateNamespacedCustomObject(ctx context.Conte
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
-/* CustomObjectsApiService 
- Deletes the specified cluster scoped custom object
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param group the custom resource&#39;s group
- @param version the custom resource&#39;s version
- @param plural the custom object&#39;s plural name. For TPRs this would be lowercase plural kind.
- @param name the custom object&#39;s name
- @param body 
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "gracePeriodSeconds" (int32) The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
-     @param "orphanDependents" (bool) Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the \&quot;orphan\&quot; finalizer will be added to/removed from the object&#39;s finalizers list. Either this field or PropagationPolicy may be set, but not both.
-     @param "propagationPolicy" (string) Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy.
- @return interface{}*/
-func (a *CustomObjectsApiService) DeleteClusterCustomObject(ctx context.Context, group string, version string, plural string, name string, body V1DeleteOptions, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+/* CustomObjectsApiService
+Deletes the specified cluster scoped custom object
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param group the custom resource&#39;s group
+@param version the custom resource&#39;s version
+@param plural the custom object&#39;s plural name. For TPRs this would be lowercase plural kind.
+@param name the custom object&#39;s name
+@param body
+@param optional (nil or map[string]interface{}) with one or more of:
+    @param "gracePeriodSeconds" (int32) The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
+    @param "orphanDependents" (bool) Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the \&quot;orphan\&quot; finalizer will be added to/removed from the object&#39;s finalizers list. Either this field or PropagationPolicy may be set, but not both.
+    @param "propagationPolicy" (string) Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy.
+@return interface{}*/
+func (a *CustomObjectsApiService) DeleteClusterCustomObject(ctx context.Context, group string, version string, plural string, name string, body V1DeleteOptions, localVarOptionals map[string]interface{}) (interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Delete")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     interface{}
 	)
 
 	// create path and map variables
@@ -266,7 +269,7 @@ func (a *CustomObjectsApiService) DeleteClusterCustomObject(ctx context.Context,
 		localVarQueryParams.Add("propagationPolicy", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "*/*",  }
+	localVarHttpContentTypes := []string{"*/*"}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -277,7 +280,7 @@ func (a *CustomObjectsApiService) DeleteClusterCustomObject(ctx context.Context,
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"application/json",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -317,31 +320,30 @@ func (a *CustomObjectsApiService) DeleteClusterCustomObject(ctx context.Context,
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
-/* CustomObjectsApiService 
- Deletes the specified namespace scoped custom object
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param group the custom resource&#39;s group
- @param version the custom resource&#39;s version
- @param namespace The custom resource&#39;s namespace
- @param plural the custom resource&#39;s plural name. For TPRs this would be lowercase plural kind.
- @param name the custom object&#39;s name
- @param body 
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "gracePeriodSeconds" (int32) The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
-     @param "orphanDependents" (bool) Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the \&quot;orphan\&quot; finalizer will be added to/removed from the object&#39;s finalizers list. Either this field or PropagationPolicy may be set, but not both.
-     @param "propagationPolicy" (string) Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy.
- @return interface{}*/
-func (a *CustomObjectsApiService) DeleteNamespacedCustomObject(ctx context.Context, group string, version string, namespace string, plural string, name string, body V1DeleteOptions, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+/* CustomObjectsApiService
+Deletes the specified namespace scoped custom object
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param group the custom resource&#39;s group
+@param version the custom resource&#39;s version
+@param namespace The custom resource&#39;s namespace
+@param plural the custom resource&#39;s plural name. For TPRs this would be lowercase plural kind.
+@param name the custom object&#39;s name
+@param body
+@param optional (nil or map[string]interface{}) with one or more of:
+    @param "gracePeriodSeconds" (int32) The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
+    @param "orphanDependents" (bool) Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the \&quot;orphan\&quot; finalizer will be added to/removed from the object&#39;s finalizers list. Either this field or PropagationPolicy may be set, but not both.
+    @param "propagationPolicy" (string) Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy.
+@return interface{}*/
+func (a *CustomObjectsApiService) DeleteNamespacedCustomObject(ctx context.Context, group string, version string, namespace string, plural string, name string, body V1DeleteOptions, localVarOptionals map[string]interface{}) (interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Delete")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     interface{}
 	)
 
 	// create path and map variables
@@ -376,7 +378,7 @@ func (a *CustomObjectsApiService) DeleteNamespacedCustomObject(ctx context.Conte
 		localVarQueryParams.Add("propagationPolicy", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "*/*",  }
+	localVarHttpContentTypes := []string{"*/*"}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -387,7 +389,7 @@ func (a *CustomObjectsApiService) DeleteNamespacedCustomObject(ctx context.Conte
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"application/json",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -427,25 +429,24 @@ func (a *CustomObjectsApiService) DeleteNamespacedCustomObject(ctx context.Conte
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
-/* CustomObjectsApiService 
- Returns a cluster scoped custom object
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param group the custom resource&#39;s group
- @param version the custom resource&#39;s version
- @param plural the custom object&#39;s plural name. For TPRs this would be lowercase plural kind.
- @param name the custom object&#39;s name
- @return interface{}*/
-func (a *CustomObjectsApiService) GetClusterCustomObject(ctx context.Context, group string, version string, plural string, name string) (interface{},  *http.Response, error) {
+/* CustomObjectsApiService
+Returns a cluster scoped custom object
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param group the custom resource&#39;s group
+@param version the custom resource&#39;s version
+@param plural the custom object&#39;s plural name. For TPRs this would be lowercase plural kind.
+@param name the custom object&#39;s name
+@return interface{}*/
+func (a *CustomObjectsApiService) GetClusterCustomObject(ctx context.Context, group string, version string, plural string, name string) (interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     interface{}
 	)
 
 	// create path and map variables
@@ -459,9 +460,8 @@ func (a *CustomObjectsApiService) GetClusterCustomObject(ctx context.Context, gr
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "*/*",  }
+	localVarHttpContentTypes := []string{"*/*"}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -472,7 +472,7 @@ func (a *CustomObjectsApiService) GetClusterCustomObject(ctx context.Context, gr
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"application/json",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -510,26 +510,25 @@ func (a *CustomObjectsApiService) GetClusterCustomObject(ctx context.Context, gr
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
-/* CustomObjectsApiService 
- Returns a namespace scoped custom object
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param group the custom resource&#39;s group
- @param version the custom resource&#39;s version
- @param namespace The custom resource&#39;s namespace
- @param plural the custom resource&#39;s plural name. For TPRs this would be lowercase plural kind.
- @param name the custom object&#39;s name
- @return interface{}*/
-func (a *CustomObjectsApiService) GetNamespacedCustomObject(ctx context.Context, group string, version string, namespace string, plural string, name string) (interface{},  *http.Response, error) {
+/* CustomObjectsApiService
+Returns a namespace scoped custom object
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param group the custom resource&#39;s group
+@param version the custom resource&#39;s version
+@param namespace The custom resource&#39;s namespace
+@param plural the custom resource&#39;s plural name. For TPRs this would be lowercase plural kind.
+@param name the custom object&#39;s name
+@return interface{}*/
+func (a *CustomObjectsApiService) GetNamespacedCustomObject(ctx context.Context, group string, version string, namespace string, plural string, name string) (interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     interface{}
 	)
 
 	// create path and map variables
@@ -544,9 +543,8 @@ func (a *CustomObjectsApiService) GetNamespacedCustomObject(ctx context.Context,
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "*/*",  }
+	localVarHttpContentTypes := []string{"*/*"}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -557,7 +555,7 @@ func (a *CustomObjectsApiService) GetNamespacedCustomObject(ctx context.Context,
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"application/json",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -595,29 +593,28 @@ func (a *CustomObjectsApiService) GetNamespacedCustomObject(ctx context.Context,
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
-/* CustomObjectsApiService 
- list or watch cluster scoped custom objects
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param group The custom resource&#39;s group name
- @param version The custom resource&#39;s version
- @param plural The custom resource&#39;s plural name. For TPRs this would be lowercase plural kind.
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "pretty" (string) If &#39;true&#39;, then the output is pretty printed.
-     @param "labelSelector" (string) A selector to restrict the list of returned objects by their labels. Defaults to everything.
-     @param "resourceVersion" (string) When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history. When specified for list: - if unset, then the result is returned from remote storage based on quorum-read flag; - if it&#39;s 0, then we simply return what we currently have in cache, no guarantee; - if set to non zero, then the result is at least as fresh as given rv.
-     @param "watch" (bool) Watch for changes to the described resources and return them as a stream of add, update, and remove notifications.
- @return interface{}*/
-func (a *CustomObjectsApiService) ListClusterCustomObject(ctx context.Context, group string, version string, plural string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+/* CustomObjectsApiService
+list or watch cluster scoped custom objects
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param group The custom resource&#39;s group name
+@param version The custom resource&#39;s version
+@param plural The custom resource&#39;s plural name. For TPRs this would be lowercase plural kind.
+@param optional (nil or map[string]interface{}) with one or more of:
+    @param "pretty" (string) If &#39;true&#39;, then the output is pretty printed.
+    @param "labelSelector" (string) A selector to restrict the list of returned objects by their labels. Defaults to everything.
+    @param "resourceVersion" (string) When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history. When specified for list: - if unset, then the result is returned from remote storage based on quorum-read flag; - if it&#39;s 0, then we simply return what we currently have in cache, no guarantee; - if set to non zero, then the result is at least as fresh as given rv.
+    @param "watch" (bool) Watch for changes to the described resources and return them as a stream of add, update, and remove notifications.
+@return interface{}*/
+func (a *CustomObjectsApiService) ListClusterCustomObject(ctx context.Context, group string, version string, plural string, localVarOptionals map[string]interface{}) (interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     interface{}
 	)
 
 	// create path and map variables
@@ -656,7 +653,7 @@ func (a *CustomObjectsApiService) ListClusterCustomObject(ctx context.Context, g
 		localVarQueryParams.Add("watch", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "*/*",  }
+	localVarHttpContentTypes := []string{"*/*"}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -668,7 +665,7 @@ func (a *CustomObjectsApiService) ListClusterCustomObject(ctx context.Context, g
 	localVarHttpHeaderAccepts := []string{
 		"application/json",
 		"application/json;stream=watch",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -706,30 +703,29 @@ func (a *CustomObjectsApiService) ListClusterCustomObject(ctx context.Context, g
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
-/* CustomObjectsApiService 
- list or watch namespace scoped custom objects
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param group The custom resource&#39;s group name
- @param version The custom resource&#39;s version
- @param namespace The custom resource&#39;s namespace
- @param plural The custom resource&#39;s plural name. For TPRs this would be lowercase plural kind.
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "pretty" (string) If &#39;true&#39;, then the output is pretty printed.
-     @param "labelSelector" (string) A selector to restrict the list of returned objects by their labels. Defaults to everything.
-     @param "resourceVersion" (string) When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history. When specified for list: - if unset, then the result is returned from remote storage based on quorum-read flag; - if it&#39;s 0, then we simply return what we currently have in cache, no guarantee; - if set to non zero, then the result is at least as fresh as given rv.
-     @param "watch" (bool) Watch for changes to the described resources and return them as a stream of add, update, and remove notifications.
- @return interface{}*/
-func (a *CustomObjectsApiService) ListNamespacedCustomObject(ctx context.Context, group string, version string, namespace string, plural string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+/* CustomObjectsApiService
+list or watch namespace scoped custom objects
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param group The custom resource&#39;s group name
+@param version The custom resource&#39;s version
+@param namespace The custom resource&#39;s namespace
+@param plural The custom resource&#39;s plural name. For TPRs this would be lowercase plural kind.
+@param optional (nil or map[string]interface{}) with one or more of:
+    @param "pretty" (string) If &#39;true&#39;, then the output is pretty printed.
+    @param "labelSelector" (string) A selector to restrict the list of returned objects by their labels. Defaults to everything.
+    @param "resourceVersion" (string) When specified with a watch call, shows changes that occur after that particular version of a resource. Defaults to changes from the beginning of history. When specified for list: - if unset, then the result is returned from remote storage based on quorum-read flag; - if it&#39;s 0, then we simply return what we currently have in cache, no guarantee; - if set to non zero, then the result is at least as fresh as given rv.
+    @param "watch" (bool) Watch for changes to the described resources and return them as a stream of add, update, and remove notifications.
+@return interface{}*/
+func (a *CustomObjectsApiService) ListNamespacedCustomObject(ctx context.Context, group string, version string, namespace string, plural string, localVarOptionals map[string]interface{}) (interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     interface{}
 	)
 
 	// create path and map variables
@@ -769,7 +765,7 @@ func (a *CustomObjectsApiService) ListNamespacedCustomObject(ctx context.Context
 		localVarQueryParams.Add("watch", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "*/*",  }
+	localVarHttpContentTypes := []string{"*/*"}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -781,7 +777,7 @@ func (a *CustomObjectsApiService) ListNamespacedCustomObject(ctx context.Context
 	localVarHttpHeaderAccepts := []string{
 		"application/json",
 		"application/json;stream=watch",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -819,26 +815,25 @@ func (a *CustomObjectsApiService) ListNamespacedCustomObject(ctx context.Context
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
-/* CustomObjectsApiService 
- patch the specified cluster scoped custom object
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param group the custom resource&#39;s group
- @param version the custom resource&#39;s version
- @param plural the custom object&#39;s plural name. For TPRs this would be lowercase plural kind.
- @param name the custom object&#39;s name
- @param body The JSON schema of the Resource to patch.
- @return interface{}*/
-func (a *CustomObjectsApiService) PatchClusterCustomObject(ctx context.Context, group string, version string, plural string, name string, body interface{}) (interface{},  *http.Response, error) {
+/* CustomObjectsApiService
+patch the specified cluster scoped custom object
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param group the custom resource&#39;s group
+@param version the custom resource&#39;s version
+@param plural the custom object&#39;s plural name. For TPRs this would be lowercase plural kind.
+@param name the custom object&#39;s name
+@param body The JSON schema of the Resource to patch.
+@return interface{}*/
+func (a *CustomObjectsApiService) PatchClusterCustomObject(ctx context.Context, group string, version string, plural string, name string, body interface{}) (interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Patch")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     interface{}
 	)
 
 	// create path and map variables
@@ -852,9 +847,8 @@ func (a *CustomObjectsApiService) PatchClusterCustomObject(ctx context.Context, 
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/merge-patch+json",  }
+	localVarHttpContentTypes := []string{"application/merge-patch+json"}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -865,7 +859,7 @@ func (a *CustomObjectsApiService) PatchClusterCustomObject(ctx context.Context, 
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"application/json",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -905,27 +899,26 @@ func (a *CustomObjectsApiService) PatchClusterCustomObject(ctx context.Context, 
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
-/* CustomObjectsApiService 
- patch the specified namespace scoped custom object
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param group the custom resource&#39;s group
- @param version the custom resource&#39;s version
- @param namespace The custom resource&#39;s namespace
- @param plural the custom resource&#39;s plural name. For TPRs this would be lowercase plural kind.
- @param name the custom object&#39;s name
- @param body The JSON schema of the Resource to patch.
- @return interface{}*/
-func (a *CustomObjectsApiService) PatchNamespacedCustomObject(ctx context.Context, group string, version string, namespace string, plural string, name string, body interface{}) (interface{},  *http.Response, error) {
+/* CustomObjectsApiService
+patch the specified namespace scoped custom object
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param group the custom resource&#39;s group
+@param version the custom resource&#39;s version
+@param namespace The custom resource&#39;s namespace
+@param plural the custom resource&#39;s plural name. For TPRs this would be lowercase plural kind.
+@param name the custom object&#39;s name
+@param body The JSON schema of the Resource to patch.
+@return interface{}*/
+func (a *CustomObjectsApiService) PatchNamespacedCustomObject(ctx context.Context, group string, version string, namespace string, plural string, name string, body interface{}) (interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Patch")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     interface{}
 	)
 
 	// create path and map variables
@@ -940,9 +933,8 @@ func (a *CustomObjectsApiService) PatchNamespacedCustomObject(ctx context.Contex
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/merge-patch+json",  }
+	localVarHttpContentTypes := []string{"application/merge-patch+json"}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -953,7 +945,7 @@ func (a *CustomObjectsApiService) PatchNamespacedCustomObject(ctx context.Contex
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"application/json",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -993,26 +985,25 @@ func (a *CustomObjectsApiService) PatchNamespacedCustomObject(ctx context.Contex
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
-/* CustomObjectsApiService 
- replace the specified cluster scoped custom object
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param group the custom resource&#39;s group
- @param version the custom resource&#39;s version
- @param plural the custom object&#39;s plural name. For TPRs this would be lowercase plural kind.
- @param name the custom object&#39;s name
- @param body The JSON schema of the Resource to replace.
- @return interface{}*/
-func (a *CustomObjectsApiService) ReplaceClusterCustomObject(ctx context.Context, group string, version string, plural string, name string, body interface{}) (interface{},  *http.Response, error) {
+/* CustomObjectsApiService
+replace the specified cluster scoped custom object
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param group the custom resource&#39;s group
+@param version the custom resource&#39;s version
+@param plural the custom object&#39;s plural name. For TPRs this would be lowercase plural kind.
+@param name the custom object&#39;s name
+@param body The JSON schema of the Resource to replace.
+@return interface{}*/
+func (a *CustomObjectsApiService) ReplaceClusterCustomObject(ctx context.Context, group string, version string, plural string, name string, body interface{}) (interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Put")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     interface{}
 	)
 
 	// create path and map variables
@@ -1026,9 +1017,8 @@ func (a *CustomObjectsApiService) ReplaceClusterCustomObject(ctx context.Context
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "*/*",  }
+	localVarHttpContentTypes := []string{"*/*"}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -1039,7 +1029,7 @@ func (a *CustomObjectsApiService) ReplaceClusterCustomObject(ctx context.Context
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"application/json",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -1079,27 +1069,26 @@ func (a *CustomObjectsApiService) ReplaceClusterCustomObject(ctx context.Context
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
 
-/* CustomObjectsApiService 
- replace the specified namespace scoped custom object
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param group the custom resource&#39;s group
- @param version the custom resource&#39;s version
- @param namespace The custom resource&#39;s namespace
- @param plural the custom resource&#39;s plural name. For TPRs this would be lowercase plural kind.
- @param name the custom object&#39;s name
- @param body The JSON schema of the Resource to replace.
- @return interface{}*/
-func (a *CustomObjectsApiService) ReplaceNamespacedCustomObject(ctx context.Context, group string, version string, namespace string, plural string, name string, body interface{}) (interface{},  *http.Response, error) {
+/* CustomObjectsApiService
+replace the specified namespace scoped custom object
+* @param ctx context.Context for authentication, logging, tracing, etc.
+@param group the custom resource&#39;s group
+@param version the custom resource&#39;s version
+@param namespace The custom resource&#39;s namespace
+@param plural the custom resource&#39;s plural name. For TPRs this would be lowercase plural kind.
+@param name the custom object&#39;s name
+@param body The JSON schema of the Resource to replace.
+@return interface{}*/
+func (a *CustomObjectsApiService) ReplaceNamespacedCustomObject(ctx context.Context, group string, version string, namespace string, plural string, name string, body interface{}) (interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Put")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  interface{}
+		localVarPostBody   interface{}
+		localVarFileName   string
+		localVarFileBytes  []byte
+		successPayload     interface{}
 	)
 
 	// create path and map variables
@@ -1114,9 +1103,8 @@ func (a *CustomObjectsApiService) ReplaceNamespacedCustomObject(ctx context.Cont
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "*/*",  }
+	localVarHttpContentTypes := []string{"*/*"}
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -1127,7 +1115,7 @@ func (a *CustomObjectsApiService) ReplaceNamespacedCustomObject(ctx context.Cont
 	// to determine the Accept header
 	localVarHttpHeaderAccepts := []string{
 		"application/json",
-		}
+	}
 
 	// set Accept header
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
@@ -1167,7 +1155,5 @@ func (a *CustomObjectsApiService) ReplaceNamespacedCustomObject(ctx context.Cont
 		return successPayload, localVarHttpResponse, err
 	}
 
-
 	return successPayload, localVarHttpResponse, err
 }
-
