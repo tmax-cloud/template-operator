@@ -30,7 +30,7 @@ type TemplateInstanceSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 	Requester RequesterSpec `json:"requester,omitempty"`
 	Secret    SecretSpec    `json:"secret,omitempty"`
-	Template  TemplateSpec  `json:"template,omitempty"`
+	Template  Template      `json:"template,omitempty"`
 }
 
 type RefSpec struct {
