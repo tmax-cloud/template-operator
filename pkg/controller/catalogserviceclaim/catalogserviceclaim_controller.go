@@ -109,7 +109,7 @@ func (r *ReconcileCatalogServiceClaim) Reconcile(request reconcile.Request) (rec
 
 	switch Event {
 	case "Create": // case 1: wait for admin permission -> pathStatus ( Event == Create)
-		instance.Status.Status = "Success"
+		instance.Status.Status = "Awaiting"
 		instance.Status.Reason = "wait for admin permission"
 
 		if err = r.client.Status().Update(context.TODO(), instance); err != nil {
