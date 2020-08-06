@@ -3,6 +3,7 @@ package v1
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -44,14 +45,14 @@ type SchemaParameters struct {
 	Parameters map[string]string `json:"parameters,omitempty"`
 }
 type ParamSpec struct {
-	Description string `json:"description,omitempty"`
-	DisplayName string `json:"displayName,omitempty"`
-	From        string `json:"from,omitempty"`
-	Generate    string `json:"generate,omitempty"`
-	Name        string `json:"name"`
-	Required    bool   `json:"required,omitempty"`
-	Value       string `json:"value,omitempty"`
-	ValueType   string `json:"valueType,omitempty"`
+	Description string             `json:"description,omitempty"`
+	DisplayName string             `json:"displayName,omitempty"`
+	From        string             `json:"from,omitempty"`
+	Generate    string             `json:"generate,omitempty"`
+	Name        string             `json:"name"`
+	Required    bool               `json:"required,omitempty"`
+	Value       intstr.IntOrString `json:"value,omitempty"`
+	ValueType   string             `json:"valueType,omitempty"`
 }
 
 type LabelSpec struct {
