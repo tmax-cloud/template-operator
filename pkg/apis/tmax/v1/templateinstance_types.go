@@ -7,22 +7,19 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// +kubebuilder:validation:XEmbeddedResource
 // +kubebuilder:validation:XPreserveUnknownFields
 type ExtraSpec struct {
 }
 
 type RequesterSpec struct {
-	Extra             ExtraSpec `json:"extra,omitempty"`
-	Groups            []string  `json:"groups,omitempty"`
-	Uid               string    `json:"uid,omitempty"`
-	Username          string    `json:"username,omitempty"`
-	metav1.ObjectMeta `json:"type,omitempty"`
+	Extra    ExtraSpec `json:"extra,omitempty"`
+	Groups   []string  `json:"groups,omitempty"`
+	Uid      string    `json:"uid,omitempty"`
+	Username string    `json:"username,omitempty"`
 }
 
 type SecretSpec struct {
-	Name              string `json:"name,omitempty"`
-	metav1.ObjectMeta `json:"type,omitempty"`
+	Name string `json:"name,omitempty"`
 }
 
 // +kubebuilder:resource:shortName="ti"
@@ -37,14 +34,13 @@ type TemplateInstanceSpec struct {
 }
 
 type RefSpec struct {
-	ApiVersion        string `json:"apiVersion,omitempty"`
-	FieldPath         string `json:"fieldPath,omitempty"`
-	Kind              string `json:"kind,omitempty"`
-	Name              string `json:"name,omitempty"`
-	Namespace         string `json:"namespace,omitempty"`
-	ResourceVersion   string `json:"resourceVersion,omitempty"`
-	Uid               string `json:"uid,omitempty"`
-	metav1.ObjectMeta `json:"type,omitempty"`
+	ApiVersion      string `json:"apiVersion,omitempty"`
+	FieldPath       string `json:"fieldPath,omitempty"`
+	Kind            string `json:"kind,omitempty"`
+	Name            string `json:"name,omitempty"`
+	Namespace       string `json:"namespace,omitempty"`
+	ResourceVersion string `json:"resourceVersion,omitempty"`
+	Uid             string `json:"uid,omitempty"`
 }
 
 type StatusObjectSpec struct {
@@ -65,9 +61,8 @@ type TemplateInstanceStatus struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
-	Conditions        []ConditionSpec    `json:"conditions,omitempty"`
-	Objects           []StatusObjectSpec `json:"objects,omitempty"`
-	metav1.ObjectMeta `json:"type,omitempty"`
+	Conditions []ConditionSpec    `json:"conditions,omitempty"`
+	Objects    []StatusObjectSpec `json:"objects,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

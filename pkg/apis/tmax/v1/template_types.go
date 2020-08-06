@@ -2,17 +2,11 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
-// +kubebuilder:validation:XPreserveUnknownFields
-// +kubebuilder:validation:XEmbeddedResource
-
-type ObjectSpec struct {
-	Fields metav1.FieldsV1 `json:"fields,omitempty"`
-}
 
 // +kubebuilder:validation:XPreserveUnknownFields
 type PlanSpec struct {
@@ -76,24 +70,21 @@ type TemplateSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	OperatorStartTime   string       `json:"operatorStartTime,omitempty"`
-	ApiVersion          string       `json:"apiVersion,omitempty"`
-	Kind                string       `json:"kind,omitempty"`
-	Labels              LabelSpec    `json:"labels,omitempty"`
-	Message             string       `json:"message,omitempty"`
-	ShortDescription    string       `json:"shortDescription,omitempty"`
-	LongDescription     string       `json:"LongDescription,omitempty"`
-	UrlDescription      string       `json:"UrlDescription,omitempty"`
-	MarkDownDescription string       `json:"markDownDescription,omitempty"`
-	Provider            string       `json:"provider,omitempty"`
-	ImageUrl            string       `json:"imageUrl,omitempty"`
-	Recommand           bool         `json:"recommend,omitempty"`
-	Tags                []string     `json:"tags,omitempty"`
-	ObjectKinds         []string     `json:"objectKinds,omitempty"`
-	Metadata            MetadataSpec `json:"metadata,omitempty"`
-	Objects             []ObjectSpec `json:"objects,omitempty"`
-	Plans               []PlanSpec   `json:"plans,omitempty"`
-	Parameters          []ParamSpec  `json:"parameters"`
+	OperatorStartTime   string                 `json:"operatorStartTime,omitempty"`
+	Labels              map[string]string      `json:"labels,omitempty"`
+	Message             string                 `json:"message,omitempty"`
+	ShortDescription    string                 `json:"shortDescription,omitempty"`
+	LongDescription     string                 `json:"LongDescription,omitempty"`
+	UrlDescription      string                 `json:"UrlDescription,omitempty"`
+	MarkDownDescription string                 `json:"markdownDescription,omitempty"`
+	Provider            string                 `json:"provider,omitempty"`
+	ImageUrl            string                 `json:"imageUrl,omitempty"`
+	Recommand           bool                   `json:"recommend,omitempty"`
+	Tags                []string               `json:"tags,omitempty"`
+	ObjectKinds         []string               `json:"objectKinds,omitempty"`
+	Objects             []runtime.RawExtension `json:"objects,omitempty"`
+	Plans               []PlanSpec             `json:"plans,omitempty"`
+	Parameters          []ParamSpec            `json:"parameters"`
 }
 
 // TemplateStatus defines the observed state of Template
@@ -111,7 +102,7 @@ type TemplateStatus struct {
 type Template struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              TemplateSpec `json:"spec,omitempty"`
+	TemplateSpec      `json:",inline,omitempty"`
 	// Status TemplateStatus `json:"status,omitempty"`
 }
 
