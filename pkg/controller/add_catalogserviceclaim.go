@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"hypercloud-operator/pkg/controller/catalogserviceclaim"
+	"github.com/youngind/hypercloud-operator/pkg/controller/catalogserviceclaim"
 )
 
 func init() {
