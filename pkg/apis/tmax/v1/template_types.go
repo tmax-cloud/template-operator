@@ -11,16 +11,27 @@ import (
 
 // +kubebuilder:validation:XPreserveUnknownFields
 type PlanSpec struct {
-	Id                     string            `json:"id"`
-	Name                   string            `json:"name"`
-	Description            string            `json:"description,omitempty"`
-	Metadata               map[string]string `json:"metadata,omitempty"`
-	Free                   bool              `json:"free,omitempty"`
-	Bindable               bool              `json:"bindable,omitempty"`
-	PlanUpdateable         bool              `json:"plan_updateable"`
-	Schemas                Schemas           `json:"schemas,omitempty"`
-	MaximumPollingDuration int               `json:"maximum_polling_duration,omitempty"`
-	MaintenanceInfo        MaintenanceInfo   `json:"maintenance_info,omitempty"`
+	Id                     string          `json:"id"`
+	Name                   string          `json:"name"`
+	Description            string          `json:"description,omitempty"`
+	Metadata               PlanMetadata    `json:"metadata,omitempty"`
+	Free                   bool            `json:"free,omitempty"`
+	Bindable               bool            `json:"bindable,omitempty"`
+	PlanUpdateable         bool            `json:"plan_updateable"`
+	Schemas                Schemas         `json:"schemas,omitempty"`
+	MaximumPollingDuration int             `json:"maximum_polling_duration,omitempty"`
+	MaintenanceInfo        MaintenanceInfo `json:"maintenance_info,omitempty"`
+}
+
+type PlanMetadata struct {
+	Bullets     []string `json:"bullets,omitempty"`
+	Costs       Cost     `json:"costs,omitempty"`
+	DisplayName string   `json:"displayName,omitempty"`
+}
+
+type Cost struct {
+	Amount map[string]int32 `json:"amount"`
+	Unit   string           `json:"unit"`
 }
 
 type MaintenanceInfo struct {

@@ -104,8 +104,26 @@ spec:
               maximum_polling_duration:
                 type: integer
               metadata:
-                additionalProperties:
-                  type: string
+                properties:
+                  bullets:
+                    items:
+                      type: string
+                    type: array
+                  costs:
+                    properties:
+                      amount:
+                        additionalProperties:
+                          format: int32
+                          type: integer
+                        type: object
+                      unit:
+                        type: string
+                    required:
+                    - amount
+                    - unit
+                    type: object
+                  displayName:
+                    type: string
                 type: object
               name:
                 type: string
