@@ -11,9 +11,9 @@ import (
 
 // +kubebuilder:validation:XPreserveUnknownFields
 type PlanSpec struct {
-	Id                     string          `json:"id,omitempty"`
-	Name                   string          `json:"name,omitempty"`
-	Description            string          `json:"description,omitempty"`
+	Id                     string          `json:"id"`
+	Name                   string          `json:"name"`
+	Description            string          `json:"description"`
 	Metadata               PlanMetadata    `json:"metadata,omitempty"`
 	Free                   bool            `json:"free,omitempty"`
 	Bindable               bool            `json:"bindable,omitempty"`
