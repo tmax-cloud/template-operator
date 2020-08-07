@@ -154,18 +154,20 @@ spec:
                               type: string
                             type: array
                           costs:
-                            properties:
-                              amount:
-                                additionalProperties:
-                                  format: int32
-                                  type: integer
-                                type: object
-                              unit:
-                                type: string
-                            required:
-                            - amount
-                            - unit
-                            type: object
+                            items:
+                              properties:
+                                amount:
+                                  additionalProperties:
+                                    format: int32
+                                    type: integer
+                                  type: object
+                                unit:
+                                  type: string
+                              required:
+                              - amount
+                              - unit
+                              type: object
+                            type: array
                           displayName:
                             type: string
                         type: object
@@ -203,10 +205,6 @@ spec:
                                 type: object
                             type: object
                         type: object
-                    required:
-                    - id
-                    - name
-                    - plan_updateable
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   type: array

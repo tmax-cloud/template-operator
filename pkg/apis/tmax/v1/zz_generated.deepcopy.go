@@ -278,7 +278,13 @@ func (in *PlanMetadata) DeepCopyInto(out *PlanMetadata) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
-	in.Costs.DeepCopyInto(&out.Costs)
+	if in.Costs != nil {
+		in, out := &in.Costs, &out.Costs
+		*out = make([]Cost, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	return
 }
 
