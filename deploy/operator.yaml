@@ -16,7 +16,7 @@ spec:
       containers:
         - name: hypercloud-operator
           # Replace this with the built image name
-          image: REPLACE_IMAGE
+          image: 172.22.11.2:30500/template-operator:latest
           command:
           - hypercloud-operator
           imagePullPolicy: Always
