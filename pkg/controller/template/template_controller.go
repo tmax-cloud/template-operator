@@ -2,12 +2,12 @@ package template
 
 import (
 	"context"
-	"encoding/json"
-
-	tmaxv1 "github.com/youngind/hypercloud-operator/pkg/apis/tmax/v1"
-
+	"fmt"
+	tmaxv1 "github.com/jwkim1993/hypercloud-operator/pkg/apis/tmax/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/conversion"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -16,11 +16,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-
-	crdapi "github.com/kubernetes-client/go/kubernetes/client"
-	"github.com/kubernetes-client/go/kubernetes/config"
-
-	"github.com/tidwall/gjson"
 )
 
 var log = logf.Log.WithName("controller_template")
@@ -104,46 +99,34 @@ func (r *ReconcileTemplate) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, err
 	}
 
-	// types.go에서 struct의 type을 map[]interface{}, interface{}가 제공이 안된다.
-	// 임시로 objects, plans field에 Fields metav1.FieldsV1 `json:"fields,omitempty"` 라는 값 추가해서 사용
-	// CRD generation : map values must be a named type, not *ast.StarExpr #2485
-	// map values must be a named type #287
-
-	// controller에서 struct를 정의 하지 않고 들어간 정보들을 가져오면 null값을 가져와서 임시 customObjectApi 사용
-	// ex) template_types.go를 보면 objects, plans field가 interface처럼 사용되는데,
-	// tempalte cr을 만들때 위의 field에 값을 채워너도 controller에서는 null로 받아들임...
-
-	templateNameSpace := request.Namespace
-	templateName := request.Name
-
-	c, err := config.LoadKubeConfig()
-	if err != nil {
-		return reconcile.Result{}, err
-	}
-	clientset := crdapi.NewAPIClient(c)
-
-	cr, _, err := clientset.CustomObjectsApi.GetNamespacedCustomObject(context.Background(), "tmax.io", "v1", templateNameSpace, "templates", templateName)
-	if err != nil {
-		panic("===[ Template Error ] : " + err.Error())
-	}
-
-	// map[string]interface{} to []byte
-	convert, err := json.Marshal(cr)
-	if err != nil {
-		panic("===[ Marshal Error ] : " + err.Error())
+	// if ObjectKinds already set,
+	if instance.ObjectKinds != nil || len(instance.ObjectKinds) > 0 {
+		return reconcile.Result{}, nil
 	}
 
 	// add kind to objectKinds fields
-	var objectKinds []string
-	result := gjson.Get(string(convert), "spec.objects.#.fields.kind")
-	for _, kind := range result.Array() {
-		if len(kind.String()) != 0 {
-			objectKinds = append(objectKinds, kind.String())
+	objectKinds := make([]string, 0)
+	for _, obj := range instance.Objects {
+		var in runtime.Object
+		var scope conversion.Scope // While not actually used within the function, need to pass in
+		if err = runtime.Convert_runtime_RawExtension_To_runtime_Object(&obj, &in, scope); err != nil {
+			reqLogger.Error(err, "cannot decode object")
+			return reconcile.Result{}, err
 		}
-	}
 
-	// update
-	instance.Spec.ObjectKinds = objectKinds
+		unstrObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(in)
+		if err != nil {
+			reqLogger.Error(err, "cannot decode object")
+			return reconcile.Result{}, err
+		}
+
+		unstr := unstructured.Unstructured{Object: unstrObj}
+		reqLogger.Info(fmt.Sprintf("kind: %s", unstr.GetKind()))
+		objectKinds = append(objectKinds, unstr.GetKind())
+	}
+	instance.ObjectKinds = objectKinds
+	reqLogger.Info(fmt.Sprintf("%v", objectKinds))
+
 	if err = r.client.Update(context.TODO(), instance); err != nil {
 		return reconcile.Result{}, err
 	}
