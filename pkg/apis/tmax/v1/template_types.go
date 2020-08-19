@@ -25,7 +25,7 @@ type PlanSpec struct {
 
 type PlanMetadata struct {
 	Bullets     []string `json:"bullets,omitempty"`
-	Costs       []Cost     `json:"costs,omitempty"`
+	Costs       []Cost   `json:"costs,omitempty"`
 	DisplayName string   `json:"displayName,omitempty"`
 }
 
@@ -86,12 +86,12 @@ type TemplateSpec struct {
 	Labels              map[string]string      `json:"labels,omitempty"`
 	Message             string                 `json:"message,omitempty"`
 	ShortDescription    string                 `json:"shortDescription,omitempty"`
-	LongDescription     string                 `json:"LongDescription,omitempty"`
-	UrlDescription      string                 `json:"UrlDescription,omitempty"`
+	LongDescription     string                 `json:"longDescription,omitempty"`
+	UrlDescription      string                 `json:"urlDescription,omitempty"`
 	MarkDownDescription string                 `json:"markdownDescription,omitempty"`
 	Provider            string                 `json:"provider,omitempty"`
 	ImageUrl            string                 `json:"imageUrl,omitempty"`
-	Recommand           bool                   `json:"recommend,omitempty"`
+	Recommend           bool                   `json:"recommend,omitempty"`
 	Tags                []string               `json:"tags,omitempty"`
 	ObjectKinds         []string               `json:"objectKinds,omitempty"`
 	Objects             []runtime.RawExtension `json:"objects,omitempty"`
