@@ -57,10 +57,6 @@ spec:
             template:
               description: Template is the Schema for the templates API
               properties:
-                LongDescription:
-                  type: string
-                UrlDescription:
-                  type: string
                 apiVersion:
                   description: 'APIVersion defines the versioned schema of this representation
                     of an object. Servers should convert recognized schemas to the
@@ -79,6 +75,8 @@ spec:
                   additionalProperties:
                     type: string
                   type: object
+                longDescription:
+                  type: string
                 markdownDescription:
                   type: string
                 message:
@@ -222,6 +220,8 @@ spec:
                   items:
                     type: string
                   type: array
+                urlDescription:
+                  type: string
               required:
               - parameters
               type: object
