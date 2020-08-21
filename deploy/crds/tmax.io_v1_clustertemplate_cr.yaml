@@ -1,0 +1,7 @@
+apiVersion: tmax.io/v1
+kind: ClusterTemplate
+metadata:
+  name: example-clustertemplate
+spec:
+  # Add fields here
+  size: 3
