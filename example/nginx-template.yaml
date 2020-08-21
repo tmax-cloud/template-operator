@@ -1,0 +1,111 @@
+apiVersion: tmax.io/v1
+imageUrl: example.com/example.gif
+kind: Template
+metadata:
+  name: nginx-template
+objects:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    labels:
+      app: ${NAME}
+    name: ${NAME}
+  spec:
+    selector:
+      matchLabels:
+        app: ${NAME}
+    template:
+      metadata:
+        labels:
+          app: ${NAME}
+      spec:
+        containers:
+        - image: ${IMAGE}
+          name: ${NAME}
+          ports:
+          - containerPort: 80
+            name: http
+          resources:
+            requests:
+              cpu: 1
+        tolerations:
+        - effect: NoExecute
+          key: node.kubernetes.io/not-ready
+          tolerationSeconds: 10
+        - effect: NoExecute
+          key: node.kubernetes.io/unreachable
+          tolerationSeconds: 10
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${NAME}
+  spec:
+    ports:
+    - name: http
+      port: 81
+      protocol: TCP
+      targetPort: 80
+    selector:
+      app: ${NAME}
+    type: LoadBalancer
+- apiVersion: v1
+  data:
+    host: ZHVtbXk=
+  kind: Secret
+  metadata:
+    name: ${NAME}
+parameters:
+- description: Application name
+  name: NAME
+  value: nginx
+  valueType: string
+- description: Application Docker Image
+  name: IMAGE
+  value: nginx
+  valueType: string
+plans:
+- bindable: true
+  description: example
+  free: false
+  id: example-plan1
+  metadata:
+    bullets:
+    - feat 1
+    - feat 2
+    costs:
+    - amount:
+        usd: 649
+      unit: MONTHLY
+  name: example-plan1
+  plan_updateable: false
+  schemas:
+    service_instance:
+      create:
+        parameters:
+          IMAGE: nginx:1
+          NAME: nginx1
+- bindable: true
+  description: example
+  free: false
+  id: example-plan2
+  metadata:
+    bullets:
+    - feat 1
+    - feat 2
+    costs:
+    - amount:
+        usd: 649
+      unit: MONTHLY
+  name: example-plan2
+  plan_updateable: false
+  schemas:
+    service_instance:
+      create:
+        parameters:
+          IMAGE: nginx:1
+          NAME: nginx2
+provider: tmax
+recommend: true
+tags:
+- nginx
+urlDescription: http://url.example.com
