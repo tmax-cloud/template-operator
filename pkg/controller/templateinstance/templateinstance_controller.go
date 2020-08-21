@@ -7,6 +7,7 @@ import (
 	tmaxv1 "github.com/jwkim1993/hypercloud-operator/pkg/apis/tmax/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"strings"
@@ -103,6 +104,12 @@ func (r *ReconcileTemplateInstance) Reconcile(request reconcile.Request) (reconc
 		return reconcile.Result{}, err
 	}
 
+	// if status field is not nil, end reconcile
+	if len(instance.Status.Conditions) != 0 {
+		reqLogger.Info("already handled instance")
+		return reconcile.Result{}, nil
+	}
+
 	// Get the template it refers
 	refTemplate := &tmaxv1.Template{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{
@@ -111,7 +118,7 @@ func (r *ReconcileTemplateInstance) Reconcile(request reconcile.Request) (reconc
 	}, refTemplate)
 	if err != nil {
 		reqLogger.Error(err, "template not found")
-		return reconcile.Result{}, err
+		return r.updateTemplateInstanceStatus(instance, err)
 	}
 
 	// make parameter map
@@ -123,24 +130,18 @@ func (r *ReconcileTemplateInstance) Reconcile(request reconcile.Request) (reconc
 	for i := range refTemplate.Objects {
 		if err = r.replaceParamsWithValue(&(refTemplate.Objects[i]), &params); err != nil {
 			reqLogger.Error(err, "error occurs while replacing parameters")
-			return reconcile.Result{}, err
+			return r.updateTemplateInstanceStatus(instance, err)
 		}
 
-		if err = r.createK8sObject(&(refTemplate.Objects[i]), instance); err != nil {
+		if err = r.createK8sObject(&(refTemplate.Objects[i]), instance); err != nil && !errors.IsAlreadyExists(err) {
 			reqLogger.Error(err, "error occurs while create k8s object")
-			return reconcile.Result{}, err
+			return r.updateTemplateInstanceStatus(instance, err)
 		}
 	}
 
 	// finally, update template instance
 	instance.Spec.Template = *refTemplate
-	if err = r.client.Update(context.TODO(), instance); err != nil {
-		reqLogger.Error(err, "error occurs while update template instance")
-		return reconcile.Result{}, err
-	}
-
-	reqLogger.Info("succeed to create all resources")
-	return reconcile.Result{}, nil
+	return r.updateTemplateInstanceStatus(instance, nil)
 }
 
 func (r *ReconcileTemplateInstance) replaceParamsWithValue(obj *runtime.RawExtension, params *map[string]intstr.IntOrString) error {
@@ -169,6 +170,17 @@ func (r *ReconcileTemplateInstance) createK8sObject(obj *runtime.RawExtension, o
 		unstr.SetNamespace(owner.Namespace)
 	}
 
+	// check if the object already exist
+	check := unstr.DeepCopy()
+	if err = r.client.Get(context.TODO(), types.NamespacedName{
+		Namespace: check.GetNamespace(),
+		Name:      check.GetName(),
+	}, check); err == nil {
+		return errors.NewAlreadyExists(schema.GroupResource{
+			Group:    check.GroupVersionKind().Group,
+			Resource: check.GetKind()}, "resource already exist")
+	}
+
 	// set owner reference
 	isController := true
 	blockOwnerDeletion := true
@@ -190,4 +202,32 @@ func (r *ReconcileTemplateInstance) createK8sObject(obj *runtime.RawExtension, o
 	}
 
 	return nil
+}
+
+func (r *ReconcileTemplateInstance) updateTemplateInstanceStatus(instance *tmaxv1.TemplateInstance, err error) (reconcile.Result, error) {
+
+	// set condition depending on the error
+	var cond tmaxv1.ConditionSpec
+	if err == nil {
+		cond.Message = "succeed to create instances"
+		cond.Status = "Success"
+	} else {
+		cond.Message = err.Error()
+		cond.Reason = "error occurs while create instance"
+		cond.Status = "Error"
+	}
+
+	// set status
+	instance.Status = tmaxv1.TemplateInstanceStatus{
+		Conditions: []tmaxv1.ConditionSpec{
+			cond,
+		},
+		Objects: nil,
+	}
+
+	if errUp := r.client.Update(context.TODO(), instance); errUp != nil {
+		return reconcile.Result{}, errUp
+	}
+
+	return reconcile.Result{}, err
 }
