@@ -140,8 +140,13 @@ func (r *ReconcileTemplateInstance) Reconcile(request reconcile.Request) (reconc
 	}
 
 	// finally, update template instance
-	instance.Spec.Template = *refTemplate
-	return r.updateTemplateInstanceStatus(instance, nil)
+	instanceWithTemplate := instance.DeepCopy()
+	instanceWithTemplate.Spec.Template = *refTemplate
+	if err = r.client.Patch(context.TODO(), instanceWithTemplate, client.MergeFrom(instance)); err != nil {
+		reqLogger.Error(err, "could not update template instance")
+		return r.updateTemplateInstanceStatus(instance, err)
+	}
+	return r.updateTemplateInstanceStatus(instanceWithTemplate, nil)
 }
 
 func (r *ReconcileTemplateInstance) replaceParamsWithValue(obj *runtime.RawExtension, params *map[string]intstr.IntOrString) error {
@@ -205,8 +210,10 @@ func (r *ReconcileTemplateInstance) createK8sObject(obj *runtime.RawExtension, o
 }
 
 func (r *ReconcileTemplateInstance) updateTemplateInstanceStatus(instance *tmaxv1.TemplateInstance, err error) (reconcile.Result, error) {
-
+	reqLogger := log.WithName("update template instance status")
 	// set condition depending on the error
+	instanceWithStatus := instance.DeepCopy()
+
 	var cond tmaxv1.ConditionSpec
 	if err == nil {
 		cond.Message = "succeed to create instances"
@@ -218,16 +225,18 @@ func (r *ReconcileTemplateInstance) updateTemplateInstanceStatus(instance *tmaxv
 	}
 
 	// set status
-	instance.Status = tmaxv1.TemplateInstanceStatus{
+	instanceWithStatus.Status = tmaxv1.TemplateInstanceStatus{
 		Conditions: []tmaxv1.ConditionSpec{
 			cond,
 		},
 		Objects: nil,
 	}
 
-	if errUp := r.client.Update(context.TODO(), instance); errUp != nil {
+	if errUp := r.client.Status().Patch(context.TODO(), instanceWithStatus, client.MergeFrom(instance)); errUp != nil {
+		reqLogger.Error(errUp, "could not update template instance")
 		return reconcile.Result{}, errUp
 	}
 
+	reqLogger.Info("succeed to create template instance status")
 	return reconcile.Result{}, err
 }
