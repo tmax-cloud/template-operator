@@ -6,6 +6,7 @@ import (
 	"github.com/jwkim1993/hypercloud-operator/internal"
 	tmaxv1 "github.com/jwkim1993/hypercloud-operator/pkg/apis/tmax/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"strings"
@@ -105,7 +106,7 @@ func (r *ReconcileTemplateInstance) Reconcile(request reconcile.Request) (reconc
 	// Get the template it refers
 	refTemplate := &tmaxv1.Template{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{
-		Namespace: request.Namespace,
+		Namespace: instance.Namespace,
 		Name:      instance.Spec.Template.Name,
 	}, refTemplate)
 	if err != nil {
@@ -125,7 +126,7 @@ func (r *ReconcileTemplateInstance) Reconcile(request reconcile.Request) (reconc
 			return reconcile.Result{}, err
 		}
 
-		if err = r.createK8sObject(&(refTemplate.Objects[i]), refTemplate.Namespace); err != nil {
+		if err = r.createK8sObject(&(refTemplate.Objects[i]), instance); err != nil {
 			reqLogger.Error(err, "error occurs while create k8s object")
 			return reconcile.Result{}, err
 		}
@@ -156,7 +157,7 @@ func (r *ReconcileTemplateInstance) replaceParamsWithValue(obj *runtime.RawExten
 	return nil
 }
 
-func (r *ReconcileTemplateInstance) createK8sObject(obj *runtime.RawExtension, ns string) error {
+func (r *ReconcileTemplateInstance) createK8sObject(obj *runtime.RawExtension, owner *tmaxv1.TemplateInstance) error {
 	// get unstructured object
 	unstr, err := internal.BytesToUnstructuredObject(obj)
 	if err != nil {
@@ -165,8 +166,23 @@ func (r *ReconcileTemplateInstance) createK8sObject(obj *runtime.RawExtension, n
 
 	// set namespace if not exist
 	if len(unstr.GetNamespace()) == 0 {
-		unstr.SetNamespace(ns)
+		unstr.SetNamespace(owner.Namespace)
 	}
+
+	// set owner reference
+	isController := true
+	blockOwnerDeletion := true
+	ownerRef := []v1.OwnerReference{
+		{
+			APIVersion:         owner.APIVersion,
+			Kind:               owner.Kind,
+			Name:               owner.Name,
+			UID:                owner.UID,
+			Controller:         &isController,
+			BlockOwnerDeletion: &blockOwnerDeletion,
+		},
+	}
+	unstr.SetOwnerReferences(ownerRef)
 
 	// create object
 	if err = r.client.Create(context.TODO(), unstr); err != nil {
