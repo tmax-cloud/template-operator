@@ -1,124 +1,13 @@
 apiVersion: tmax.io/v1
 kind: TemplateInstance
 metadata:
-  name: nginx-template.example-plan1.test-provision-1
+  name: nginx-template-instance
 spec:
   template:
-    imageUrl: example.com/example.gif
     metadata:
       name: nginx-template
-    objectKinds:
-    - Deployment
-    - Service
-    - Secret
-    objects:
-    - apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        labels:
-          app: ${NAME}
-        name: ${NAME}
-      spec:
-        selector:
-          matchLabels:
-            app: ${NAME}
-        template:
-          metadata:
-            labels:
-              app: ${NAME}
-          spec:
-            containers:
-            - image: ${IMAGE}
-              name: ${NAME}
-              ports:
-              - containerPort: 80
-                name: http
-              resources:
-                requests:
-                  cpu: 1
-            tolerations:
-            - effect: NoExecute
-              key: node.kubernetes.io/not-ready
-              tolerationSeconds: 10
-            - effect: NoExecute
-              key: node.kubernetes.io/unreachable
-              tolerationSeconds: 10
-    - apiVersion: v1
-      kind: Service
-      metadata:
-        name: ${NAME}
-      spec:
-        ports:
-        - name: http
-          port: 81
-          protocol: TCP
-          targetPort: 80
-        selector:
-          app: ${NAME}
-        type: LoadBalancer
-    - apiVersion: v1
-      data:
-        host: ZHVtbXk=
-      kind: Secret
-      metadata:
-        name: ${NAME}
     parameters:
-    - description: Application name
-      name: NAME
-      value: test-provision
-      valueType: string
-    - description: Application Docker Image
-      name: IMAGE
+    - name: NAME
+      value: nginx
+    - name: IMAGE
       value: nginx:1
-      valueType: string
-    plans:
-    - bindable: true
-      description: example
-      id: example-plan1
-      maintenance_info:
-        version: ""
-      metadata:
-        bullets:
-        - feat 1
-        - feat 2
-        costs:
-        - amount:
-            usd: 649
-          unit: MONTHLY
-      name: example-plan1
-      schemas:
-        service_binding:
-          create: {}
-        service_instance:
-          create:
-            parameters:
-              IMAGE: nginx:1
-              NAME: nginx1
-          update: {}
-    - bindable: true
-      description: example
-      id: example-plan2
-      maintenance_info:
-        version: ""
-      metadata:
-        bullets:
-        - feat 1
-        - feat 2
-        costs:
-        - amount:
-            usd: 649
-          unit: MONTHLY
-      name: example-plan2
-      schemas:
-        service_binding:
-          create: {}
-        service_instance:
-          create:
-            parameters:
-              IMAGE: nginx:1
-              NAME: nginx2
-          update: {}
-    provider: tmax
-    recommend: true
-    tags:
-    - nginx
