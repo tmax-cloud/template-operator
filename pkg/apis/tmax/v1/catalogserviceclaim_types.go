@@ -7,54 +7,24 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-type CatalogServiceClaimSpec struct {
-	ApiVersion          string        `json:"apiVersion"`
-	Kind                string        `json:"kind"`
-	Labels              LabelSpec     `json:"labels,omitempty"`
-	ShortDescription    string        `json:"shortDescription,omitempty"`
-	LongDescription     string        `json:"longDescription,omitempty"`
-	UrlDescription      string        `json:"urlDescription,omitempty"`
-	MarkdownDescription string        `json:"markdownDescription,omitempty"`
-	Provider            string        `json:"provider,omitempty"`
-	ImageUrl            string        `json:"imageUrl,omitempty"`
-	Recommend           bool          `json:"recommend,omitempty"`
-	Tags                []string      `json:"tags,omitempty"`
-	Metadata            MetadataSpec  `json:"metadata"`
-	Objects             []ObjectsSpec `json:"objects"`
-	Plans               []PlanSpec    `json:"plans,omitempty"`
-	Parameters          []ParamSpec   `json:"parameters"`
-}
-
 type CatalogServiceClaimStatus struct {
-	// +kubebuilder:validation:Format:=date-time
-	LastTransitionTime string `json:"lastTransitionTime,omitempty"`
-	Message            string `json:"message,omitempty"`
-	Reason             string `json:"reason,omitempty"`
+	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
+	Message            string      `json:"message,omitempty"`
+	Reason             string      `json:"reason,omitempty"`
 	// +kubebuilder:validation:Enum:=Awaiting;Success;Reject;Error
 	Status string `json:"status,omitempty"`
-}
-
-// +kubebuilder:validation:XPreserveUnknownFields
-
-type ObjectsSpec struct {
-	Fields metav1.FieldsV1 `json:"fields,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // CatalogServiceClaim is the Schema for the catalogserviceclaims API
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:path=catalogserviceclaims,scope=Namespaced
+// +kubebuilder:resource:path=catalogserviceclaims,scope=Cluster,shortName=csc
 type CatalogServiceClaim struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
 
-	OperatorStartTime string    `json:"operatorStartTime,omitempty"`
-	ApiVersion        string    `json:"apiVersion"`
-	Kind              string    `json:"kind"`
-	Labels            LabelSpec `json:"labels,omitempty"`
-
-	Spec   CatalogServiceClaimSpec   `json:"spec"`
+	Spec   ClusterTemplate           `json:"spec"`
 	Status CatalogServiceClaimStatus `json:"status,omitempty"`
 }
 
