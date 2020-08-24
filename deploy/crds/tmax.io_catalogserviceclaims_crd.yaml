@@ -8,8 +8,10 @@ spec:
     kind: CatalogServiceClaim
     listKind: CatalogServiceClaimList
     plural: catalogserviceclaims
+    shortNames:
+    - csc
     singular: catalogserviceclaim
-  scope: Namespaced
+  scope: Cluster
   subresources:
     status: {}
   validation:
@@ -18,64 +20,59 @@ spec:
         API
       properties:
         apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
-        labels:
-          properties:
-            additionalProperties:
-              type: string
-          type: object
         metadata:
           type: object
-        operatorStartTime:
-          type: string
         spec:
+          description: ClusterTemplate is the Schema for the clustertemplates API
           properties:
             apiVersion:
+              description: 'APIVersion defines the versioned schema of this representation
+                of an object. Servers should convert recognized schemas to the latest
+                internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
               type: string
             imageUrl:
               type: string
             kind:
+              description: 'Kind is a string value representing the REST resource
+                this object represents. Servers may infer this from the endpoint the
+                client submits requests to. Cannot be updated. In CamelCase. More
+                info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
               type: string
             labels:
-              properties:
-                additionalProperties:
-                  type: string
+              additionalProperties:
+                type: string
               type: object
             longDescription:
               type: string
             markdownDescription:
               type: string
+            message:
+              type: string
             metadata:
-              properties:
-                generateName:
-                  type: string
-                name:
-                  type: string
-                type:
-                  type: object
               type: object
+            objectKinds:
+              items:
+                type: string
+              type: array
             objects:
               items:
-                properties:
-                  fields:
-                    description: "FieldsV1 stores a set of fields in a data structure
-                      like a Trie, in JSON format. \n Each key is either a '.' representing
-                      the field itself, and will always map to an empty set, or a
-                      string representing a sub-field or item. The string will follow
-                      one of these four formats: 'f:<name>', where <name> is the name
-                      of a field in a struct, or key in a map 'v:<value>', where <value>
-                      is the exact json formatted value of a list item 'i:<index>',
-                      where <index> is position of a item in a list 'k:<keys>', where
-                      <keys> is a map of  a list item's key fields to their unique
-                      values If a key maps to an empty Fields value, the field that
-                      key represents is part of the set. \n The exact format is defined
-                      in sigs.k8s.io/structured-merge-diff"
-                    type: object
                 type: object
-                x-kubernetes-preserve-unknown-fields: true
               type: array
+            operatorStartTime:
+              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                Important: Run "operator-sdk generate k8s" to regenerate code after
+                modifying this file Add custom validation using kubebuilder tags:
+                https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+              type: string
             parameters:
               items:
                 properties:
@@ -202,10 +199,6 @@ spec:
             urlDescription:
               type: string
           required:
-          - apiVersion
-          - kind
-          - metadata
-          - objects
           - parameters
           type: object
         status:
@@ -226,8 +219,6 @@ spec:
               type: string
           type: object
       required:
-      - apiVersion
-      - kind
       - metadata
       - spec
       type: object
