@@ -559,6 +559,7 @@ func (in *TemplateInstanceSpec) DeepCopyInto(out *TemplateInstanceSpec) {
 	in.Requester.DeepCopyInto(&out.Requester)
 	out.Secret = in.Secret
 	in.Template.DeepCopyInto(&out.Template)
+	in.ClusterTemplate.DeepCopyInto(&out.ClusterTemplate)
 	return
 }
 
