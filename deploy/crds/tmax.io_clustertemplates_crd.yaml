@@ -178,8 +178,6 @@ spec:
           type: array
         urlDescription:
           type: string
-      required:
-      - parameters
       type: object
   version: v1
   versions:

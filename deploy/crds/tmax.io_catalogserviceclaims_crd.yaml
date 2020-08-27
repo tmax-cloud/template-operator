@@ -198,8 +198,6 @@ spec:
               type: array
             urlDescription:
               type: string
-          required:
-          - parameters
           type: object
         status:
           properties:

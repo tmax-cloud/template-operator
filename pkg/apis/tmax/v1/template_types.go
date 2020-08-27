@@ -96,7 +96,7 @@ type TemplateSpec struct {
 	ObjectKinds         []string               `json:"objectKinds,omitempty"`
 	Objects             []runtime.RawExtension `json:"objects,omitempty"`
 	Plans               []PlanSpec             `json:"plans,omitempty"`
-	Parameters          []ParamSpec            `json:"parameters"`
+	Parameters          []ParamSpec            `json:"parameters,omitempty"`
 }
 
 // TemplateStatus defines the observed state of Template
