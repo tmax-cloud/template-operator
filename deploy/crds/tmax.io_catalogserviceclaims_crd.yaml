@@ -214,6 +214,7 @@ spec:
               enum:
               - Awaiting
               - Success
+              - Approve
               - Reject
               - Error
               type: string
