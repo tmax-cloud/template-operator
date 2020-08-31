@@ -142,6 +142,7 @@ func (r *ReconcileTemplateInstance) Reconcile(request reconcile.Request) (reconc
 	// finally, update template instance
 	instanceWithTemplate := instance.DeepCopy()
 	instanceWithTemplate.Spec.Template = *refTemplate
+	instanceWithTemplate.Spec.Template.Parameters = instance.Spec.Template.Parameters // keep original params
 	if err = r.client.Patch(context.TODO(), instanceWithTemplate, client.MergeFrom(instance)); err != nil {
 		reqLogger.Error(err, "could not update template instance")
 		return r.updateTemplateInstanceStatus(instance, err)
