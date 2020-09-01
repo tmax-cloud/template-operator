@@ -2,6 +2,10 @@ package catalogserviceclaim
 
 import (
 	"context"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
+	"time"
 
 	tmaxv1 "github.com/jwkim1993/hypercloud-operator/pkg/apis/tmax/v1"
 
@@ -15,9 +19,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-
-	crdapi "github.com/kubernetes-client/go/kubernetes/client"
-	"github.com/kubernetes-client/go/kubernetes/config"
 )
 
 var log = logf.Log.WithName("controller_catalogserviceclaim")
@@ -101,86 +102,86 @@ func (r *ReconcileCatalogServiceClaim) Reconcile(request reconcile.Request) (rec
 		return reconcile.Result{}, err
 	}
 
-	Event := request.Event
-	claimName := request.Name
-	claimNamespace := request.Namespace
-	resourceName := instance.Spec.Metadata.Name
-	catalogNamespace := "default"
-
-	switch Event {
-	case "Create": // case 1: wait for admin permission -> pathStatus ( Event == Create)
-		instance.Status.Status = "Awaiting"
-		instance.Status.Reason = "wait for admin permission"
-
-		if err = r.client.Status().Update(context.TODO(), instance); err != nil {
-			return reconcile.Result{}, err
+	switch instance.Status.Status {
+	case tmaxv1.ClaimSuccess, tmaxv1.ClaimReject, tmaxv1.ClaimError:
+	case "": // if status empty
+		cscStatus := &tmaxv1.CatalogServiceClaimStatus{
+			LastTransitionTime: metav1.Time{Time: time.Now()},
+			Message:            "wait for admin permission",
+			Status:             tmaxv1.ClaimAwating,
 		}
-	case "Update":
-		status := instance.Status.Status
-
-		if status == "Success" && templateAlreadyExist(resourceName, catalogNamespace) {
-			// case 2: approved by admin and template update -> patchStatus ( Event == Update && template cr != null)
-			instance.Status.Status = "Success"
-			instance.Status.Reason = "template update success."
-
-			if err = r.client.Status().Update(context.TODO(), instance); err != nil {
-				return reconcile.Result{}, err
+		return r.updateCatalogServiceClaimStatus(instance, cscStatus)
+	case tmaxv1.ClaimApprove:
+		if err = r.createTemplateIfNotExist(&instance.Spec, instance); err != nil {
+			cscStatus := &tmaxv1.CatalogServiceClaimStatus{
+				LastTransitionTime: metav1.Time{Time: time.Now()},
+				Message:            "error occurs while creating cluster template",
+				Reason:             err.Error(),
+				Status:             tmaxv1.ClaimError,
 			}
-		} else if status == "Success" && !templateAlreadyExist(resourceName, catalogNamespace) {
-			// case 3: approved by admin and template create -> createCustomObject & patchStatus ( Event == Update && template cr = null)
-			err := createTemplate(instance, claimName, claimNamespace)
-
-			if err != nil {
-				panic("===[ Template Create Error ] : " + err.Error())
-			}
-			instance.Status.Status = "Success"
-			instance.Status.Reason = "template create success."
-
-			if err = r.client.Status().Update(context.TODO(), instance); err != nil {
-				return reconcile.Result{}, err
-			}
+			return r.updateCatalogServiceClaimStatus(instance, cscStatus)
 		}
 
-	case "Delete":
-		// Nothing to do
+		cscStatus := &tmaxv1.CatalogServiceClaimStatus{
+			LastTransitionTime: metav1.Time{Time: time.Now()},
+			Message:            "succeed to create cluster template",
+			Status:             tmaxv1.ClaimSuccess,
+		}
+
+		return r.updateCatalogServiceClaimStatus(instance, cscStatus)
 	}
+
 	return reconcile.Result{}, nil
 }
 
-func templateAlreadyExist(name string, namespace string) bool {
+func (r *ReconcileCatalogServiceClaim) updateCatalogServiceClaimStatus(
+	claim *tmaxv1.CatalogServiceClaim, status *tmaxv1.CatalogServiceClaimStatus) (reconcile.Result, error) {
+	reqLogger := log.WithName("update catalog service claim status")
 
-	c, err := config.LoadKubeConfig()
-	if err != nil {
-		panic("===[ Error ] : " + err.Error())
-	}
-	clientset := crdapi.NewAPIClient(c)
+	updatedClaim := claim.DeepCopy()
+	updatedClaim.Status = *status
 
-	cr, _, err := clientset.CustomObjectsApi.GetNamespacedCustomObject(context.Background(), "tmax.io", "v1", namespace, "templates", name)
-	if err != nil {
-		return false
-	} else if cr == nil {
-		return false
+	if err := r.client.Status().Patch(context.TODO(), updatedClaim, client.MergeFrom(claim)); err != nil {
+		reqLogger.Error(err, "could not update CatalogServiceClaim status")
+		return reconcile.Result{}, err
 	}
-	return true
+
+	return reconcile.Result{}, nil
 }
 
-func createTemplate(claim *tmaxv1.CatalogServiceClaim, name string, namespace string) error {
+func (r *ReconcileCatalogServiceClaim) createTemplateIfNotExist(
+	template *tmaxv1.ClusterTemplate, owner *tmaxv1.CatalogServiceClaim) error {
+	foundTemplate := &tmaxv1.ClusterTemplate{}
 
-	c, err := config.LoadKubeConfig()
-	if err != nil {
-		panic("===[ Error ] : " + err.Error())
+	// check if it exists
+	if err := r.client.Get(context.TODO(), types.NamespacedName{
+		Namespace: template.Namespace,
+		Name:      template.Name,
+	}, foundTemplate); err == nil {
+		return errors.NewAlreadyExists(schema.GroupResource{
+			Group:    foundTemplate.GroupVersionKind().Group,
+			Resource: foundTemplate.Kind}, "resource already exist")
 	}
-	clientset := crdapi.NewAPIClient(c)
 
-	var bodyObj interface{}
-	bodyObj = claim.Spec
-
-	response, _, err := clientset.CustomObjectsApi.CreateNamespacedCustomObject(context.Background(), "tmax.io", "v1", namespace, "templates", bodyObj, nil)
-
-	if err != nil && response == nil {
-		if errors.IsNotFound(err) {
-			return err
-		}
+	// set owner reference
+	isController := true
+	blockOwnerDeletion := true
+	ownerRef := []metav1.OwnerReference{
+		{
+			APIVersion:         owner.APIVersion,
+			Kind:               owner.Kind,
+			Name:               owner.Name,
+			UID:                owner.UID,
+			Controller:         &isController,
+			BlockOwnerDeletion: &blockOwnerDeletion,
+		},
 	}
+	template.SetOwnerReferences(ownerRef)
+
+	// if not exists, create template
+	if err := r.client.Create(context.TODO(), template); err != nil {
+		return errors.NewInternalError(err)
+	}
+
 	return nil
 }
