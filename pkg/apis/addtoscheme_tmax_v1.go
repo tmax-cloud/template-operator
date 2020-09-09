@@ -1,7 +1,7 @@
 package apis
 
 import (
-	v1 "github.com/jwkim1993/hypercloud-operator/pkg/apis/tmax/v1"
+	v1 "github.com/jitaeyun/template-operator/pkg/apis/tmax/v1"
 )
 
 func init() {

@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/jwkim1993/hypercloud-operator/pkg/controller/template"
+	"github.com/jitaeyun/template-operator/pkg/controller/template"
 )
 
 func init() {

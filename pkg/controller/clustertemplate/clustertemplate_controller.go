@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	tmaxv1 "github.com/jwkim1993/hypercloud-operator/pkg/apis/tmax/v1"
+	tmaxv1 "github.com/jitaeyun/template-operator/pkg/apis/tmax/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

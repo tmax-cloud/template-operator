@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jwkim1993/hypercloud-operator/internal"
-	tmaxv1 "github.com/jwkim1993/hypercloud-operator/pkg/apis/tmax/v1"
+	"github.com/jitaeyun/template-operator/internal"
+	tmaxv1 "github.com/jitaeyun/template-operator/pkg/apis/tmax/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"

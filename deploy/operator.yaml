@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: hypercloud-operator
+  name: template-operator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: hypercloud-operator
+      name: template-operator
   template:
     metadata:
       labels:
-        name: hypercloud-operator
+        name: template-operator
     spec:
-      serviceAccountName: hypercloud-operator
+      serviceAccountName: template-operator
       containers:
-        - name: hypercloud-operator
+        - name: template-operator
           # Replace this with the built image name
           image: 172.22.11.2:30500/template-operator:latest
           command:
-          - hypercloud-operator
+          - template-operator
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
@@ -28,4 +28,4 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
-              value: "hypercloud-operator"
+              value: "template-operator"
