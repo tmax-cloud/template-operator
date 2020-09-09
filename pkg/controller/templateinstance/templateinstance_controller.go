@@ -3,14 +3,15 @@ package templateinstance
 import (
 	"context"
 	"fmt"
-	"github.com/jwkim1993/hypercloud-operator/internal"
-	tmaxv1 "github.com/jwkim1993/hypercloud-operator/pkg/apis/tmax/v1"
+	"strings"
+
+	"github.com/jitaeyun/template-operator/internal"
+	tmaxv1 "github.com/jitaeyun/template-operator/pkg/apis/tmax/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -111,29 +112,58 @@ func (r *ReconcileTemplateInstance) Reconcile(request reconcile.Request) (reconc
 	}
 
 	// Get the template it refers
+
 	refTemplate := &tmaxv1.Template{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{
-		Namespace: instance.Namespace,
-		Name:      instance.Spec.Template.Name,
-	}, refTemplate)
-	if err != nil {
-		reqLogger.Error(err, "template not found")
+	refClusterTemplate := &tmaxv1.ClusterTemplate{}
+	var objects []runtime.RawExtension
+	var parameters []tmaxv1.ParamSpec
+
+	if instance.Spec.ClusterTemplate.Name == "" && instance.Spec.Template.Name == "" {
+		err := errors.NewBadRequest("cannot find any template info in instance spec")
+		reqLogger.Error(err, "")
 		return r.updateTemplateInstanceStatus(instance, err)
+	} else if instance.Spec.ClusterTemplate.Name != "" && instance.Spec.Template.Name != "" {
+		err := errors.NewBadRequest("you should insert either template or clustertemplate")
+		reqLogger.Error(err, "")
+		return r.updateTemplateInstanceStatus(instance, err)
+	} else if instance.Spec.ClusterTemplate.Name != "" {
+		err = r.client.Get(context.TODO(), types.NamespacedName{
+			Name: instance.Spec.ClusterTemplate.Name,
+		}, refClusterTemplate)
+		if err != nil {
+			reqLogger.Error(err, "clusterTemplate not found")
+			return r.updateTemplateInstanceStatus(instance, err)
+		}
+		objects = refClusterTemplate.Objects[0:]
+		refClusterTemplate.Parameters = instance.Spec.ClusterTemplate.Parameters
+		parameters = refClusterTemplate.Parameters[0:]
+	} else {
+		err = r.client.Get(context.TODO(), types.NamespacedName{
+			Namespace: instance.Namespace,
+			Name:      instance.Spec.Template.Name,
+		}, refTemplate)
+		if err != nil {
+			reqLogger.Error(err, "template not found")
+			return r.updateTemplateInstanceStatus(instance, err)
+		}
+		objects = refTemplate.Objects[0:]
+		refTemplate.Parameters = instance.Spec.Template.Parameters
+		parameters = refTemplate.Parameters[0:]
 	}
 
 	// make parameter map
 	params := make(map[string]intstr.IntOrString)
-	for _, param := range instance.Spec.Template.Parameters {
+	for _, param := range parameters {
 		params[param.Name] = param.Value
 	}
 
-	for i := range refTemplate.Objects {
-		if err = r.replaceParamsWithValue(&(refTemplate.Objects[i]), &params); err != nil {
+	for i := range objects {
+		if err = r.replaceParamsWithValue(&(objects[i]), &params); err != nil {
 			reqLogger.Error(err, "error occurs while replacing parameters")
 			return r.updateTemplateInstanceStatus(instance, err)
 		}
 
-		if err = r.createK8sObject(&(refTemplate.Objects[i]), instance); err != nil && !errors.IsAlreadyExists(err) {
+		if err = r.createK8sObject(&(objects[i]), instance); err != nil && !errors.IsAlreadyExists(err) {
 			reqLogger.Error(err, "error occurs while create k8s object")
 			return r.updateTemplateInstanceStatus(instance, err)
 		}
@@ -142,7 +172,7 @@ func (r *ReconcileTemplateInstance) Reconcile(request reconcile.Request) (reconc
 	// finally, update template instance
 	instanceWithTemplate := instance.DeepCopy()
 	instanceWithTemplate.Spec.Template = *refTemplate
-	instanceWithTemplate.Spec.Template.Parameters = instance.Spec.Template.Parameters // keep original params
+	instanceWithTemplate.Spec.ClusterTemplate = *refClusterTemplate
 	if err = r.client.Patch(context.TODO(), instanceWithTemplate, client.MergeFrom(instance)); err != nil {
 		reqLogger.Error(err, "could not update template instance")
 		return r.updateTemplateInstanceStatus(instance, err)
