@@ -181,7 +181,6 @@ spec:
                     type: object
                 required:
                 - description
-                - id
                 - name
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
@@ -198,6 +197,8 @@ spec:
               type: array
             urlDescription:
               type: string
+          required:
+          - urlDescription
           type: object
         status:
           properties:

@@ -183,7 +183,6 @@ spec:
                         type: object
                     required:
                     - description
-                    - id
                     - name
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
@@ -200,6 +199,8 @@ spec:
                   type: array
                 urlDescription:
                   type: string
+              required:
+              - urlDescription
               type: object
             requester:
               description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
@@ -375,7 +376,6 @@ spec:
                         type: object
                     required:
                     - description
-                    - id
                     - name
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
@@ -386,12 +386,30 @@ spec:
                   type: boolean
                 shortDescription:
                   type: string
+                status:
+                  description: TemplateStatus defines the observed state of Template
+                  properties:
+                    lastTransitionTime:
+                      format: date-time
+                      type: string
+                    message:
+                      type: string
+                    reason:
+                      type: string
+                    status:
+                      enum:
+                      - Success
+                      - Error
+                      type: string
+                  type: object
                 tags:
                   items:
                     type: string
                   type: array
                 urlDescription:
                   type: string
+              required:
+              - urlDescription
               type: object
           type: object
         status:
