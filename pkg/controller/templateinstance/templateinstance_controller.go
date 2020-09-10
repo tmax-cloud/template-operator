@@ -133,9 +133,9 @@ func (r *ReconcileTemplateInstance) Reconcile(request reconcile.Request) (reconc
 			reqLogger.Error(err, "clusterTemplate not found")
 			return r.updateTemplateInstanceStatus(instance, err)
 		}
-		objectInfo.TypeMeta = refClusterTemplate.TypeMeta
-		objectInfo.Objects = refClusterTemplate.Objects[0:]
-		objectInfo.Parameters = refClusterTemplate.Parameters[0:]
+		objectInfo.Name = instance.Spec.ClusterTemplate.Name
+		objectInfo.Objects = refClusterTemplate.Objects
+		objectInfo.Parameters = instance.Spec.ClusterTemplate.Parameters[0:]
 		instanceWithTemplate.Spec.ClusterTemplate = *objectInfo
 	} else {
 		err = r.client.Get(context.TODO(), types.NamespacedName{
@@ -146,9 +146,9 @@ func (r *ReconcileTemplateInstance) Reconcile(request reconcile.Request) (reconc
 			reqLogger.Error(err, "template not found")
 			return r.updateTemplateInstanceStatus(instance, err)
 		}
-		objectInfo.TypeMeta = refTemplate.TypeMeta
-		objectInfo.Objects = refTemplate.Objects[0:]
-		objectInfo.Parameters = refTemplate.Parameters[0:]
+		objectInfo.Name = instance.Spec.Template.Name
+		objectInfo.Objects = refTemplate.Objects
+		objectInfo.Parameters = instance.Spec.Template.Parameters[0:]
 		instanceWithTemplate.Spec.Template = *objectInfo
 	}
 
