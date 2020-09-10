@@ -196,17 +196,11 @@ spec:
                 status:
                   description: TemplateStatus defines the observed state of Template
                   properties:
-                    lastTransitionTime:
-                      format: date-time
-                      type: string
                     message:
                       type: string
                     reason:
                       type: string
                     status:
-                      enum:
-                      - Success
-                      - Error
                       type: string
                   type: object
                 tags:
@@ -405,17 +399,11 @@ spec:
                 status:
                   description: TemplateStatus defines the observed state of Template
                   properties:
-                    lastTransitionTime:
-                      format: date-time
-                      type: string
                     message:
                       type: string
                     reason:
                       type: string
                     status:
-                      enum:
-                      - Success
-                      - Error
                       type: string
                   type: object
                 tags:

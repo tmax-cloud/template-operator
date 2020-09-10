@@ -108,11 +108,9 @@ type TemplateSpec struct {
 
 // TemplateStatus defines the observed state of Template
 type TemplateStatus struct {
-	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
-	Message            string      `json:"message,omitempty"`
-	Reason             string      `json:"reason,omitempty"`
-	// +kubebuilder:validation:Enum:=Success;Error
-	Status TemplateStatusType `json:"status,omitempty"`
+	Message string             `json:"message,omitempty"`
+	Reason  string             `json:"reason,omitempty"`
+	Status  TemplateStatusType `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

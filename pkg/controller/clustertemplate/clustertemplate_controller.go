@@ -3,13 +3,11 @@ package clustertemplate
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 	tmaxv1 "github.com/jitaeyun/template-operator/pkg/apis/tmax/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/conversion"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -135,9 +133,8 @@ func (r *ReconcileClusterTemplate) Reconcile(request reconcile.Request) (reconci
 		if err = runtime.Convert_runtime_RawExtension_To_runtime_Object(&obj, &in, scope); err != nil {
 			reqLogger.Error(err, "cannot decode object")
 			templateStatus := &tmaxv1.TemplateStatus{
-				LastTransitionTime: metav1.Time{Time: time.Now()},
-				Message:            "cannot decode object",
-				Status:             tmaxv1.TemplateError,
+				Message: "cannot decode object",
+				Status:  tmaxv1.TemplateError,
 			}
 			return r.updateClusterTemplateStatus(instance, templateStatus)
 		}
@@ -146,9 +143,8 @@ func (r *ReconcileClusterTemplate) Reconcile(request reconcile.Request) (reconci
 		if err != nil {
 			reqLogger.Error(err, "cannot decode object")
 			templateStatus := &tmaxv1.TemplateStatus{
-				LastTransitionTime: metav1.Time{Time: time.Now()},
-				Message:            "cannot decode object",
-				Status:             tmaxv1.TemplateError,
+				Message: "cannot decode object",
+				Status:  tmaxv1.TemplateError,
 			}
 			return r.updateClusterTemplateStatus(instance, templateStatus)
 		}
@@ -163,17 +159,15 @@ func (r *ReconcileClusterTemplate) Reconcile(request reconcile.Request) (reconci
 	if err = r.client.Patch(context.TODO(), updateInstance, client.MergeFrom(instance)); err != nil {
 		reqLogger.Error(err, "cannot update clustertemplate")
 		templateStatus := &tmaxv1.TemplateStatus{
-			LastTransitionTime: metav1.Time{Time: time.Now()},
-			Message:            "cannot update clustertemplate",
-			Status:             tmaxv1.TemplateError,
+			Message: "cannot update clustertemplate",
+			Status:  tmaxv1.TemplateError,
 		}
 		return r.updateClusterTemplateStatus(instance, templateStatus)
 	}
 
 	templateStatus := &tmaxv1.TemplateStatus{
-		LastTransitionTime: metav1.Time{Time: time.Now()},
-		Message:            "update success",
-		Status:             tmaxv1.TemplateSuccess,
+		Message: "update success",
+		Status:  tmaxv1.TemplateSuccess,
 	}
 	return r.updateClusterTemplateStatus(instance, templateStatus)
 }
