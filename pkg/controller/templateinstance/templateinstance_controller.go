@@ -112,11 +112,10 @@ func (r *ReconcileTemplateInstance) Reconcile(request reconcile.Request) (reconc
 	}
 
 	// Get the template it refers
-
 	refTemplate := &tmaxv1.Template{}
 	refClusterTemplate := &tmaxv1.ClusterTemplate{}
-	var objects []runtime.RawExtension
-	var parameters []tmaxv1.ParamSpec
+	objectInfo := &tmaxv1.ObjectInfo{}
+	instanceWithTemplate := instance.DeepCopy()
 
 	if instance.Spec.ClusterTemplate.Name == "" && instance.Spec.Template.Name == "" {
 		err := errors.NewBadRequest("cannot find any template info in instance spec")
@@ -134,9 +133,10 @@ func (r *ReconcileTemplateInstance) Reconcile(request reconcile.Request) (reconc
 			reqLogger.Error(err, "clusterTemplate not found")
 			return r.updateTemplateInstanceStatus(instance, err)
 		}
-		objects = refClusterTemplate.Objects[0:]
-		refClusterTemplate.Parameters = instance.Spec.ClusterTemplate.Parameters
-		parameters = refClusterTemplate.Parameters[0:]
+		objectInfo.TypeMeta = refClusterTemplate.TypeMeta
+		objectInfo.Objects = refClusterTemplate.Objects[0:]
+		objectInfo.Parameters = refClusterTemplate.Parameters[0:]
+		instanceWithTemplate.Spec.ClusterTemplate = *objectInfo
 	} else {
 		err = r.client.Get(context.TODO(), types.NamespacedName{
 			Namespace: instance.Namespace,
@@ -146,33 +146,31 @@ func (r *ReconcileTemplateInstance) Reconcile(request reconcile.Request) (reconc
 			reqLogger.Error(err, "template not found")
 			return r.updateTemplateInstanceStatus(instance, err)
 		}
-		objects = refTemplate.Objects[0:]
-		refTemplate.Parameters = instance.Spec.Template.Parameters
-		parameters = refTemplate.Parameters[0:]
+		objectInfo.TypeMeta = refTemplate.TypeMeta
+		objectInfo.Objects = refTemplate.Objects[0:]
+		objectInfo.Parameters = refTemplate.Parameters[0:]
+		instanceWithTemplate.Spec.Template = *objectInfo
 	}
 
 	// make parameter map
 	params := make(map[string]intstr.IntOrString)
-	for _, param := range parameters {
+	for _, param := range objectInfo.Parameters {
 		params[param.Name] = param.Value
 	}
 
-	for i := range objects {
-		if err = r.replaceParamsWithValue(&(objects[i]), &params); err != nil {
+	for i := range objectInfo.Objects {
+		if err = r.replaceParamsWithValue(&(objectInfo.Objects[i]), &params); err != nil {
 			reqLogger.Error(err, "error occurs while replacing parameters")
 			return r.updateTemplateInstanceStatus(instance, err)
 		}
 
-		if err = r.createK8sObject(&(objects[i]), instance); err != nil && !errors.IsAlreadyExists(err) {
+		if err = r.createK8sObject(&(objectInfo.Objects[i]), instance); err != nil && !errors.IsAlreadyExists(err) {
 			reqLogger.Error(err, "error occurs while create k8s object")
 			return r.updateTemplateInstanceStatus(instance, err)
 		}
 	}
 
 	// finally, update template instance
-	instanceWithTemplate := instance.DeepCopy()
-	instanceWithTemplate.Spec.Template = *refTemplate
-	instanceWithTemplate.Spec.ClusterTemplate = *refClusterTemplate
 	if err = r.client.Patch(context.TODO(), instanceWithTemplate, client.MergeFrom(instance)); err != nil {
 		reqLogger.Error(err, "could not update template instance")
 		return r.updateTemplateInstanceStatus(instance, err)

@@ -32,8 +32,6 @@ spec:
           description: TemplateInstanceSpec defines the desired state of TemplateInstance
           properties:
             clustertemplate:
-              description: ClusterTemplate is the Schema for the clustertemplates
-                API
               properties:
                 apiVersion:
                   description: 'APIVersion defines the versioned schema of this representation
@@ -41,40 +39,18 @@ spec:
                     latest internal value, and may reject unrecognized values. More
                     info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
                   type: string
-                imageUrl:
-                  type: string
                 kind:
                   description: 'Kind is a string value representing the REST resource
                     this object represents. Servers may infer this from the endpoint
                     the client submits requests to. Cannot be updated. In CamelCase.
                     More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
                   type: string
-                labels:
-                  additionalProperties:
-                    type: string
-                  type: object
-                longDescription:
-                  type: string
-                markdownDescription:
-                  type: string
-                message:
-                  type: string
                 metadata:
                   type: object
-                objectKinds:
-                  items:
-                    type: string
-                  type: array
                 objects:
                   items:
                     type: object
                   type: array
-                operatorStartTime:
-                  description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-                    Important: Run "operator-sdk generate k8s" to regenerate code
-                    after modifying this file Add custom validation using kubebuilder
-                    tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
-                  type: string
                 parameters:
                   items:
                     properties:
@@ -101,116 +77,6 @@ spec:
                     - name
                     type: object
                   type: array
-                plans:
-                  items:
-                    properties:
-                      bindable:
-                        type: boolean
-                      description:
-                        type: string
-                      free:
-                        type: boolean
-                      id:
-                        type: string
-                      maintenance_info:
-                        properties:
-                          description:
-                            type: string
-                          version:
-                            type: string
-                        required:
-                        - version
-                        type: object
-                      maximum_polling_duration:
-                        type: integer
-                      metadata:
-                        properties:
-                          bullets:
-                            items:
-                              type: string
-                            type: array
-                          costs:
-                            items:
-                              properties:
-                                amount:
-                                  additionalProperties:
-                                    format: int32
-                                    type: integer
-                                  type: object
-                                unit:
-                                  type: string
-                              required:
-                              - amount
-                              - unit
-                              type: object
-                            type: array
-                          displayName:
-                            type: string
-                        type: object
-                      name:
-                        type: string
-                      plan_updateable:
-                        type: boolean
-                      schemas:
-                        properties:
-                          service_binding:
-                            properties:
-                              create:
-                                properties:
-                                  parameters:
-                                    additionalProperties:
-                                      type: string
-                                    type: object
-                                type: object
-                            type: object
-                          service_instance:
-                            properties:
-                              create:
-                                properties:
-                                  parameters:
-                                    additionalProperties:
-                                      type: string
-                                    type: object
-                                type: object
-                              update:
-                                properties:
-                                  parameters:
-                                    additionalProperties:
-                                      type: string
-                                    type: object
-                                type: object
-                            type: object
-                        type: object
-                    required:
-                    - description
-                    - name
-                    type: object
-                    x-kubernetes-preserve-unknown-fields: true
-                  type: array
-                provider:
-                  type: string
-                recommend:
-                  type: boolean
-                shortDescription:
-                  type: string
-                status:
-                  description: TemplateStatus defines the observed state of Template
-                  properties:
-                    message:
-                      type: string
-                    reason:
-                      type: string
-                    status:
-                      type: string
-                  type: object
-                tags:
-                  items:
-                    type: string
-                  type: array
-                urlDescription:
-                  type: string
-              required:
-              - urlDescription
               type: object
             requester:
               description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
@@ -236,7 +102,6 @@ spec:
                   type: string
               type: object
             template:
-              description: Template is the Schema for the templates API
               properties:
                 apiVersion:
                   description: 'APIVersion defines the versioned schema of this representation
@@ -244,40 +109,18 @@ spec:
                     latest internal value, and may reject unrecognized values. More
                     info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
                   type: string
-                imageUrl:
-                  type: string
                 kind:
                   description: 'Kind is a string value representing the REST resource
                     this object represents. Servers may infer this from the endpoint
                     the client submits requests to. Cannot be updated. In CamelCase.
                     More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
                   type: string
-                labels:
-                  additionalProperties:
-                    type: string
-                  type: object
-                longDescription:
-                  type: string
-                markdownDescription:
-                  type: string
-                message:
-                  type: string
                 metadata:
                   type: object
-                objectKinds:
-                  items:
-                    type: string
-                  type: array
                 objects:
                   items:
                     type: object
                   type: array
-                operatorStartTime:
-                  description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-                    Important: Run "operator-sdk generate k8s" to regenerate code
-                    after modifying this file Add custom validation using kubebuilder
-                    tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
-                  type: string
                 parameters:
                   items:
                     properties:
@@ -304,116 +147,6 @@ spec:
                     - name
                     type: object
                   type: array
-                plans:
-                  items:
-                    properties:
-                      bindable:
-                        type: boolean
-                      description:
-                        type: string
-                      free:
-                        type: boolean
-                      id:
-                        type: string
-                      maintenance_info:
-                        properties:
-                          description:
-                            type: string
-                          version:
-                            type: string
-                        required:
-                        - version
-                        type: object
-                      maximum_polling_duration:
-                        type: integer
-                      metadata:
-                        properties:
-                          bullets:
-                            items:
-                              type: string
-                            type: array
-                          costs:
-                            items:
-                              properties:
-                                amount:
-                                  additionalProperties:
-                                    format: int32
-                                    type: integer
-                                  type: object
-                                unit:
-                                  type: string
-                              required:
-                              - amount
-                              - unit
-                              type: object
-                            type: array
-                          displayName:
-                            type: string
-                        type: object
-                      name:
-                        type: string
-                      plan_updateable:
-                        type: boolean
-                      schemas:
-                        properties:
-                          service_binding:
-                            properties:
-                              create:
-                                properties:
-                                  parameters:
-                                    additionalProperties:
-                                      type: string
-                                    type: object
-                                type: object
-                            type: object
-                          service_instance:
-                            properties:
-                              create:
-                                properties:
-                                  parameters:
-                                    additionalProperties:
-                                      type: string
-                                    type: object
-                                type: object
-                              update:
-                                properties:
-                                  parameters:
-                                    additionalProperties:
-                                      type: string
-                                    type: object
-                                type: object
-                            type: object
-                        type: object
-                    required:
-                    - description
-                    - name
-                    type: object
-                    x-kubernetes-preserve-unknown-fields: true
-                  type: array
-                provider:
-                  type: string
-                recommend:
-                  type: boolean
-                shortDescription:
-                  type: string
-                status:
-                  description: TemplateStatus defines the observed state of Template
-                  properties:
-                    message:
-                      type: string
-                    reason:
-                      type: string
-                    status:
-                      type: string
-                  type: object
-                tags:
-                  items:
-                    type: string
-                  type: array
-                urlDescription:
-                  type: string
-              required:
-              - urlDescription
               type: object
           type: object
         status:
