@@ -3,6 +3,7 @@ module github.com/jitaeyun/template-operator
 go 1.13
 
 require (
+	github.com/google/uuid v1.1.1
 	github.com/kubernetes-client/go v0.0.0-20200222171647-9dac5e4c5400 // indirect
 	github.com/operator-framework/operator-sdk v0.17.1
 	github.com/spf13/pflag v1.0.5

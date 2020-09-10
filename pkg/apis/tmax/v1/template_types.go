@@ -9,9 +9,16 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+type TemplateStatusType string
+
+const (
+	TemplateSuccess TemplateStatusType = "Success"
+	TemplateError   TemplateStatusType = "Error"
+)
+
 // +kubebuilder:validation:XPreserveUnknownFields
 type PlanSpec struct {
-	Id                     string          `json:"id"`
+	Id                     string          `json:"id,omitempty"`
 	Name                   string          `json:"name"`
 	Description            string          `json:"description"`
 	Metadata               PlanMetadata    `json:"metadata,omitempty"`
@@ -87,7 +94,7 @@ type TemplateSpec struct {
 	Message             string                 `json:"message,omitempty"`
 	ShortDescription    string                 `json:"shortDescription,omitempty"`
 	LongDescription     string                 `json:"longDescription,omitempty"`
-	UrlDescription      string                 `json:"urlDescription,omitempty"`
+	UrlDescription      string                 `json:"urlDescription"`
 	MarkDownDescription string                 `json:"markdownDescription,omitempty"`
 	Provider            string                 `json:"provider,omitempty"`
 	ImageUrl            string                 `json:"imageUrl,omitempty"`
@@ -101,9 +108,11 @@ type TemplateSpec struct {
 
 // TemplateStatus defines the observed state of Template
 type TemplateStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
-	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
+	Message            string      `json:"message,omitempty"`
+	Reason             string      `json:"reason,omitempty"`
+	// +kubebuilder:validation:Enum:=Success;Error
+	Status TemplateStatusType `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -115,7 +124,7 @@ type Template struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	TemplateSpec      `json:",inline,omitempty"`
-	// Status TemplateStatus `json:"status,omitempty"`
+	Status            TemplateStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

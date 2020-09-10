@@ -202,9 +202,9 @@ func (r *ReconcileTemplateInstance) createK8sObject(obj *runtime.RawExtension, o
 	}
 
 	// set namespace if not exist
-	if len(unstr.GetNamespace()) == 0 {
-		unstr.SetNamespace(owner.Namespace)
-	}
+	//if len(unstr.GetNamespace()) == 0 {
+	unstr.SetNamespace(owner.Namespace)
+	//}
 
 	// check if the object already exist
 	check := unstr.DeepCopy()

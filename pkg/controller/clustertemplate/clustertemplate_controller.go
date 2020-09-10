@@ -3,7 +3,9 @@ package clustertemplate
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/google/uuid"
 	tmaxv1 "github.com/jitaeyun/template-operator/pkg/apis/tmax/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -101,9 +103,28 @@ func (r *ReconcileClusterTemplate) Reconcile(request reconcile.Request) (reconci
 		return reconcile.Result{}, err
 	}
 
-	// if ObjectKinds already set,
-	if instance.ObjectKinds != nil || len(instance.ObjectKinds) > 0 {
+	// if status field is not nil, end reconcile
+	if len(instance.Status.Status) != 0 {
+		reqLogger.Info("already handled template")
 		return reconcile.Result{}, nil
+	}
+
+	updateInstance := instance.DeepCopy()
+
+	//set default plan in case of empty plan
+	if len(updateInstance.Plans) == 0 {
+		plan := tmaxv1.PlanSpec{
+			Name:        updateInstance.Name + "-plan-default",
+			Description: updateInstance.Name + "-plan-default",
+		}
+		updateInstance.Plans = append(updateInstance.Plans, plan)
+	}
+
+	// plan id setting
+	for i, plan := range updateInstance.Plans {
+		reqLogger.Info("before: " + plan.Id)
+		uuid := uuid.New()
+		updateInstance.Plans[i].Id = uuid.String()
 	}
 
 	// add kind to objectKinds fields
@@ -113,48 +134,61 @@ func (r *ReconcileClusterTemplate) Reconcile(request reconcile.Request) (reconci
 		var scope conversion.Scope // While not actually used within the function, need to pass in
 		if err = runtime.Convert_runtime_RawExtension_To_runtime_Object(&obj, &in, scope); err != nil {
 			reqLogger.Error(err, "cannot decode object")
-			return reconcile.Result{}, err
+			templateStatus := &tmaxv1.TemplateStatus{
+				LastTransitionTime: metav1.Time{Time: time.Now()},
+				Message:            "cannot decode object",
+				Status:             tmaxv1.TemplateError,
+			}
+			return r.updateClusterTemplateStatus(instance, templateStatus)
 		}
 
 		unstrObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(in)
 		if err != nil {
 			reqLogger.Error(err, "cannot decode object")
-			return reconcile.Result{}, err
+			templateStatus := &tmaxv1.TemplateStatus{
+				LastTransitionTime: metav1.Time{Time: time.Now()},
+				Message:            "cannot decode object",
+				Status:             tmaxv1.TemplateError,
+			}
+			return r.updateClusterTemplateStatus(instance, templateStatus)
 		}
 
 		unstr := unstructured.Unstructured{Object: unstrObj}
 		reqLogger.Info(fmt.Sprintf("kind: %s", unstr.GetKind()))
 		objectKinds = append(objectKinds, unstr.GetKind())
 	}
-	instance.ObjectKinds = objectKinds
+	updateInstance.ObjectKinds = objectKinds
 	reqLogger.Info(fmt.Sprintf("%v", objectKinds))
 
-	if err = r.client.Update(context.TODO(), instance); err != nil {
+	if err = r.client.Patch(context.TODO(), updateInstance, client.MergeFrom(instance)); err != nil {
+		reqLogger.Error(err, "cannot update clustertemplate")
+		templateStatus := &tmaxv1.TemplateStatus{
+			LastTransitionTime: metav1.Time{Time: time.Now()},
+			Message:            "cannot update clustertemplate",
+			Status:             tmaxv1.TemplateError,
+		}
+		return r.updateClusterTemplateStatus(instance, templateStatus)
+	}
+
+	templateStatus := &tmaxv1.TemplateStatus{
+		LastTransitionTime: metav1.Time{Time: time.Now()},
+		Message:            "update success",
+		Status:             tmaxv1.TemplateSuccess,
+	}
+	return r.updateClusterTemplateStatus(instance, templateStatus)
+}
+
+func (r *ReconcileClusterTemplate) updateClusterTemplateStatus(
+	template *tmaxv1.ClusterTemplate, status *tmaxv1.TemplateStatus) (reconcile.Result, error) {
+	reqLogger := log.WithName("update clustertemplate status")
+
+	updatedTemplate := template.DeepCopy()
+	updatedTemplate.Status = *status
+
+	if err := r.client.Status().Patch(context.TODO(), updatedTemplate, client.MergeFrom(template)); err != nil {
+		reqLogger.Error(err, "could not update clusterTemplate status")
 		return reconcile.Result{}, err
 	}
 
 	return reconcile.Result{}, nil
-}
-
-// newPodForCR returns a busybox pod with the same name/namespace as the cr
-func newPodForCR(cr *tmaxv1.ClusterTemplate) *corev1.Pod {
-	labels := map[string]string{
-		"app": cr.Name,
-	}
-	return &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.Name + "-pod",
-			Namespace: cr.Namespace,
-			Labels:    labels,
-		},
-		Spec: corev1.PodSpec{
-			Containers: []corev1.Container{
-				{
-					Name:    "busybox",
-					Image:   "busybox",
-					Command: []string{"sleep", "3600"},
-				},
-			},
-		},
-	}
 }

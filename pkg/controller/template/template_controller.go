@@ -3,10 +3,13 @@ package template
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/google/uuid"
 	tmaxv1 "github.com/jitaeyun/template-operator/pkg/apis/tmax/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/conversion"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -100,9 +103,28 @@ func (r *ReconcileTemplate) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, err
 	}
 
-	// if ObjectKinds already set,
-	if instance.ObjectKinds != nil || len(instance.ObjectKinds) > 0 {
+	// if status field is not nil, end reconcile
+	if len(instance.Status.Status) != 0 {
+		reqLogger.Info("already handled template")
 		return reconcile.Result{}, nil
+	}
+
+	updateInstance := instance.DeepCopy()
+
+	//set default plan in case of empty plan
+	if len(updateInstance.Plans) == 0 {
+		plan := tmaxv1.PlanSpec{
+			Name:        updateInstance.Name + "-plan-default",
+			Description: updateInstance.Name + "-plan-default",
+		}
+		updateInstance.Plans = append(updateInstance.Plans, plan)
+	}
+
+	// plan id setting
+	for i, plan := range updateInstance.Plans {
+		reqLogger.Info("before: " + plan.Id)
+		uuid := uuid.New()
+		updateInstance.Plans[i].Id = uuid.String()
 	}
 
 	// add kind to objectKinds fields
@@ -112,23 +134,59 @@ func (r *ReconcileTemplate) Reconcile(request reconcile.Request) (reconcile.Resu
 		var scope conversion.Scope // While not actually used within the function, need to pass in
 		if err = runtime.Convert_runtime_RawExtension_To_runtime_Object(&obj, &in, scope); err != nil {
 			reqLogger.Error(err, "cannot decode object")
-			return reconcile.Result{}, err
+			templateStatus := &tmaxv1.TemplateStatus{
+				LastTransitionTime: metav1.Time{Time: time.Now()},
+				Message:            "cannot decode object",
+				Status:             tmaxv1.TemplateError,
+			}
+			return r.updateTemplateStatus(instance, templateStatus)
 		}
 
 		unstrObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(in)
 		if err != nil {
 			reqLogger.Error(err, "cannot decode object")
-			return reconcile.Result{}, err
+			templateStatus := &tmaxv1.TemplateStatus{
+				LastTransitionTime: metav1.Time{Time: time.Now()},
+				Message:            "cannot decode object",
+				Status:             tmaxv1.TemplateError,
+			}
+			return r.updateTemplateStatus(instance, templateStatus)
 		}
 
 		unstr := unstructured.Unstructured{Object: unstrObj}
 		reqLogger.Info(fmt.Sprintf("kind: %s", unstr.GetKind()))
 		objectKinds = append(objectKinds, unstr.GetKind())
 	}
-	instance.ObjectKinds = objectKinds
+	updateInstance.ObjectKinds = objectKinds
 	reqLogger.Info(fmt.Sprintf("%v", objectKinds))
 
-	if err = r.client.Update(context.TODO(), instance); err != nil {
+	if err = r.client.Patch(context.TODO(), updateInstance, client.MergeFrom(instance)); err != nil {
+		reqLogger.Error(err, "cannot update template")
+		templateStatus := &tmaxv1.TemplateStatus{
+			LastTransitionTime: metav1.Time{Time: time.Now()},
+			Message:            "cannot update template",
+			Status:             tmaxv1.TemplateError,
+		}
+		return r.updateTemplateStatus(instance, templateStatus)
+	}
+
+	templateStatus := &tmaxv1.TemplateStatus{
+		LastTransitionTime: metav1.Time{Time: time.Now()},
+		Message:            "update success",
+		Status:             tmaxv1.TemplateSuccess,
+	}
+	return r.updateTemplateStatus(instance, templateStatus)
+}
+
+func (r *ReconcileTemplate) updateTemplateStatus(
+	template *tmaxv1.Template, status *tmaxv1.TemplateStatus) (reconcile.Result, error) {
+	reqLogger := log.WithName("update template status")
+
+	updatedTemplate := template.DeepCopy()
+	updatedTemplate.Status = *status
+
+	if err := r.client.Status().Patch(context.TODO(), updatedTemplate, client.MergeFrom(template)); err != nil {
+		reqLogger.Error(err, "could not update Template status")
 		return reconcile.Result{}, err
 	}
 
