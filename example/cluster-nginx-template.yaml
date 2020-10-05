@@ -1,16 +1,20 @@
 apiVersion: tmax.io/v1
-imageUrl: example.com/example.gif
-kind: Template
+kind: ClusterTemplate
 metadata:
-  name: nginx-template
-  namespace: default
+  name: cluster-nginx-template
+imageUrl: example.com/example.gif
+provider: tmax
+recommend: true
+urlDescription: http://url.example.com
+tags:
+- nginx
 objects:
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
+    name: ${NAME}
     labels:
       app: ${NAME}
-    name: ${NAME}
   spec:
     selector:
       matchLabels:
@@ -21,11 +25,11 @@ objects:
           app: ${NAME}
       spec:
         containers:
-        - image: ${IMAGE}
-          name: ${NAME}
+        - name: ${NAME}
+          image: ${IMAGE}
           ports:
-          - containerPort: 80
-            name: http
+          - name: http
+            containerPort: 80
           resources:
             requests:
               cpu: 1
@@ -50,63 +54,56 @@ objects:
       app: ${NAME}
     type: LoadBalancer
 - apiVersion: v1
-  data:
-    host: ZHVtbXk=
   kind: Secret
   metadata:
     name: ${NAME}
+  data:
+    host: ZHVtbXk=
 parameters:
-- description: Application name
-  name: NAME
-  value: nginx
+- name: NAME
+  description: Application name
   valueType: string
-- description: Application Docker Image
-  name: IMAGE
   value: nginx
+- name: IMAGE
+  description: Application Docker Image
   valueType: string
+  value: nginx
 plans:
-- bindable: true
+- name: example-plan1
   description: example
-  free: false
-  id: example-plan1
   metadata:
     bullets:
     - feat 1
     - feat 2
     costs:
     - amount:
-        usd: 649
+        usd: 0
       unit: MONTHLY
-  name: example-plan1
+  free: false
+  bindable: true
   plan_updateable: false
   schemas:
     service_instance:
       create:
         parameters:
-          IMAGE: nginx:1
           NAME: nginx1
-- bindable: true
+          IMAGE: nginx:1
+- name: example-plan2
   description: example
-  free: false
-  id: example-plan2
   metadata:
     bullets:
     - feat 1
     - feat 2
     costs:
     - amount:
-        usd: 649
+        usd: 0
       unit: MONTHLY
-  name: example-plan2
+  free: false
+  bindable: true
   plan_updateable: false
   schemas:
     service_instance:
       create:
         parameters:
-          IMAGE: nginx:1
           NAME: nginx2
-provider: tmax
-recommend: true
-tags:
-- nginx
-urlDescription: http://url.example.com
+          IMAGE: nginx:1
