@@ -13,9 +13,9 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 
-	"github.com/jitaeyun/template-operator/pkg/apis"
-	"github.com/jitaeyun/template-operator/pkg/controller"
-	"github.com/jitaeyun/template-operator/version"
+	"github.com/tmax-cloud/template-operator/pkg/apis"
+	"github.com/tmax-cloud/template-operator/pkg/controller"
+	"github.com/tmax-cloud/template-operator/version"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	kubemetrics "github.com/operator-framework/operator-sdk/pkg/kube-metrics"

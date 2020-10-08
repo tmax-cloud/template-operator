@@ -8,7 +8,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 
-	tmaxv1 "github.com/jitaeyun/template-operator/pkg/apis/tmax/v1"
+	tmaxv1 "github.com/tmax-cloud/template-operator/pkg/apis/tmax/v1"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"

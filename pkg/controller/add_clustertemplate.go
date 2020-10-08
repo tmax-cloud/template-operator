@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/jitaeyun/template-operator/pkg/controller/clustertemplate"
+	"github.com/tmax-cloud/template-operator/pkg/controller/clustertemplate"
 )
 
 func init() {

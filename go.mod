@@ -1,4 +1,4 @@
-module github.com/jitaeyun/template-operator
+module github.com/tmax-cloud/template-operator
 
 go 1.13
 
