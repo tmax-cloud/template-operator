@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/uuid"
 	tmaxv1 "github.com/tmax-cloud/template-operator/pkg/apis/tmax/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -108,22 +107,6 @@ func (r *ReconcileClusterTemplate) Reconcile(request reconcile.Request) (reconci
 	}
 
 	updateInstance := instance.DeepCopy()
-
-	//set default plan in case of empty plan
-	if len(updateInstance.Plans) == 0 {
-		plan := tmaxv1.PlanSpec{
-			Name:        updateInstance.Name + "-plan-default",
-			Description: updateInstance.Name + "-plan-default",
-		}
-		updateInstance.Plans = append(updateInstance.Plans, plan)
-	}
-
-	// plan id setting
-	for i, plan := range updateInstance.Plans {
-		reqLogger.Info("before: " + plan.Id)
-		uuid := uuid.New()
-		updateInstance.Plans[i].Id = uuid.String()
-	}
 
 	// add kind to objectKinds fields
 	objectKinds := make([]string, 0)
