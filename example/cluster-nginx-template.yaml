@@ -76,9 +76,8 @@ plans:
     - feat 1
     - feat 2
     costs:
-    - amount:
-        usd: 0
-      unit: MONTHLY
+      amount: 100
+      unit: $
   free: false
   bindable: true
   plan_updateable: false
@@ -95,9 +94,8 @@ plans:
     - feat 1
     - feat 2
     costs:
-    - amount:
-        usd: 0
-      unit: MONTHLY
+      amount: 200
+      unit: $
   free: false
   bindable: true
   plan_updateable: false

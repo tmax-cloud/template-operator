@@ -16,7 +16,7 @@ spec:
       containers:
         - name: template-operator
           # Replace this with the built image name
-          image: 172.22.11.2:30500/template-operator:latest
+          image: 172.22.11.2:30500/template-operator:0.0.1
           command:
           - template-operator
           imagePullPolicy: Always

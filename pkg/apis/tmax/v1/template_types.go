@@ -20,7 +20,7 @@ const (
 type PlanSpec struct {
 	Id                     string          `json:"id,omitempty"`
 	Name                   string          `json:"name"`
-	Description            string          `json:"description"`
+	Description            string          `json:"description,omitempty"`
 	Metadata               PlanMetadata    `json:"metadata,omitempty"`
 	Free                   bool            `json:"free,omitempty"`
 	Bindable               bool            `json:"bindable,omitempty"`
@@ -32,13 +32,13 @@ type PlanSpec struct {
 
 type PlanMetadata struct {
 	Bullets     []string `json:"bullets,omitempty"`
-	Costs       []Cost   `json:"costs,omitempty"`
+	Costs       Cost     `json:"costs,omitempty"`
 	DisplayName string   `json:"displayName,omitempty"`
 }
 
 type Cost struct {
-	Amount map[string]int32 `json:"amount"`
-	Unit   string           `json:"unit"`
+	Amount int    `json:"amount"`
+	Unit   string `json:"unit"`
 }
 
 type MaintenanceInfo struct {
