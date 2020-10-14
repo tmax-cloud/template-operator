@@ -30,15 +30,13 @@ objects:
             containerPort: 80
 plans:
 - name: example-plan
-  description: example
   metadata:
     bullets:
     - feat 1
     - feat 2
     costs:
-    - amount:
-        usd: 0
-      unit: MONTHLY
+      amount: 100
+      unit: $
     bindable: true
     schemas:
       service_instance:

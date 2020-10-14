@@ -81,9 +81,8 @@ spec:
       - feat 1
       - feat 2
       costs:
-      - amount:
-          usd: 0
-        unit: MONTHLY
+        amount: 100
+        unit: $
     free: false
     bindable: true
     plan_updateable: false
@@ -100,9 +99,8 @@ spec:
       - feat 1
       - feat 2
       costs:
-      - amount:
-          usd: 0
-        unit: MONTHLY
+        amount: 200
+        unit: $
     free: false
     bindable: true
     plan_updateable: false
@@ -112,3 +110,4 @@ spec:
           parameters:
             NAME: nginx2
             IMAGE: nginx:1
+
