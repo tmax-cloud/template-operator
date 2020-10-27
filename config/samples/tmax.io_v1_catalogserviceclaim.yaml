@@ -1,0 +1,7 @@
+apiVersion: tmax.io/v1
+kind: CatalogServiceClaim
+metadata:
+  name: catalogserviceclaim-sample
+spec:
+  # Add fields here
+  foo: bar
