@@ -1,0 +1,20 @@
+# permissions for end users to view templateinstances.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: templateinstance-viewer-role
+rules:
+- apiGroups:
+  - tmax.io
+  resources:
+  - templateinstances
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - tmax.io
+  resources:
+  - templateinstances/status
+  verbs:
+  - get

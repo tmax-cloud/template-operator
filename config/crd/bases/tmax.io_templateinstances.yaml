@@ -1,0 +1,215 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: templateinstances.tmax.io
+spec:
+  group: tmax.io
+  names:
+    kind: TemplateInstance
+    listKind: TemplateInstanceList
+    plural: templateinstances
+    singular: templateinstance
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: TemplateInstance is the Schema for the templateinstances API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: TemplateInstanceSpec defines the desired state of TemplateInstance
+          properties:
+            clustertemplate:
+              properties:
+                apiVersion:
+                  description: 'APIVersion defines the versioned schema of this representation
+                    of an object. Servers should convert recognized schemas to the
+                    latest internal value, and may reject unrecognized values. More
+                    info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+                  type: string
+                kind:
+                  description: 'Kind is a string value representing the REST resource
+                    this object represents. Servers may infer this from the endpoint
+                    the client submits requests to. Cannot be updated. In CamelCase.
+                    More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+                  type: string
+                metadata:
+                  type: object
+                objects:
+                  items:
+                    type: object
+                  type: array
+                parameters:
+                  items:
+                    properties:
+                      description:
+                        type: string
+                      displayName:
+                        type: string
+                      from:
+                        type: string
+                      generate:
+                        type: string
+                      name:
+                        type: string
+                      required:
+                        type: boolean
+                      value:
+                        anyOf:
+                        - type: integer
+                        - type: string
+                        x-kubernetes-int-or-string: true
+                      valueType:
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  type: array
+              type: object
+            requester:
+              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                Important: Run "make" to regenerate code after modifying this file'
+              properties:
+                extra:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                groups:
+                  items:
+                    type: string
+                  type: array
+                uid:
+                  type: string
+                username:
+                  type: string
+              type: object
+            secret:
+              properties:
+                name:
+                  type: string
+              type: object
+            template:
+              properties:
+                apiVersion:
+                  description: 'APIVersion defines the versioned schema of this representation
+                    of an object. Servers should convert recognized schemas to the
+                    latest internal value, and may reject unrecognized values. More
+                    info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+                  type: string
+                kind:
+                  description: 'Kind is a string value representing the REST resource
+                    this object represents. Servers may infer this from the endpoint
+                    the client submits requests to. Cannot be updated. In CamelCase.
+                    More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+                  type: string
+                metadata:
+                  type: object
+                objects:
+                  items:
+                    type: object
+                  type: array
+                parameters:
+                  items:
+                    properties:
+                      description:
+                        type: string
+                      displayName:
+                        type: string
+                      from:
+                        type: string
+                      generate:
+                        type: string
+                      name:
+                        type: string
+                      required:
+                        type: boolean
+                      value:
+                        anyOf:
+                        - type: integer
+                        - type: string
+                        x-kubernetes-int-or-string: true
+                      valueType:
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  type: array
+              type: object
+          type: object
+        status:
+          description: TemplateInstanceStatus defines the observed state of TemplateInstance
+          properties:
+            conditions:
+              description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                of cluster Important: Run "make" to regenerate code after modifying
+                this file'
+              items:
+                properties:
+                  lastTransitionTime:
+                    format: date-time
+                    type: string
+                  message:
+                    type: string
+                  reason:
+                    type: string
+                  status:
+                    type: string
+                  type:
+                    type: string
+                required:
+                - type
+                type: object
+              type: array
+            objects:
+              items:
+                properties:
+                  ref:
+                    properties:
+                      apiVersion:
+                        type: string
+                      fieldPath:
+                        type: string
+                      kind:
+                        type: string
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                      resourceVersion:
+                        type: string
+                      uid:
+                        type: string
+                    type: object
+                required:
+                - ref
+                type: object
+              type: array
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
