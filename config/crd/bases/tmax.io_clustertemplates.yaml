@@ -14,7 +14,7 @@ spec:
     listKind: ClusterTemplateList
     plural: clustertemplates
     singular: clustertemplate
-  scope: Namespaced
+  scope: Cluster
   subresources:
     status: {}
   validation:
@@ -26,24 +26,167 @@ spec:
             of an object. Servers should convert recognized schemas to the latest
             internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
+        imageUrl:
+          type: string
         kind:
           description: 'Kind is a string value representing the REST resource this
             object represents. Servers may infer this from the endpoint the client
             submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
+        labels:
+          additionalProperties:
+            type: string
+          type: object
+        longDescription:
+          type: string
+        markdownDescription:
+          type: string
+        message:
+          type: string
         metadata:
           type: object
-        spec:
-          description: ClusterTemplateSpec defines the desired state of ClusterTemplate
+        objectKinds:
+          items:
+            type: string
+          type: array
+        objects:
+          items:
+            type: object
+          type: array
+        operatorStartTime:
+          description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster Important:
+            Run "make" to regenerate code after modifying this file'
+          type: string
+        parameters:
+          items:
+            properties:
+              description:
+                type: string
+              displayName:
+                type: string
+              from:
+                type: string
+              generate:
+                type: string
+              name:
+                type: string
+              required:
+                type: boolean
+              value:
+                anyOf:
+                - type: integer
+                - type: string
+                x-kubernetes-int-or-string: true
+              valueType:
+                type: string
+            required:
+            - name
+            type: object
+          type: array
+        plans:
+          items:
+            properties:
+              bindable:
+                type: boolean
+              description:
+                type: string
+              free:
+                type: boolean
+              id:
+                type: string
+              maintenance_info:
+                properties:
+                  description:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              maximum_polling_duration:
+                type: integer
+              metadata:
+                properties:
+                  bullets:
+                    items:
+                      type: string
+                    type: array
+                  costs:
+                    properties:
+                      amount:
+                        type: integer
+                      unit:
+                        type: string
+                    required:
+                    - amount
+                    - unit
+                    type: object
+                  displayName:
+                    type: string
+                type: object
+              name:
+                type: string
+              plan_updateable:
+                type: boolean
+              schemas:
+                properties:
+                  service_binding:
+                    properties:
+                      create:
+                        properties:
+                          parameters:
+                            additionalProperties:
+                              type: string
+                            type: object
+                        type: object
+                    type: object
+                  service_instance:
+                    properties:
+                      create:
+                        properties:
+                          parameters:
+                            additionalProperties:
+                              type: string
+                            type: object
+                        type: object
+                      update:
+                        properties:
+                          parameters:
+                            additionalProperties:
+                              type: string
+                            type: object
+                        type: object
+                    type: object
+                type: object
+            required:
+            - name
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+          type: array
+        provider:
+          type: string
+        recommend:
+          type: boolean
+        shortDescription:
+          type: string
+        status:
+          description: TemplateStatus defines the observed state of Template
           properties:
-            foo:
-              description: Foo is an example field of ClusterTemplate. Edit ClusterTemplate_types.go
-                to remove/update
+            message:
+              type: string
+            reason:
+              type: string
+            status:
               type: string
           type: object
-        status:
-          description: ClusterTemplateStatus defines the observed state of ClusterTemplate
-          type: object
+        tags:
+          items:
+            type: string
+          type: array
+        urlDescription:
+          type: string
+      required:
+      - urlDescription
       type: object
   version: v1
   versions:

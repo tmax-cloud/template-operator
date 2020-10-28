@@ -1,0 +1,12 @@
+apiVersion: tmax.io/v1
+kind: TemplateInstance
+metadata:
+  name: cluster-example-template-instance
+  namespace: default
+spec:
+  clustertemplate:
+    metadata:
+      name: cluster-example-template
+    parameters:
+    - name: NAME
+      value: example-test

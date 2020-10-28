@@ -1,0 +1,12 @@
+apiVersion: tmax.io/v1
+kind: TemplateInstance
+metadata:
+  name: example-template-instance
+  namespace: default
+spec:
+  template:
+    metadata:
+      name: example-template
+    parameters:
+    - name: NAME
+      value: example

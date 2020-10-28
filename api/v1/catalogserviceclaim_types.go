@@ -20,33 +20,37 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type ClaimStatusType string
+
+const (
+	ClaimAwating ClaimStatusType = "Awaiting"
+	ClaimSuccess ClaimStatusType = "Success"
+	ClaimApprove ClaimStatusType = "Approve"
+	ClaimReject  ClaimStatusType = "Reject"
+	ClaimError   ClaimStatusType = "Error"
+)
+
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// CatalogServiceClaimSpec defines the desired state of CatalogServiceClaim
-type CatalogServiceClaimSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of CatalogServiceClaim. Edit CatalogServiceClaim_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
-}
-
 // CatalogServiceClaimStatus defines the observed state of CatalogServiceClaim
 type CatalogServiceClaimStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
+	Message            string      `json:"message,omitempty"`
+	Reason             string      `json:"reason,omitempty"`
+	// +kubebuilder:validation:Enum:=Awaiting;Success;Approve;Reject;Error
+	Status ClaimStatusType `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-
+// +kubebuilder:resource:path=catalogserviceclaims,scope=Cluster,shortName=csc
 // CatalogServiceClaim is the Schema for the catalogserviceclaims API
 type CatalogServiceClaim struct {
 	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
+	metav1.ObjectMeta `json:"metadata"`
 
-	Spec   CatalogServiceClaimSpec   `json:"spec,omitempty"`
+	Spec   ClusterTemplate           `json:"spec"`
 	Status CatalogServiceClaimStatus `json:"status,omitempty"`
 }
 
