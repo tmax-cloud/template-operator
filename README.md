@@ -64,6 +64,6 @@
     - Approve 상태 추가 (Approve 후, 성공적으로 ClusterTemplate 만들어지면 Success 상태로 변경)
     - 승인 후, Template이 아닌 ClusterTemplate이 생성
 3. TemplateInstance 사용법 변경
-    - ClusterTemplate을 기반으로 instance 생성 할 경우 [파일](./example/cluster-example-template-instance.yaml)과 같이 사용
+    - ClusterTemplate을 기반으로 instance 생성 할 경우 [파일](./config/samples/cluster-example-template-instance.yaml)과 같이 사용
     - Template 기반으로 instance 생성 할 시에는 기존과 동일하게 사용 가능
 4. template-operator 와 template-service-broker가 독립적으로 동작 할 수 있도록 로직 분리 
