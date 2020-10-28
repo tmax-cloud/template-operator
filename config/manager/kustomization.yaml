@@ -21,11 +21,11 @@ spec:
         image: 192.168.6.122:5000/template-operator:0.0.1
         imagePullPolicy: Always
         name: manager
-        resources:
-          limits:
-            cpu: 100m
-            memory: 30Mi
-          requests:
-            cpu: 100m
-            memory: 20Mi
+        #resources:
+        #  limits:
+        #    cpu: 100m
+        #    memory: 30Mi
+        #  requests:
+        #    cpu: 100m
+        #    memory: 20Mi
       terminationGracePeriodSeconds: 10
