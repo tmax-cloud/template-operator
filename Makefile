@@ -42,16 +42,20 @@ run: generate fmt vet manifests
 
 # Install CRDs into a cluster
 install: manifests kustomize
-	$(KUSTOMIZE) build config/crd | kubectl apply -f -
+	kubectl apply -f config/crd/bases/
 
 # Uninstall CRDs from a cluster
 uninstall: manifests kustomize
-	$(KUSTOMIZE) build config/crd | kubectl delete -f -
+	kubectl delete -f config/manager/deploy_manager.yaml
+	kubectl delete -f config/rbac/deploy_admin_rbac.yaml
+	#kubectl delete -f config/rbac/deploy_rbac.yaml
+	kubectl delete -f config/crd/bases/
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-deploy: manifests kustomize
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build config/default | kubectl apply -f -
+deploy:
+	kubectl apply -f config/rbac/deploy_admin_rbac.yaml
+	#kubectl apply -f config/rbac/deploy_rbac.yaml
+	kubectl apply -f config/manager/deploy_manager.yaml
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
@@ -70,7 +74,7 @@ generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 # Build the docker image
-docker-build: test
+docker-build:
 	docker build . -t ${IMG}
 
 # Push the docker image
