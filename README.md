@@ -7,6 +7,22 @@
 ## prerequisite Install
 - kubernetes
 
+## Build
+- [Image-build](#image-build)
+- [Image-push](#image-push)
+
+---
+
+#### Image-build
+> 오퍼레이터 이미지를 빌드 합니다.
+- make docker-build IMG={YOUR_REPOSITORY}/{IMAGE_NAME}:{TAG}
+- 예시: make docker-build IMG=192.168.6.122:5000/template-operator:0.0.1
+
+#### Image-push
+> 이미지 레지스트리에 이미지를 푸쉬 합니다.
+- make docker-push IMG={YOUR_REPOSITORY}/{IMAGE_NAME}:{TAG}
+- 예시: make docker-push IMG=192.168.6.122:5000/template-operator:0.0.1
+
 ## Install Template Operator
 
 - [CRD](#crd)
@@ -38,13 +54,14 @@
 > 서비스어카운트를 위한 Role을 생성 합니다.
 > RoleBinding을 생성 합니다.
 >> 단, ClusterRoleBinding 내부의 namespace(default)를 {YOUR_NAMESPACE}로 변경해주어야 합니다.
-- kubectl apply -f kustomization.yaml -n {YOUR_NAMESPACE} ([파일](./config/rbac/kustomization.yaml))
+- kubectl apply -f deploy_rbac.yaml -n {YOUR_NAMESPACE} ([파일](./config/rbac/deploy_admin_rbac.yaml))
 
 ---
 
 #### Deployment
 > Template Operator를 생성 합니다.
-- kubectl apply -f kustomization.yaml -n {YOUR_NAMESPACE} ([파일](./config/manager/kustomization.yaml))
+>> 단, deploy_manager 내부의 image 경로는 사용자 환경에 맞게 수정 해야 합니다.
+- kubectl apply -f deploy_manager.yaml -n {YOUR_NAMESPACE} ([파일](./config/manager/deploy_manager.yaml))
 
 ---
 
