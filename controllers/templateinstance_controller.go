@@ -151,6 +151,7 @@ func (r *TemplateInstanceReconciler) replaceParamsWithValue(obj *runtime.RawExte
 }
 
 func (r *TemplateInstanceReconciler) createK8sObject(obj *runtime.RawExtension, owner *tmaxiov1.TemplateInstance) error {
+	reqLogger := r.Log.WithName("create k8s object")
 	// get unstructured object
 	unstr, err := internal.BytesToUnstructuredObject(obj)
 	if err != nil {
@@ -192,7 +193,7 @@ func (r *TemplateInstanceReconciler) createK8sObject(obj *runtime.RawExtension, 
 	if err = r.Client.Create(context.TODO(), unstr); err != nil {
 		return err
 	}
-
+	reqLogger.Info("Group: " + check.GroupVersionKind().Group + " kind: " + check.GetKind() + " Name: " + check.GetName() + " Namespace: " + check.GetNamespace())
 	return nil
 }
 
