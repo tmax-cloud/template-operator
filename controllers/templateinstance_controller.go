@@ -73,6 +73,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 	refTemplate := &tmaxiov1.Template{}
 	refClusterTemplate := &tmaxiov1.ClusterTemplate{}
 	objectInfo := &tmaxiov1.ObjectInfo{}
+	instanceParameters := []tmaxiov1.ParamSpec{}
 	instanceWithTemplate := instance.DeepCopy()
 
 	if instance.Spec.ClusterTemplate.Name == "" && instance.Spec.Template.Name == "" {
@@ -93,7 +94,8 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		}
 		objectInfo.ObjectMeta = instance.Spec.ClusterTemplate.ObjectMeta
 		objectInfo.Objects = refClusterTemplate.Objects
-		objectInfo.Parameters = instance.Spec.ClusterTemplate.Parameters[0:]
+		objectInfo.Parameters = refClusterTemplate.Parameters[0:]
+		instanceParameters = instance.Spec.ClusterTemplate.Parameters[0:]
 		instanceWithTemplate.Spec.ClusterTemplate = *objectInfo
 	} else {
 		err = r.Client.Get(context.TODO(), types.NamespacedName{
@@ -106,16 +108,35 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		}
 		objectInfo.ObjectMeta = instance.Spec.Template.ObjectMeta
 		objectInfo.Objects = refTemplate.Objects
-		objectInfo.Parameters = instance.Spec.Template.Parameters[0:]
+		objectInfo.Parameters = refTemplate.Parameters[0:]
+		instanceParameters = instance.Spec.Template.Parameters[0:]
 		instanceWithTemplate.Spec.Template = *objectInfo
 	}
 
-	// make parameter map
+	//parameter map
 	params := make(map[string]intstr.IntOrString)
-	for _, param := range objectInfo.Parameters {
+
+	// make instance parameter map
+	for _, param := range instanceParameters {
 		params[param.Name] = param.Value
 	}
 
+	// make real parameter with instance and default parameter
+	for idx, param := range objectInfo.Parameters {
+		if val, ok := params[param.Name]; ok {
+			// if a instance param was given, change instance param value
+			objectInfo.Parameters[idx].Value = val
+		} else if param.Required || param.Value.Size() == 0 {
+			// if param not found && (the param was required or default value was not set)
+			err := errors.NewBadRequest("parameter: " + param.Name + " must be included")
+			reqLogger.Error(err, "error occurs while setting parameters")
+			return r.updateTemplateInstanceStatus(instance, err)
+		}
+		//set param value
+		params[param.Name] = objectInfo.Parameters[idx].Value
+	}
+
+	//replace parameter name to value in object and create k8s object
 	for i := range objectInfo.Objects {
 		if err = r.replaceParamsWithValue(&(objectInfo.Objects[i]), &params); err != nil {
 			reqLogger.Error(err, "error occurs while replacing parameters")
