@@ -3,7 +3,7 @@ info:
   description: "This document contains APIs for Template Operator. \n
   Email: [jitae_yun@tmax.co.kr]"
   version: "1.0.0"
-  title: "Template Operator"
+  title: "Template Service"
 servers:
   - url: https://192.168.6.122:6443
 paths:
