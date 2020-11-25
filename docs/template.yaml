@@ -1,0 +1,874 @@
+openapi: "3.0.1"
+info:
+  description: "This document contains APIs for Template Operator. \n
+  Email: [jitae_yun@tmax.co.kr]"
+  version: "1.0.0"
+  title: "Template Service"
+servers:
+  - url: https://192.168.6.122:6443
+paths:
+  /apis/tmax.io/v1/clustertemplates:
+    post:
+      tags:
+        - ClusterTemplate
+      summary: Create ClusterTemplate
+      operationId: createClusterTemplate
+      requestBody:
+        description: "링크 참조: https://github.com/tmax-cloud/template-operator/blob/master/config/samples/cluster-example-template.yaml" 
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                apiVersion:
+                  type: string
+                  example: tmax.io/v1
+                kind:
+                  type: string
+                  example: ClusterTemplate
+                metadata:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                imageUrl:
+                  type: string
+                  example: example.com/example.gif
+                urlDescription:
+                  type: string
+                  example: http://url.example.com
+                provider:
+                  type: string
+                  example: tmax
+                recommend:
+                  type: boolean
+                  example: true
+                shortDescription:
+                  type: string
+                tags:
+                  items:
+                    type: string
+                  type: array
+                labels:
+                  additionalProperties:
+                    type: string
+                  type: object
+                longDescription:
+                  type: string
+                markdownDescription:
+                  type: string
+                message:
+                  type: string
+                objects:
+                  schema:
+                  $ref: "#/components/schemas/ObjectSpec"
+                plans:
+                  schema:
+                  $ref: "#/components/schemas/PlanSpec"
+                parameters:
+                  schema:
+                  $ref: "#/components/schemas/ParameterSpec"
+      responses:
+        '200':
+          description: Success create clustertemplate
+          content: 
+            application/json:
+              schema:
+                type: object
+    get:
+      tags:
+        - ClusterTemplate
+      summary: Get ClusterTemplateList
+      operationId: getClusterTemplateList
+      responses:
+        '200':
+          description: Success get clustertemplateList
+        '405':
+          description: Invalid input
+          content: {}
+  /apis/tmax.io/v1/clustertemplates/{clustertemplate-name}:
+    get:
+      tags:
+        - ClusterTemplate
+      summary: Get ClusterTemplateDetail
+      operationId: getClusterTemplateDetail
+      parameters:
+        - name: clustertemplate-name
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Success get clustertemplateDetail
+        '405':
+          description: Invalid input
+          content: {}
+    put:
+      tags:
+        - ClusterTemplate
+      summary: update ClusterTemplate
+      operationId: updateClusterTemplate
+      parameters:
+        - name: clustertemplate-name
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                apiVersion:
+                  type: string
+                  example: tmax.io/v1
+                kind:
+                  type: string
+                  example: ClusterTemplate
+                metadata:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    resourceVersion:
+                      type: string
+                  required:
+                  - resourceVersion
+                imageUrl:
+                  type: string
+                  example: example.com/example.gif
+                urlDescription:
+                  type: string
+                  example: http://url.example.com
+                provider:
+                  type: string
+                  example: tmax
+                recommend:
+                  type: boolean
+                  example: true
+                shortDescription:
+                  type: string
+                tags:
+                  items:
+                    type: string
+                  type: array
+                labels:
+                  additionalProperties:
+                    type: string
+                  type: object
+                longDescription:
+                  type: string
+                markdownDescription:
+                  type: string
+                message:
+                  type: string
+                objects:
+                  schema:
+                  $ref: "#/components/schemas/ObjectSpec"
+                plans:
+                  schema:
+                  $ref: "#/components/schemas/PlanSpec"
+                parameters:
+                  schema:
+                  $ref: "#/components/schemas/ParameterSpec"
+      responses:
+        '200':
+          description: Success update clustertemplate
+        '405':
+          description: Invalid input
+          content: {}
+    delete:
+      tags:
+        - ClusterTemplate
+      summary: Delete ClusterTemplate
+      operationId: deleteClusterTemplate
+      parameters:
+        - name: clustertemplate-name
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Success delete clustertemplate
+        '405':
+          description: Invalid input
+          content: {}
+  /apis/tmax.io/v1/templates:
+    get:
+      tags:
+        - Template
+      summary: Get TemplateList in all-namespace
+      operationId: getTemplateListAll
+      responses:
+        '200':
+          description: Success get templateList in all-namespace
+        '405':
+          description: Invalid input
+          content: {}
+  /apis/tmax.io/v1/namespaces/{namespace-name}/templates:
+    post:
+      tags:
+        - Template
+      summary: Create Template
+      operationId: createTemplate
+      parameters:
+        - name: namespace-name
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: "링크 참조: https://github.com/tmax-cloud/template-operator/blob/master/config/samples/example-template.yaml"
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                apiVersion:
+                  type: string
+                  example: tmax.io/v1
+                kind:
+                  type: string
+                  example: Template
+                metadata:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                imageUrl:
+                  type: string
+                  example: example.com/example.gif
+                urlDescription:
+                  type: string
+                  example: http://url.example.com
+                provider:
+                  type: string
+                  example: tmax
+                recommend:
+                  type: boolean
+                  example: true
+                shortDescription:
+                  type: string
+                tags:
+                  items:
+                    type: string
+                  type: array
+                labels:
+                  additionalProperties:
+                    type: string
+                  type: object
+                longDescription:
+                  type: string
+                markdownDescription:
+                  type: string
+                message:
+                  type: string
+                objects:
+                  schema:
+                  $ref: "#/components/schemas/ObjectSpec"
+                plans:
+                  schema:
+                  $ref: "#/components/schemas/PlanSpec"
+                parameters:
+                  schema:
+                  $ref: "#/components/schemas/ParameterSpec"
+      responses:
+        '200':
+          description: Success create template
+          content: 
+            application/json:
+              schema:
+                type: object
+    get:
+      tags:
+        - Template
+      summary: Get Template List
+      operationId: getTemplateList
+      parameters:
+        - name: namespace-name
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Success get templateList
+        '405':
+          description: Invalid input
+          content: {}
+  /apis/tmax.io/v1/namespaces/{namespace-name}/templates/{template-name}:
+    get:
+      tags:
+        - Template
+      summary: Get TemplateDetail
+      operationId: getTemplateDetail
+      parameters:
+        - name: namespace-name
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: template-name
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Success get template
+        '405':
+          description: Invalid input
+          content: {}
+    put:
+      tags:
+        - Template
+      summary: update Template
+      operationId: updateTemplate
+      parameters:
+        - name: namespace-name
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: template-name
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                apiVersion:
+                  type: string
+                  example: tmax.io/v1
+                kind:
+                  type: string
+                  example: Template
+                metadata:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                    resourceVersion:
+                      type: string
+                  required:
+                  - resourceVersion
+                imageUrl:
+                  type: string
+                  example: example.com/example.gif
+                urlDescription:
+                  type: string
+                  example: http://url.example.com
+                provider:
+                  type: string
+                  example: tmax
+                recommend:
+                  type: boolean
+                  example: true
+                shortDescription:
+                  type: string
+                tags:
+                  items:
+                    type: string
+                  type: array
+                labels:
+                  additionalProperties:
+                    type: string
+                  type: object
+                longDescription:
+                  type: string
+                markdownDescription:
+                  type: string
+                message:
+                  type: string
+                objects:
+                  schema:
+                  $ref: "#/components/schemas/ObjectSpec"
+                plans:
+                  schema:
+                  $ref: "#/components/schemas/PlanSpec"
+                parameters:
+                  schema:
+                  $ref: "#/components/schemas/ParameterSpec"
+      responses:
+        '200':
+          description: Success update template
+        '405':
+          description: Invalid input
+          content: {}
+    delete:
+      tags:
+        - Template
+      summary: Delete Template
+      operationId: deleteTemplate
+      parameters:
+        - name: namespace-name
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: template-name
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Success delete template
+        '405':
+          description: Invalid input
+          content: {}
+  /apis/tmax.io/v1/templateinstances:
+    get:
+      tags:
+        - TemplateInstance
+      summary: Get TemplateInstanceList in all-namespace
+      operationId: getTemplateInstanceList in all-namespace
+      responses:
+        '200':
+          description: Success get templateinstance list in all-namespace
+        '405':
+          description: Invalid input
+          content: {}
+  /apis/tmax.io/v1/namespaces/{namespace-name}/templateinstances:
+    post:
+      tags:
+        - TemplateInstance
+      summary: Create TemplateInstance
+      operationId: createTemplateInstance
+      parameters:
+        - name: namespace-name
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: "링크 참조: https://github.com/tmax-cloud/template-operator/blob/master/config/samples"
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                apiVersion:
+                  type: string
+                  example: tmax.io/v1
+                kind:
+                  type: string
+                  example: TemplateInstance
+                metadata:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: example-template-instance
+                    namespace:
+                      type: string
+                      example: default
+                spec:
+                  type: object
+                  properties:
+                    template:
+                      type: object
+                      properties:
+                        metadata:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              example: example-template
+                        parameters:
+                          type: array
+                          items:
+                            properties:
+                              name:
+                                type: string
+                                example: NAME
+                              value:
+                                type: string
+                                example: example
+                    clustertemplate:
+                      type: object
+                      properties:
+                        metadata:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              example: example-template
+                        parameters:
+                          type: array
+                          items:
+                            properties:
+                              name:
+                                type: string
+                                example: NAME
+                              value:
+                                type: string
+                                example: example
+      responses:
+        '200':
+          description: Success create templateinstance
+          content: 
+            application/json:
+              schema:
+                type: object
+    get:
+      tags:
+        - TemplateInstance
+      summary: Get TemplateInstanceList
+      operationId: getTemplateInstanceList
+      parameters:
+        - name: namespace-name
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Success get templateinstance list
+        '405':
+          description: Invalid input
+          content: {}
+  /apis/tmax.io/v1/namespaces/{namespace-name}/templateinstances/{templateinstance-name}:
+    get:
+      tags:
+        - TemplateInstance
+      summary: Get TemplateInstanceDetail
+      operationId: getTemplateInstanceDetail
+      parameters:
+        - name: namespace-name
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: templateinstance-name
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Success get templateinstance
+        '405':
+          description: Invalid input
+          content: {}
+    delete:
+      tags:
+        - TemplateInstance
+      summary: Delete TemplateInstance
+      operationId: deleteTemplateInstance
+      parameters:
+        - name: namespace-name
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: templateinstance-name
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Success delete templateinstance
+        '405':
+          description: Invalid input
+          content: {}
+  /apis/tmax.io/v1/catalogserviceclaims:
+    post:
+      tags:
+        - CatalogServiceClaim
+      summary: Create CatalogServiceClaim
+      operationId: createCatalogServiceClaim
+      requestBody:
+        description: "링크참조: https://github.com/tmax-cloud/template-operator/blob/master/config/samples/example-catalogserviceclaim.yaml" 
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                apiVersion:
+                  type: string
+                  example: tmax.io/v1
+                kind:
+                  type: string
+                  example: CatalogServiceClaim
+                metadata:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                spec:
+                  type: object
+                  properties:
+                    apiVersion:
+                      type: string
+                      example: tmax.io/v1
+                    kind:
+                      type: string
+                      example: ClusterTemplate
+                    metadata:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                    imageUrl:
+                      type: string
+                      example: example.com/example.gif
+                    urlDescription:
+                      type: string
+                      example: http://url.example.com
+                    provider:
+                      type: string
+                      example: tmax
+                    recommend:
+                      type: boolean
+                      example: true
+                    shortDescription:
+                      type: string
+                    tags:
+                      items:
+                        type: string
+                      type: array
+                    labels:
+                      additionalProperties:
+                        type: string
+                      type: object
+                    longDescription:
+                      type: string
+                    markdownDescription:
+                      type: string
+                    message:
+                      type: string
+                    objects:
+                      schema:
+                      $ref: "#/components/schemas/ObjectSpec"
+                    plans:
+                      schema:
+                      $ref: "#/components/schemas/PlanSpec"
+                    parameters:
+                      schema:
+                      $ref: "#/components/schemas/ParameterSpec"
+      responses:
+        '200':
+          description: Success create CatalogServiceClaim
+          content: 
+            application/json:
+              schema:
+                type: object
+    get:
+      tags:
+        - CatalogServiceClaim
+      summary: Get CatalogServiceClaimList
+      operationId: getCatalogServiceClaimList
+      responses:
+        '200':
+          description: Success get CatalogServiceClaim List
+        '405':
+          description: Invalid input
+          content: {}
+  /apis/tmax.io/v1/catalogserviceclaims/{catalogserviceclaim-name}:
+    get:
+      tags:
+        - CatalogServiceClaim
+      summary: Get CatalogServiceClaimDetail
+      operationId: getCatalogServiceClaimDetail
+      parameters:
+        - name: catalogserviceclaim-name
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Success get CatalogServiceClaim
+        '405':
+          description: Invalid input
+          content: {}
+    delete:
+      tags:
+        - CatalogServiceClaim
+      summary: Delete CatalogServiceClaim
+      operationId: deleteCatalogServiceClaim
+      parameters:
+        - name: catalogserviceclaim-name
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Success delete CatalogServiceClaim
+        '405':
+          description: Invalid input
+          content: {}
+  /apis/tmax.io/v1/catalogserviceclaims/{catalogserviceclaim-name}/status:
+    patch:
+      tags:
+        - CatalogServiceClaim
+      summary: patch CatalogServiceClaim
+      operationId: patchCatalogServiceClaim
+      parameters:
+        - name: catalogserviceclaim-name
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/merge-patch+json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: object
+                  properties:
+                    status:
+                      type: string
+                      enum: [ "Approve", "Reject", "Awaiting", "Success"]
+      responses:
+        '200':
+          description: update status CatalogServiceClaims
+        '405':
+          description: Invalid input
+          content: {}
+    
+components:
+  schemas:
+    ObjectSpec:
+      type: array
+      items:
+        type: object
+    PlanSpec:
+      type: array
+      items:
+        properties:
+          bindable:
+            type: boolean
+            example: true
+          description:
+            type: string
+          free:
+            type: boolean
+          id:
+            type: string
+          maintenance_info:
+            properties:
+              description:
+                type: string
+              version:
+                type: string
+            required:
+            - version
+            type: object
+          maximum_polling_duration:
+            type: integer
+          metadata:
+            properties:
+              bullets:
+                items:
+                  type: string
+                  example: "feat 1"
+                type: array
+              costs:
+                properties:
+                  amount:
+                    type: integer
+                    example: 100
+                  unit:
+                    type: string
+                    example: $
+                required:
+                - amount
+                - unit
+                type: object
+              displayName:
+                type: string
+            type: object
+          name:
+            type: string
+            example: example-plan
+          plan_updateable:
+            type: boolean
+          schemas:
+            properties:
+              service_binding:
+                properties:
+                  create:
+                    properties:
+                      parameters:
+                        additionalProperties:
+                          type: string
+                        type: object
+                    type: object
+                type: object
+              service_instance:
+                properties:
+                  create:
+                    properties:
+                      parameters:
+                        additionalProperties:
+                          type: string
+                        type: object
+                        example: {EXAMPLE_PARAM: value}
+                    type: object
+                  update:
+                    properties:
+                      parameters:
+                        additionalProperties:
+                          type: string
+                        type: object
+                    type: object
+                type: object
+            type: object
+        required:
+        - name
+        type: object
+        x-kubernetes-preserve-unknown-fields: true
+    ParameterSpec:
+      type: array
+      items:
+        properties:
+          description:
+            type: string
+            example: Application Name
+          displayName:
+            type: string
+          from:
+            type: string
+          generate:
+            type: string
+          name:
+            type: string
+            example: NAME
+          required:
+            type: boolean
+          value:
+            anyOf:
+            - type: integer
+            - type: string
+            x-kubernetes-int-or-string: true
+            example: string
+          valueType:
+            type: string
+            example: string
+        required:
+        - name
+        
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
