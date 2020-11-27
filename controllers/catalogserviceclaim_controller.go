@@ -58,7 +58,7 @@ func (r *CatalogServiceClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Result
 		// Error reading the object - requeue the request.
 		return ctrl.Result{}, err
 	}
-
+	instance.Spec.Kind= "ClusterTemplate"
 	switch instance.Status.Status {
 	case tmaxiov1.ClaimSuccess, tmaxiov1.ClaimReject, tmaxiov1.ClaimError:
 	case "": // if status empty
@@ -121,6 +121,7 @@ func (r *CatalogServiceClaimReconciler) createTemplateIfNotExist(
 	}
 
 	// set owner reference
+	/*
 	isController := true
 	blockOwnerDeletion := true
 	ownerRef := []metav1.OwnerReference{
@@ -134,6 +135,7 @@ func (r *CatalogServiceClaimReconciler) createTemplateIfNotExist(
 		},
 	}
 	template.SetOwnerReferences(ownerRef)
+	*/
 
 	// if not exists, create template
 	if err := r.Client.Create(context.TODO(), template); err != nil {

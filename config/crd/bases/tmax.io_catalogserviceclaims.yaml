@@ -16,7 +16,7 @@ spec:
     shortNames:
     - csc
     singular: catalogserviceclaim
-  scope: Cluster
+  scope: Namespaced
   subresources:
     status: {}
   validation:
