@@ -38,6 +38,7 @@ type CatalogServiceClaimStatus struct {
 	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
 	Message            string      `json:"message,omitempty"`
 	Reason             string      `json:"reason,omitempty"`
+	Handled            bool        `json:"handled,omitempty"`
 	// +kubebuilder:validation:Enum:=Awaiting;Success;Approve;Reject;Error
 	Status ClaimStatusType `json:"status,omitempty"`
 }
