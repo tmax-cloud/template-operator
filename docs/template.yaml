@@ -585,11 +585,29 @@ paths:
           description: Invalid input
           content: {}
   /apis/tmax.io/v1/catalogserviceclaims:
+    get:
+      tags:
+        - CatalogServiceClaim
+      summary: Get CatalogServiceClaimListAll
+      operationId: getCatalogServiceClaimListAll
+      responses:
+        '200':
+          description: Success get CatalogServiceClaim List in all-namespace
+        '405':
+          description: Invalid input
+          content: {}
+  /apis/tmax.io/v1/namespaces/{namespace-name}/catalogserviceclaims:
     post:
       tags:
         - CatalogServiceClaim
       summary: Create CatalogServiceClaim
       operationId: createCatalogServiceClaim
+      parameters:
+        - name: namespace-name
+          in: path
+          schema:
+            type: string
+          required: true
       requestBody:
         description: "링크참조: https://github.com/tmax-cloud/template-operator/blob/master/config/samples/example-catalogserviceclaim.yaml" 
         content:
@@ -671,19 +689,30 @@ paths:
         - CatalogServiceClaim
       summary: Get CatalogServiceClaimList
       operationId: getCatalogServiceClaimList
+      parameters:
+        - name: namespace-name
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
-          description: Success get CatalogServiceClaim List
+          description: Success get catalogserviceclaim list
         '405':
           description: Invalid input
           content: {}
-  /apis/tmax.io/v1/catalogserviceclaims/{catalogserviceclaim-name}:
+  /apis/tmax.io/v1/namespaces/{namespace-name}/catalogserviceclaims/{catalogserviceclaim-name}:
     get:
       tags:
         - CatalogServiceClaim
       summary: Get CatalogServiceClaimDetail
       operationId: getCatalogServiceClaimDetail
       parameters:
+        - name: namespace-name
+          in: path
+          schema:
+            type: string
+          required: true
         - name: catalogserviceclaim-name
           in: path
           schema:
@@ -701,6 +730,11 @@ paths:
       summary: Delete CatalogServiceClaim
       operationId: deleteCatalogServiceClaim
       parameters:
+        - name: namespace-name
+          in: path
+          schema:
+            type: string
+          required: true
         - name: catalogserviceclaim-name
           in: path
           schema:
@@ -712,13 +746,18 @@ paths:
         '405':
           description: Invalid input
           content: {}
-  /apis/tmax.io/v1/catalogserviceclaims/{catalogserviceclaim-name}/status:
+  /apis/tmax.io/v1/namespaces/{namespace-name}/catalogserviceclaims/{catalogserviceclaim-name}/status:
     patch:
       tags:
         - CatalogServiceClaim
       summary: patch CatalogServiceClaim
       operationId: patchCatalogServiceClaim
       parameters:
+        - name: namespace-name
+          in: path
+          schema:
+            type: string
+          required: true
         - name: catalogserviceclaim-name
           in: path
           schema:
