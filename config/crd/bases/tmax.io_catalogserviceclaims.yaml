@@ -16,7 +16,7 @@ spec:
     shortNames:
     - csc
     singular: catalogserviceclaim
-  scope: Cluster
+  scope: Namespaced
   subresources:
     status: {}
   validation:
@@ -210,6 +210,8 @@ spec:
         status:
           description: CatalogServiceClaimStatus defines the observed state of CatalogServiceClaim
           properties:
+            handled:
+              type: boolean
             lastTransitionTime:
               format: date-time
               type: string

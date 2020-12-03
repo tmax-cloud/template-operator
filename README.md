@@ -73,11 +73,10 @@
 ---
 
 #### Changes
-> hypercloud 4.1 대비 변경 사항 입니다.
+> hypercloud 4.2 변경 사항 입니다.
 1. ClusterTemplate 추가
-    - default 네임스페이스에 만들어서 사용 하던 사용자 공통 template을 cluster-scoped의 ClusterTemplate을 통해 사용
+    - default 네임스페이스에 만들어서 사용 하던 사용자 공통 template을 cluster-scope의 ClusterTemplate을 통해 사용
 2. CatalogServiceClaim 변경
-    - name-scope에서 cluster-scope로 변경
     - Approve 상태 추가 (Approve 후, 성공적으로 ClusterTemplate 만들어지면 Success 상태로 변경)
     - 승인 후, Template이 아닌 ClusterTemplate이 생성
 3. TemplateInstance 사용법 변경

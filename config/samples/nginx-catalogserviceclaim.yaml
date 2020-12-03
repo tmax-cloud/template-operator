@@ -2,6 +2,7 @@ apiVersion: tmax.io/v1
 kind: CatalogServiceClaim
 metadata:
   name: nginx-catalog-service-claim
+  namespace: default
 spec:
   apiVersion: tmax.io/v1
   kind: ClusterTemplate

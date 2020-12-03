@@ -38,13 +38,14 @@ type CatalogServiceClaimStatus struct {
 	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
 	Message            string      `json:"message,omitempty"`
 	Reason             string      `json:"reason,omitempty"`
+	Handled            bool        `json:"handled,omitempty"`
 	// +kubebuilder:validation:Enum:=Awaiting;Success;Approve;Reject;Error
 	Status ClaimStatusType `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:path=catalogserviceclaims,scope=Cluster,shortName=csc
+// +kubebuilder:resource:path=catalogserviceclaims,scope=Namespaced,shortName=csc
 // CatalogServiceClaim is the Schema for the catalogserviceclaims API
 type CatalogServiceClaim struct {
 	metav1.TypeMeta   `json:",inline"`

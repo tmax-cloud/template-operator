@@ -59,13 +59,22 @@ func (r *CatalogServiceClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Result
 		return ctrl.Result{}, err
 	}
 
+	if instance.Status.Handled == true {
+		reqLogger.Info("already handled claim")
+		return ctrl.Result{}, nil
+	}
+
+	//trash code for previous claim cr compatibility
+	instance.Spec.Kind = "ClusterTemplate"
+
 	switch instance.Status.Status {
-	case tmaxiov1.ClaimSuccess, tmaxiov1.ClaimReject, tmaxiov1.ClaimError:
+	case tmaxiov1.ClaimSuccess, tmaxiov1.ClaimError:
 	case "": // if status empty
 		cscStatus := &tmaxiov1.CatalogServiceClaimStatus{
 			LastTransitionTime: metav1.Time{Time: time.Now()},
 			Message:            "wait for admin permission",
 			Status:             tmaxiov1.ClaimAwating,
+			Handled:            false,
 		}
 		return r.updateCatalogServiceClaimStatus(instance, cscStatus)
 	case tmaxiov1.ClaimApprove:
@@ -75,6 +84,7 @@ func (r *CatalogServiceClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Result
 				Message:            "error occurs while creating cluster template",
 				Reason:             err.Error(),
 				Status:             tmaxiov1.ClaimError,
+				Handled:            true,
 			}
 			return r.updateCatalogServiceClaimStatus(instance, cscStatus)
 		}
@@ -83,8 +93,17 @@ func (r *CatalogServiceClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Result
 			LastTransitionTime: metav1.Time{Time: time.Now()},
 			Message:            "succeed to create cluster template",
 			Status:             tmaxiov1.ClaimSuccess,
+			Handled:            true,
 		}
 
+		return r.updateCatalogServiceClaimStatus(instance, cscStatus)
+	case tmaxiov1.ClaimReject:
+		cscStatus := &tmaxiov1.CatalogServiceClaimStatus{
+			LastTransitionTime: metav1.Time{Time: time.Now()},
+			Message:            "reject from admin",
+			Status:             tmaxiov1.ClaimReject,
+			Handled:            true,
+		}
 		return r.updateCatalogServiceClaimStatus(instance, cscStatus)
 	}
 
@@ -121,19 +140,21 @@ func (r *CatalogServiceClaimReconciler) createTemplateIfNotExist(
 	}
 
 	// set owner reference
-	isController := true
-	blockOwnerDeletion := true
-	ownerRef := []metav1.OwnerReference{
-		{
-			APIVersion:         owner.APIVersion,
-			Kind:               owner.Kind,
-			Name:               owner.Name,
-			UID:                owner.UID,
-			Controller:         &isController,
-			BlockOwnerDeletion: &blockOwnerDeletion,
-		},
-	}
-	template.SetOwnerReferences(ownerRef)
+	/*
+		isController := true
+		blockOwnerDeletion := true
+		ownerRef := []metav1.OwnerReference{
+			{
+				APIVersion:         owner.APIVersion,
+				Kind:               owner.Kind,
+				Name:               owner.Name,
+				UID:                owner.UID,
+				Controller:         &isController,
+				BlockOwnerDeletion: &blockOwnerDeletion,
+			},
+		}
+		template.SetOwnerReferences(ownerRef)
+	*/
 
 	// if not exists, create template
 	if err := r.Client.Create(context.TODO(), template); err != nil {
