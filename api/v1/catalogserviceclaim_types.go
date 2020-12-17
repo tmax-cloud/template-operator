@@ -46,6 +46,7 @@ type CatalogServiceClaimStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=catalogserviceclaims,scope=Namespaced,shortName=csc
+// +kubebuilder:printcolumn:name="ResourceName",type=string,JSONPath=`.spec.metadata.name`
 // CatalogServiceClaim is the Schema for the catalogserviceclaims API
 type CatalogServiceClaim struct {
 	metav1.TypeMeta   `json:",inline"`
