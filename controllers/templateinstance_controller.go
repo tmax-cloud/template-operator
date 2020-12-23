@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -158,14 +157,17 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 }
 
 func (r *TemplateInstanceReconciler) replaceParamsWithValue(obj *runtime.RawExtension, params *map[string]intstr.IntOrString) error {
+	reqLogger := r.Log.WithName("replace k8s object")
 	objYamlStr := string(obj.Raw)
+	reqLogger.Info("original object: " + objYamlStr)
 	for key, value := range *params {
-		objYamlStr = strings.Replace(objYamlStr, fmt.Sprintf("${%s}", key), value.String(), -1)
+		reqLogger.Info("key: " + key + " value: " + value.String())
+		if value.Type == 0 {
+			objYamlStr = strings.Replace(objYamlStr, "\"${"+key+"}\"", value.String(), -1)
+		}
+		objYamlStr = strings.Replace(objYamlStr, "${"+key+"}", value.String(), -1)
 	}
-
-	if strings.Index(objYamlStr, "${") != -1 {
-		return errors.NewBadRequest("not enough parameters exist")
-	}
+	reqLogger.Info("replaced object: " + objYamlStr)
 
 	obj.Raw = []byte(objYamlStr)
 	return nil
