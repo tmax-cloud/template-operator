@@ -135,25 +135,33 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		params[param.Name] = objectInfo.Parameters[idx].Value
 	}
 
-	//replace parameter name to value in object and create k8s object
+	//replace parameter name to value in object and check exist k8s object
 	for i := range objectInfo.Objects {
 		if err = r.replaceParamsWithValue(&(objectInfo.Objects[i]), &params); err != nil {
 			reqLogger.Error(err, "error occurs while replacing parameters")
 			return r.updateTemplateInstanceStatus(instance, err)
 		}
+		if err = r.existK8sObject(&(objectInfo.Objects[i]), instance); err != nil {
+			reqLogger.Error(err, "exist resource")
+			return r.updateTemplateInstanceStatus(instance, err)
+		}
+	}
 
-		if err = r.createK8sObject(&(objectInfo.Objects[i]), instance); err != nil && !errors.IsAlreadyExists(err) {
+	//create k8s object
+	for i := range objectInfo.Objects {
+		if err = r.createK8sObject(&(objectInfo.Objects[i]), instance); err != nil {
 			reqLogger.Error(err, "error occurs while create k8s object")
 			return r.updateTemplateInstanceStatus(instance, err)
 		}
 	}
 
 	// finally, update template instance
+	res, e := r.updateTemplateInstanceStatus(instanceWithTemplate, nil)
 	if err = r.Client.Patch(context.TODO(), instanceWithTemplate, client.MergeFrom(instance)); err != nil {
 		reqLogger.Error(err, "could not update template instance")
 		return r.updateTemplateInstanceStatus(instance, err)
 	}
-	return r.updateTemplateInstanceStatus(instanceWithTemplate, nil)
+	return res, e
 }
 
 func (r *TemplateInstanceReconciler) replaceParamsWithValue(obj *runtime.RawExtension, params *map[string]intstr.IntOrString) error {
@@ -173,8 +181,26 @@ func (r *TemplateInstanceReconciler) replaceParamsWithValue(obj *runtime.RawExte
 	return nil
 }
 
+func (r *TemplateInstanceReconciler) existK8sObject(obj *runtime.RawExtension, owner *tmaxiov1.TemplateInstance) error {
+	unstr, err := internal.BytesToUnstructuredObject(obj)
+	if err != nil {
+		return err
+	}
+	unstr.SetNamespace(owner.Namespace)
+	// check if the object already exist
+	check := unstr.DeepCopy()
+	if err = r.Client.Get(context.TODO(), types.NamespacedName{
+		Namespace: check.GetNamespace(),
+		Name:      check.GetName(),
+	}, check); err == nil {
+		return errors.NewAlreadyExists(schema.GroupResource{
+			Group:    check.GroupVersionKind().Group,
+			Resource: check.GetKind()}, "namespace: "+check.GetNamespace()+" name: "+check.GetName())
+	}
+	return nil
+}
+
 func (r *TemplateInstanceReconciler) createK8sObject(obj *runtime.RawExtension, owner *tmaxiov1.TemplateInstance) error {
-	reqLogger := r.Log.WithName("create k8s object")
 	// get unstructured object
 	unstr, err := internal.BytesToUnstructuredObject(obj)
 	if err != nil {
@@ -185,17 +211,6 @@ func (r *TemplateInstanceReconciler) createK8sObject(obj *runtime.RawExtension, 
 	//if len(unstr.GetNamespace()) == 0 {
 	unstr.SetNamespace(owner.Namespace)
 	//}
-
-	// check if the object already exist
-	check := unstr.DeepCopy()
-	if err = r.Client.Get(context.TODO(), types.NamespacedName{
-		Namespace: check.GetNamespace(),
-		Name:      check.GetName(),
-	}, check); err == nil {
-		return errors.NewAlreadyExists(schema.GroupResource{
-			Group:    check.GroupVersionKind().Group,
-			Resource: check.GetKind()}, "resource already exist")
-	}
 
 	// set owner reference
 	isController := true
@@ -216,7 +231,7 @@ func (r *TemplateInstanceReconciler) createK8sObject(obj *runtime.RawExtension, 
 	if err = r.Client.Create(context.TODO(), unstr); err != nil {
 		return err
 	}
-	reqLogger.Info("Group: " + check.GroupVersionKind().Group + " kind: " + check.GetKind() + " Name: " + check.GetName() + " Namespace: " + check.GetNamespace())
+
 	return nil
 }
 
