@@ -76,7 +76,7 @@ type ServiceBindingSchema struct {
 }
 
 type SchemaParameters struct {
-	Parameters map[string]string `json:"parameters,omitempty"`
+	Parameters map[string]intstr.IntOrString `json:"parameters,omitempty"`
 }
 type ParamSpec struct {
 	Description string             `json:"description,omitempty"`

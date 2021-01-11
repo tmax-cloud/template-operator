@@ -148,7 +148,10 @@ spec:
                             properties:
                               parameters:
                                 additionalProperties:
-                                  type: string
+                                  anyOf:
+                                  - type: integer
+                                  - type: string
+                                  x-kubernetes-int-or-string: true
                                 type: object
                             type: object
                         type: object
@@ -158,14 +161,20 @@ spec:
                             properties:
                               parameters:
                                 additionalProperties:
-                                  type: string
+                                  anyOf:
+                                  - type: integer
+                                  - type: string
+                                  x-kubernetes-int-or-string: true
                                 type: object
                             type: object
                           update:
                             properties:
                               parameters:
                                 additionalProperties:
-                                  type: string
+                                  anyOf:
+                                  - type: integer
+                                  - type: string
+                                  x-kubernetes-int-or-string: true
                                 type: object
                             type: object
                         type: object
