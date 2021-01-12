@@ -130,7 +130,8 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 			err := errors.NewBadRequest("parameter: " + param.Name + " must be included")
 			reqLogger.Error(err, "error occurs while setting parameters")
 			return r.updateTemplateInstanceStatus(instance, err)
-		} else if (len(param.ValueType) == 0 || param.ValueType == "string") && objectInfo.Parameters[idx].Value.Type == 0 {
+		}
+		if (len(objectInfo.Parameters[idx].ValueType) == 0 || objectInfo.Parameters[idx].ValueType == "string") && objectInfo.Parameters[idx].Value.Type == 0 {
 			objectInfo.Parameters[idx].Value = intstr.IntOrString{1, 0, ""}
 		}
 		//set param value
