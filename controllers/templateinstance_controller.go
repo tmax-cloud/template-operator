@@ -204,6 +204,7 @@ func (r *TemplateInstanceReconciler) existK8sObject(obj *runtime.RawExtension, o
 }
 
 func (r *TemplateInstanceReconciler) createK8sObject(obj *runtime.RawExtension, owner *tmaxiov1.TemplateInstance) error {
+	//reqLogger := r.Log.WithName("replace createK8sObject")
 	// get unstructured object
 	unstr, err := internal.BytesToUnstructuredObject(obj)
 	if err != nil {
@@ -216,20 +217,23 @@ func (r *TemplateInstanceReconciler) createK8sObject(obj *runtime.RawExtension, 
 	//}
 
 	// set owner reference
-	isController := true
+	isController := false
 	blockOwnerDeletion := true
-	ownerRef := []v1.OwnerReference{
-		{
-			APIVersion:         owner.APIVersion,
-			Kind:               owner.Kind,
-			Name:               owner.Name,
-			UID:                owner.UID,
-			Controller:         &isController,
-			BlockOwnerDeletion: &blockOwnerDeletion,
-		},
-	}
-	unstr.SetOwnerReferences(ownerRef)
 
+	//Get 하고 추가
+	ownerRefs := unstr.GetOwnerReferences()
+	//reqLogger.Info("before: " + fmt.Sprintf("%+v\n", unstr.GetOwnerReferences()))
+	ownerRef := v1.OwnerReference{
+		APIVersion:         owner.APIVersion,
+		Kind:               owner.Kind,
+		Name:               owner.Name,
+		UID:                owner.UID,
+		Controller:         &isController,
+		BlockOwnerDeletion: &blockOwnerDeletion,
+	}
+	ownerRefs = append(ownerRefs, ownerRef)
+	unstr.SetOwnerReferences(ownerRefs)
+	//reqLogger.Info("after: " + fmt.Sprintf("%+v\n", unstr.GetOwnerReferences()))
 	// create object
 	if err = r.Client.Create(context.TODO(), unstr); err != nil {
 		return err
