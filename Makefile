@@ -41,14 +41,11 @@ run: generate fmt vet manifests
 	go run ./main.go
 
 # Install CRDs into a cluster
-install: manifests kustomize
+install:
 	kubectl apply -f config/crd/bases/
 
 # Uninstall CRDs from a cluster
-uninstall: manifests kustomize
-	kubectl delete -f config/manager/deploy_manager.yaml
-	kubectl delete -f config/rbac/deploy_admin_rbac.yaml
-	#kubectl delete -f config/rbac/deploy_rbac.yaml
+uninstall:
 	kubectl delete -f config/crd/bases/
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
@@ -56,6 +53,12 @@ deploy:
 	kubectl apply -f config/rbac/deploy_admin_rbac.yaml
 	#kubectl apply -f config/rbac/deploy_rbac.yaml
 	kubectl apply -f config/manager/deploy_manager.yaml
+
+undeploy:
+	kubectl delete -f config/manager/deploy_manager.yaml
+	#kubectl delete -f config/rbac/deploy_rbac.yaml
+	kubectl delete -f config/rbac/deploy_admin_rbac.yaml
+	
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
@@ -125,3 +128,61 @@ bundle: manifests
 .PHONY: bundle-build
 bundle-build:
 	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+
+
+# Custom targets for Template operator
+.PHONY: test-gen test-crd test-verify test-lint test-unit
+
+# Test if zz_generated.deepcopy.go file is generated
+test-gen: save-sha-gen generate compare-sha-gen
+
+# Test if crd yaml files are generated
+test-crd: save-sha-crd manifests compare-sha-crd
+
+# Verify if go.sum is valid
+test-verify: save-sha-mod verify compare-sha-mod
+
+# Test code lint
+test-lint:
+	#golangci-lint run ./... -v -E gofmt --timeout 1h0m0s
+	golint ./...
+
+# Unit test
+test-unit:
+	go test -v ./controllers/...
+
+save-sha-gen:
+	$(eval GENSHA=$(shell sha512sum api/v1/zz_generated.deepcopy.go))
+
+compare-sha-gen:
+	$(eval GENSHA_AFTER=$(shell sha512sum api/v1/zz_generated.deepcopy.go))
+	@if [ "${GENSHA_AFTER}" = "${GENSHA}" ]; then echo "zz_generated.deepcopy.go is not changed"; else echo "zz_generated.deepcopy.go file is changed"; exit 1; fi
+
+save-sha-crd:
+	$(eval CRDSHA1=$(shell sha512sum config/crd/bases/tmax.io_catalogserviceclaims.yaml))
+	$(eval CRDSHA2=$(shell sha512sum config/crd/bases/tmax.io_clustertemplates.yaml))
+	$(eval CRDSHA3=$(shell sha512sum config/crd/bases/tmax.io_templateinstances.yaml))
+	$(eval CRDSHA4=$(shell sha512sum config/crd/bases/tmax.io_templates.yaml))
+
+compare-sha-crd:
+	$(eval CRDSHA1_AFTER=$(shell sha512sum config/crd/bases/tmax.io_catalogserviceclaims.yaml))
+	$(eval CRDSHA2_AFTER=$(shell sha512sum config/crd/bases/tmax.io_clustertemplates.yaml))
+	$(eval CRDSHA3_AFTER=$(shell sha512sum config/crd/bases/tmax.io_templateinstances.yaml))
+	$(eval CRDSHA4_AFTER=$(shell sha512sum config/crd/bases/tmax.io_templates.yaml))
+	@if [ "${CRDSHA1_AFTER}" = "${CRDSHA1}" ]; then echo "tmax.io_catalogserviceclaims.yaml is not changed"; else echo "tmax.io_catalogserviceclaims.yaml file is changed"; exit 1; fi
+	@if [ "${CRDSHA2_AFTER}" = "${CRDSHA2}" ]; then echo "tmax.io_clustertemplates.yaml is not changed"; else echo "tmax.io_clustertemplates.yaml file is changed"; exit 1; fi
+	@if [ "${CRDSHA3_AFTER}" = "${CRDSHA3}" ]; then echo "tmax.io_templateinstances.yaml is not changed"; else echo "tmax.io_templateinstances.yaml file is changed"; exit 1; fi
+	@if [ "${CRDSHA4_AFTER}" = "${CRDSHA4}" ]; then echo "tmax.io_templates.yaml is not changed"; else echo "tmax.io_templates.yaml file is changed"; exit 1; fi
+
+save-sha-mod:
+	$(eval MODSHA=$(shell sha512sum go.mod))
+	$(eval SUMSHA=$(shell sha512sum go.sum))
+
+verify:
+	go mod verify
+
+compare-sha-mod:
+	$(eval MODSHA_AFTER=$(shell sha512sum go.mod))
+	$(eval SUMSHA_AFTER=$(shell sha512sum go.sum))
+	@if [ "${MODSHA_AFTER}" = "${MODSHA}" ]; then echo "go.mod is not changed"; else echo "go.mod file is changed"; exit 1; fi
+	@if [ "${SUMSHA_AFTER}" = "${SUMSHA}" ]; then echo "go.sum is not changed"; else echo "go.sum file is changed"; exit 1; fi
