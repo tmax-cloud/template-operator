@@ -25,20 +25,18 @@ jobs:
       - uses: actions/checkout@v2
       - name: verify test
         run: make test-verify
-  test_unit:
-    runs-on: ubuntu-18.04
-    steps:
-      - uses: actions/checkout@v2
-      - name: unit test
-        run: make test-unit
+  #test_unit:
+  #  runs-on: ubuntu-18.04
+  #  steps:
+  #    - uses: actions/checkout@v2
+  #    - name: unit test
+  #      run: make test-unit
   test_lint:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
-      - uses: golangci/golangci-lint-action@v2.2.1
-        with:
-          version: v1.29
-          args: -v -E gofmt --timeout 1h0m0s
+      - name: gen test
+        run: make test-lint
   deploy-release:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: [test_gen, test_verify, test_unit, test_lint, test_crd]
