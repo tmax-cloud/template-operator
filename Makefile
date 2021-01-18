@@ -145,6 +145,7 @@ test-verify: save-sha-mod verify compare-sha-mod
 # Test code lint
 test-lint:
 	#golangci-lint run ./... -v -E gofmt --timeout 1h0m0s
+	go get -u golang.org/x/lint/golint
 	golint ./...
 
 # Unit test
