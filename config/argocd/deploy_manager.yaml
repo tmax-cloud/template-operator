@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: template-operator
+  namespace: template
+spec:
+  selector:
+    matchLabels:
+      name: template-operator
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: template-operator
+    spec:
+      serviceAccountName: template-operator
+      containers:
+      - command:
+        - /manager
+        args:
+        - --enable-leader-election
+        image: jitaeyun/template-operator:0.0.1
+        imagePullPolicy: Always
+        name: manager
+        #resources:
+        #  limits:
+        #    cpu: 100m
+        #    memory: 30Mi
+        #  requests:
+        #    cpu: 100m
+        #    memory: 20Mi
+      terminationGracePeriodSeconds: 10
+
