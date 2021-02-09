@@ -30,7 +30,6 @@
 - [RBAC](#RBAC)
 - [Deployment](#deployment)
 - [Test](#test)
-- [Changes](#changes)
 
 ---
 
@@ -45,7 +44,7 @@
 
 #### Namespace
 > 오퍼레이터를 위한 네임스페이스를 생성 합니다.
-- kubectl create namespace {YOUR_NAMESPACE}
+- kubectl create namespace template
 
 ---
 
@@ -53,27 +52,71 @@
 > 서비스어카운트를 생성 합니다.
 > 서비스어카운트를 위한 Role을 생성 합니다.
 > RoleBinding을 생성 합니다.
->> 단, ClusterRoleBinding 내부의 namespace(default)를 {YOUR_NAMESPACE}로 변경해주어야 합니다.
-- kubectl apply -f deploy_rbac.yaml -n {YOUR_NAMESPACE} ([파일](./config/rbac/deploy_admin_rbac.yaml))
+- kubectl apply -f deploy_rbac.yaml ([파일](./config/rbac/deploy_admin_rbac.yaml))
 
 ---
 
 #### Deployment
 > Template Operator를 생성 합니다.
 >> 단, deploy_manager 내부의 image 경로는 사용자 환경에 맞게 수정 해야 합니다.
-- kubectl apply -f deploy_manager.yaml -n {YOUR_NAMESPACE} ([파일](./config/manager/deploy_manager.yaml))
+- kubectl apply -f deploy_manager.yaml ([파일](./config/manager/deploy_manager.yaml))
 
 ---
 
 #### Test
 > 테스트는 config/samples 디렉토리를 참고하여 하시면 됩니다.
-
 - kubectl apply -f example.yaml
 
 ---
 
+## Delete Template Operator
+
+- [Delete-resource](#Delete-resource)
+- [Delete-deployment](#Delete-deployment)
+- [Delete-rbac](#Delete-rbac)
+- [Delete-crd](#Delete-crd)
+- [Delete-namespace](#Delete-namespace)
+
+---
+
+#### Delete-resource
+> Template 관련 리소스를 모두 삭제 합니다.
+- kubectl delete templateinstance --all --all-namespaces
+- kubectl delete catalogserviceclaim --all --all-namespaces
+- kubectl delete clustertemplate --all --all-namespaces
+- kubectl delete template --all --all-namespaces
+
+---
+
+#### Delete-deployment
+> Template operator를 삭제 합니다.
+- kubectl delete -f deploy_manager.yaml ([파일](./config/manager/deploy_manager.yaml))
+
+---
+
+#### Delete-rbac
+> template 관련 rbac을 삭제 합니다.
+- kubectl delete -f deploy_rbac.yaml ([파일](./config/rbac/deploy_admin_rbac.yaml))
+
+---
+
+#### Delete-crd
+> template 관련 CRD를 삭제 합니다.
+- kubectl delete -f tmax.io_templates.yaml ([파일](./config/crd/bases/tmax.io_templates.yaml))
+- kubectl delete -f tmax.io_clustertemplates.yaml ([파일](./config/crd/bases/tmax.io_clustertemplates.yaml))
+- kubectl delete -f tmax.io_templateinstances.yaml ([파일](./config/crd/bases/tmax.io_templateinstances.yaml))
+- kubectl delete -f tmax.io_catalogserviceclaims.yaml ([파일](./config/crd/bases/tmax.io_catalogserviceclaims.yaml))
+
+---
+
+#### Delete-namespace
+> template namespace를 삭제 합니다.
+- kubectl delete namespace template 
+
+---
+
 #### Changes
-> hypercloud 4.2 변경 사항 입니다.
+> hypercloud 5.0 변경 사항 입니다.
 1. ClusterTemplate 추가
     - default 네임스페이스에 만들어서 사용 하던 사용자 공통 template을 cluster-scope의 ClusterTemplate을 통해 사용
 2. CatalogServiceClaim 변경
