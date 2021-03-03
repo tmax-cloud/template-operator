@@ -104,7 +104,6 @@ type MetadataSpec struct {
 type TemplateSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	OperatorStartTime   string                 `json:"operatorStartTime,omitempty"`
 	Labels              map[string]string      `json:"labels,omitempty"`
 	Message             string                 `json:"message,omitempty"`
 	ShortDescription    string                 `json:"shortDescription,omitempty"`

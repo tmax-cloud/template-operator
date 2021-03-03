@@ -59,6 +59,8 @@ spec:
             labels:
               additionalProperties:
                 type: string
+              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                Important: Run "make" to regenerate code after modifying this file'
               type: object
             longDescription:
               type: string
@@ -76,10 +78,6 @@ spec:
               items:
                 type: object
               type: array
-            operatorStartTime:
-              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-                Important: Run "make" to regenerate code after modifying this file'
-              type: string
             parameters:
               items:
                 properties:
@@ -201,16 +199,6 @@ spec:
               type: boolean
             shortDescription:
               type: string
-            status:
-              description: TemplateStatus defines the observed state of Template
-              properties:
-                message:
-                  type: string
-                reason:
-                  type: string
-                status:
-                  type: string
-              type: object
             tags:
               items:
                 type: string

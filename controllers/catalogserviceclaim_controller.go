@@ -78,7 +78,11 @@ func (r *CatalogServiceClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Result
 		}
 		return r.updateCatalogServiceClaimStatus(instance, cscStatus)
 	case tmaxiov1.ClaimApprove:
-		if err = r.createTemplateIfNotExist(&instance.Spec, instance); err != nil {
+		ct := &tmaxiov1.ClusterTemplate{}
+		ct.TypeMeta = instance.Spec.TypeMeta
+		ct.ObjectMeta = instance.Spec.ObjectMeta
+		ct.TemplateSpec = instance.Spec.TemplateSpec
+		if err = r.createTemplateIfNotExist(ct, instance); err != nil {
 			cscStatus := &tmaxiov1.CatalogServiceClaimStatus{
 				LastTransitionTime: metav1.Time{Time: time.Now()},
 				Message:            "error occurs while creating cluster template",
