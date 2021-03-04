@@ -45,7 +45,6 @@ type CatalogServiceClaimStatus struct {
 
 // ClusterTemplate is the Schema for the clustertemplates API
 type ClusterTemplateWithoutStatus struct {
-	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	TemplateSpec      `json:",inline,omitempty"`
 }

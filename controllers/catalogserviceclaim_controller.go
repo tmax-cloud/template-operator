@@ -64,9 +64,6 @@ func (r *CatalogServiceClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Result
 		return ctrl.Result{}, nil
 	}
 
-	//trash code for previous claim cr compatibility
-	instance.Spec.Kind = "ClusterTemplate"
-
 	switch instance.Status.Status {
 	case tmaxiov1.ClaimSuccess, tmaxiov1.ClaimError:
 	case "": // if status empty
@@ -79,7 +76,10 @@ func (r *CatalogServiceClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Result
 		return r.updateCatalogServiceClaimStatus(instance, cscStatus)
 	case tmaxiov1.ClaimApprove:
 		ct := &tmaxiov1.ClusterTemplate{}
-		ct.TypeMeta = instance.Spec.TypeMeta
+		ct.TypeMeta = metav1.TypeMeta{
+			APIVersion: "tmax.io/v1",
+			Kind:       "ClusterTemplate",
+		}
 		ct.ObjectMeta = instance.Spec.ObjectMeta
 		ct.TemplateSpec = instance.Spec.TemplateSpec
 		if err = r.createTemplateIfNotExist(ct, instance); err != nil {
