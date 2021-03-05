@@ -53,9 +53,9 @@ type TemplateInstanceSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 	Requester RequesterSpec `json:"requester,omitempty"`
 	Secret    SecretSpec    `json:"secret,omitempty"`
-	// Important: Use only one of the fields Template and ClusterTemplate. Fill in only metadata.name field.
+	// Important: Use only one of the fields Template and ClusterTemplate. Fill in only metadata.name and parameters inside this field.
 	Template ObjectInfo `json:"template,omitempty"`
-	// Important: Use only one of the fields Template and ClusterTemplate. Fill in only metadata.name field.
+	// Important: Use only one of the fields Template and ClusterTemplate. Fill in only metadata.name and parameters inside this field.
 	ClusterTemplate ObjectInfo `json:"clustertemplate,omitempty"`
 }
 

@@ -38,7 +38,7 @@ spec:
           properties:
             clustertemplate:
               description: 'Important: Use only one of the fields Template and ClusterTemplate.
-                Fill in only metadata.name field.'
+                Fill in only metadata.name and parameters inside this field.'
               properties:
                 apiVersion:
                   description: 'APIVersion defines the versioned schema of this representation
@@ -108,7 +108,7 @@ spec:
               type: object
             template:
               description: 'Important: Use only one of the fields Template and ClusterTemplate.
-                Fill in only metadata.name field.'
+                Fill in only metadata.name and parameters inside this field.'
               properties:
                 apiVersion:
                   description: 'APIVersion defines the versioned schema of this representation
