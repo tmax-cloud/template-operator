@@ -51,10 +51,12 @@ type ObjectInfo struct {
 type TemplateInstanceSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Requester       RequesterSpec `json:"requester,omitempty"`
-	Secret          SecretSpec    `json:"secret,omitempty"`
-	Template        ObjectInfo    `json:"template,omitempty"`
-	ClusterTemplate ObjectInfo    `json:"clustertemplate,omitempty"`
+	Requester RequesterSpec `json:"requester,omitempty"`
+	Secret    SecretSpec    `json:"secret,omitempty"`
+	// Important: Use only one of the fields Template and ClusterTemplate. Fill in only metadata.name field.
+	Template ObjectInfo `json:"template,omitempty"`
+	// Important: Use only one of the fields Template and ClusterTemplate. Fill in only metadata.name field.
+	ClusterTemplate ObjectInfo `json:"clustertemplate,omitempty"`
 }
 
 type RefSpec struct {

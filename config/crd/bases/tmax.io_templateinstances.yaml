@@ -37,6 +37,8 @@ spec:
           description: TemplateInstanceSpec defines the desired state of TemplateInstance
           properties:
             clustertemplate:
+              description: 'Important: Use only one of the fields Template and ClusterTemplate.
+                Fill in only metadata.name field.'
               properties:
                 apiVersion:
                   description: 'APIVersion defines the versioned schema of this representation
@@ -105,6 +107,8 @@ spec:
                   type: string
               type: object
             template:
+              description: 'Important: Use only one of the fields Template and ClusterTemplate.
+                Fill in only metadata.name field.'
               properties:
                 apiVersion:
                   description: 'APIVersion defines the versioned schema of this representation
