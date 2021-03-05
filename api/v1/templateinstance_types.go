@@ -24,6 +24,10 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+type MetadataSpec struct {
+	Name string `json:"name,omitempty"`
+}
+
 // +kubebuilder:validation:XPreserveUnknownFields
 type ExtraSpec struct {
 }
@@ -40,10 +44,9 @@ type SecretSpec struct {
 }
 
 type ObjectInfo struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Objects           []runtime.RawExtension `json:"objects,omitempty"`
-	Parameters        []ParamSpec            `json:"parameters,omitempty"`
+	Metadata   MetadataSpec           `json:"metadata,omitempty"`
+	Objects    []runtime.RawExtension `json:"objects,omitempty"`
+	Parameters []ParamSpec            `json:"parameters,omitempty"`
 }
 
 // +kubebuilder:resource:shortName="ti"

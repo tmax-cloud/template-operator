@@ -93,12 +93,6 @@ type LabelSpec struct {
 	AdditionalProperties string `json:"additionalProperties,omitempty"`
 }
 
-type MetadataSpec struct {
-	GenerateName      string `json:"generateName,omitempty"`
-	Name              string `json:"name,omitempty"`
-	metav1.ObjectMeta `json:"type,omitempty"`
-}
-
 // TemplateSpec defines the desired state of Template
 // +kubebuilder:resource:shortName="tp"
 type TemplateSpec struct {

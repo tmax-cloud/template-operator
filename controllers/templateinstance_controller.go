@@ -75,23 +75,23 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 	instanceParameters := []tmaxiov1.ParamSpec{}
 	instanceWithTemplate := instance.DeepCopy()
 
-	if instance.Spec.ClusterTemplate.Name == "" && instance.Spec.Template.Name == "" {
+	if instance.Spec.ClusterTemplate.Metadata.Name == "" && instance.Spec.Template.Metadata.Name == "" {
 		err := errors.NewBadRequest("cannot find any template info in instance spec")
 		reqLogger.Error(err, "")
 		return r.updateTemplateInstanceStatus(instance, err)
-	} else if instance.Spec.ClusterTemplate.Name != "" && instance.Spec.Template.Name != "" {
+	} else if instance.Spec.ClusterTemplate.Metadata.Name != "" && instance.Spec.Template.Metadata.Name != "" {
 		err := errors.NewBadRequest("you should insert either template or clustertemplate")
 		reqLogger.Error(err, "")
 		return r.updateTemplateInstanceStatus(instance, err)
-	} else if instance.Spec.ClusterTemplate.Name != "" {
+	} else if instance.Spec.ClusterTemplate.Metadata.Name != "" {
 		err = r.Client.Get(context.TODO(), types.NamespacedName{
-			Name: instance.Spec.ClusterTemplate.Name,
+			Name: instance.Spec.ClusterTemplate.Metadata.Name,
 		}, refClusterTemplate)
 		if err != nil {
 			reqLogger.Error(err, "clusterTemplate not found")
 			return r.updateTemplateInstanceStatus(instance, err)
 		}
-		objectInfo.ObjectMeta = instance.Spec.ClusterTemplate.ObjectMeta
+		objectInfo.Metadata.Name = instance.Spec.ClusterTemplate.Metadata.Name
 		objectInfo.Objects = refClusterTemplate.Objects
 		objectInfo.Parameters = refClusterTemplate.Parameters[0:]
 		instanceParameters = instance.Spec.ClusterTemplate.Parameters[0:]
@@ -99,13 +99,13 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 	} else {
 		err = r.Client.Get(context.TODO(), types.NamespacedName{
 			Namespace: instance.Namespace,
-			Name:      instance.Spec.Template.Name,
+			Name:      instance.Spec.Template.Metadata.Name,
 		}, refTemplate)
 		if err != nil {
 			reqLogger.Error(err, "template not found")
 			return r.updateTemplateInstanceStatus(instance, err)
 		}
-		objectInfo.ObjectMeta = instance.Spec.Template.ObjectMeta
+		objectInfo.Metadata.Name = instance.Spec.Template.Metadata.Name
 		objectInfo.Objects = refTemplate.Objects
 		objectInfo.Parameters = refTemplate.Parameters[0:]
 		instanceParameters = instance.Spec.Template.Parameters[0:]
