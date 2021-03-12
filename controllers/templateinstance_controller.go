@@ -83,7 +83,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		err := errors.NewBadRequest("you should insert either template or clustertemplate")
 		reqLogger.Error(err, "")
 		return r.updateTemplateInstanceStatus(instance, err)
-	} else if instance.Spec.ClusterTemplate.Metadata.Name != "" {
+	} else if instance.Spec.ClusterTemplate != nil {
 		err = r.Client.Get(context.TODO(), types.NamespacedName{
 			Name: instance.Spec.ClusterTemplate.Metadata.Name,
 		}, refClusterTemplate)
