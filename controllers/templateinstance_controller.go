@@ -75,11 +75,11 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 	instanceParameters := []tmaxiov1.ParamSpec{}
 	instanceWithTemplate := instance.DeepCopy()
 
-	if instance.Spec.ClusterTemplate.Metadata.Name == "" && instance.Spec.Template.Metadata.Name == "" {
+	if instance.Spec.ClusterTemplate == nil && instance.Spec.Template == nil {
 		err := errors.NewBadRequest("cannot find any template info in instance spec")
 		reqLogger.Error(err, "")
 		return r.updateTemplateInstanceStatus(instance, err)
-	} else if instance.Spec.ClusterTemplate.Metadata.Name != "" && instance.Spec.Template.Metadata.Name != "" {
+	} else if instance.Spec.ClusterTemplate != nil && instance.Spec.Template != nil {
 		err := errors.NewBadRequest("you should insert either template or clustertemplate")
 		reqLogger.Error(err, "")
 		return r.updateTemplateInstanceStatus(instance, err)
