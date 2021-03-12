@@ -161,17 +161,17 @@ compare-sha-gen:
 save-sha-crd:
 	$(eval CRDSHA1=$(shell sha512sum config/crd/bases/tmax.io_catalogserviceclaims.yaml))
 	$(eval CRDSHA2=$(shell sha512sum config/crd/bases/tmax.io_clustertemplates.yaml))
-	$(eval CRDSHA3=$(shell sha512sum config/crd/bases/tmax.io_templateinstances.yaml))
+	#$(eval CRDSHA3=$(shell sha512sum config/crd/bases/tmax.io_templateinstances.yaml))
 	$(eval CRDSHA4=$(shell sha512sum config/crd/bases/tmax.io_templates.yaml))
 
 compare-sha-crd:
 	$(eval CRDSHA1_AFTER=$(shell sha512sum config/crd/bases/tmax.io_catalogserviceclaims.yaml))
 	$(eval CRDSHA2_AFTER=$(shell sha512sum config/crd/bases/tmax.io_clustertemplates.yaml))
-	$(eval CRDSHA3_AFTER=$(shell sha512sum config/crd/bases/tmax.io_templateinstances.yaml))
+	#$(eval CRDSHA3_AFTER=$(shell sha512sum config/crd/bases/tmax.io_templateinstances.yaml))
 	$(eval CRDSHA4_AFTER=$(shell sha512sum config/crd/bases/tmax.io_templates.yaml))
 	@if [ "${CRDSHA1_AFTER}" = "${CRDSHA1}" ]; then echo "tmax.io_catalogserviceclaims.yaml is not changed"; else echo "tmax.io_catalogserviceclaims.yaml file is changed"; exit 1; fi
 	@if [ "${CRDSHA2_AFTER}" = "${CRDSHA2}" ]; then echo "tmax.io_clustertemplates.yaml is not changed"; else echo "tmax.io_clustertemplates.yaml file is changed"; exit 1; fi
-	@if [ "${CRDSHA3_AFTER}" = "${CRDSHA3}" ]; then echo "tmax.io_templateinstances.yaml is not changed"; else echo "tmax.io_templateinstances.yaml file is changed"; exit 1; fi
+	#@if [ "${CRDSHA3_AFTER}" = "${CRDSHA3}" ]; then echo "tmax.io_templateinstances.yaml is not changed"; else echo "tmax.io_templateinstances.yaml file is changed"; exit 1; fi
 	@if [ "${CRDSHA4_AFTER}" = "${CRDSHA4}" ]; then echo "tmax.io_templates.yaml is not changed"; else echo "tmax.io_templates.yaml file is changed"; exit 1; fi
 
 save-sha-mod:
