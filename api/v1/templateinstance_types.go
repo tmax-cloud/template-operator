@@ -57,9 +57,11 @@ type TemplateInstanceSpec struct {
 	Requester RequesterSpec `json:"requester,omitempty"`
 	Secret    SecretSpec    `json:"secret,omitempty"`
 	// Important: Use only one of the fields Template and ClusterTemplate. Fill in only metadata.name and parameters inside this field.
-	Template ObjectInfo `json:"template,omitempty"`
+	// +kubebuilder:validation:OneOf [TODO: 나중에 추가할것]
+	Template *ObjectInfo `json:"template,omitempty"`
 	// Important: Use only one of the fields Template and ClusterTemplate. Fill in only metadata.name and parameters inside this field.
-	ClusterTemplate ObjectInfo `json:"clustertemplate,omitempty"`
+	// +kubebuilder:validation:OneOf [TODO: 나중에 추가할것]
+	ClusterTemplate *ObjectInfo `json:"clustertemplate,omitempty"`
 }
 
 type RefSpec struct {

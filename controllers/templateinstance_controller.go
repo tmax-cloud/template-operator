@@ -95,7 +95,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		objectInfo.Objects = refClusterTemplate.Objects
 		objectInfo.Parameters = refClusterTemplate.Parameters[0:]
 		instanceParameters = instance.Spec.ClusterTemplate.Parameters[0:]
-		instanceWithTemplate.Spec.ClusterTemplate = *objectInfo
+		instanceWithTemplate.Spec.ClusterTemplate = objectInfo
 	} else {
 		err = r.Client.Get(context.TODO(), types.NamespacedName{
 			Namespace: instance.Namespace,
@@ -109,7 +109,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		objectInfo.Objects = refTemplate.Objects
 		objectInfo.Parameters = refTemplate.Parameters[0:]
 		instanceParameters = instance.Spec.Template.Parameters[0:]
-		instanceWithTemplate.Spec.Template = *objectInfo
+		instanceWithTemplate.Spec.Template = objectInfo
 	}
 
 	//parameter map
