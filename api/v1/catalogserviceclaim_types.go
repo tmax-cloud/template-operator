@@ -43,23 +43,22 @@ type CatalogServiceClaimStatus struct {
 	Status ClaimStatusType `json:"status,omitempty"`
 }
 
-// ClusterTemplate is the Schema for the clustertemplates API
-type ClusterTemplateWithoutStatus struct {
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-	TemplateSpec      `json:",inline,omitempty"`
+// CatalogServiceClaimSpec is the Schema for the clustertemplates API
+type CatalogServiceClaimSpec struct {
+	TemplateName string `json:"template"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=catalogserviceclaims,scope=Namespaced,shortName=csc
-// +kubebuilder:printcolumn:name="ResourceName",type=string,JSONPath=`.spec.metadata.name`
+// +kubebuilder:printcolumn:name="ResourceName",type=string,JSONPath=`.spec.template`
 // CatalogServiceClaim is the Schema for the catalogserviceclaims API
 type CatalogServiceClaim struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
 
-	Spec   ClusterTemplateWithoutStatus `json:"spec"`
-	Status CatalogServiceClaimStatus    `json:"status,omitempty"`
+	Spec   CatalogServiceClaimSpec   `json:"spec"`
+	Status CatalogServiceClaimStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
