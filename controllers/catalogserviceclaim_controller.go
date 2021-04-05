@@ -64,6 +64,26 @@ func (r *CatalogServiceClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Result
 		return ctrl.Result{}, nil
 	}
 
+	template := &tmaxiov1.Template{}
+	if err := r.Client.Get(context.TODO(), types.NamespacedName{
+		Namespace: req.Namespace,
+		Name:      instance.Spec.TemplateName,
+	}, template); err != nil {
+		if errors.IsNotFound(err) {
+			cscStatus := &tmaxiov1.CatalogServiceClaimStatus{
+				LastTransitionTime: metav1.Time{Time: time.Now()},
+				Message:            "template is not exist",
+				Reason:             err.Error(),
+				Status:             tmaxiov1.ClaimError,
+				Handled:            true,
+			}
+			return r.updateCatalogServiceClaimStatus(instance, cscStatus)
+		}
+
+		reqLogger.Error(err, "fail to get template")
+		return ctrl.Result{}, err
+	}
+
 	switch instance.Status.Status {
 	case tmaxiov1.ClaimSuccess, tmaxiov1.ClaimError:
 	case "": // if status empty
@@ -76,12 +96,15 @@ func (r *CatalogServiceClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Result
 		return r.updateCatalogServiceClaimStatus(instance, cscStatus)
 	case tmaxiov1.ClaimApprove:
 		ct := &tmaxiov1.ClusterTemplate{}
+
 		ct.TypeMeta = metav1.TypeMeta{
 			APIVersion: "tmax.io/v1",
 			Kind:       "ClusterTemplate",
 		}
-		ct.ObjectMeta = instance.Spec.ObjectMeta
-		ct.TemplateSpec = instance.Spec.TemplateSpec
+		ct.ObjectMeta = metav1.ObjectMeta{
+			Name: instance.Spec.TemplateName,
+		}
+		ct.TemplateSpec = template.TemplateSpec
 		if err = r.createTemplateIfNotExist(ct, instance); err != nil {
 			cscStatus := &tmaxiov1.CatalogServiceClaimStatus{
 				LastTransitionTime: metav1.Time{Time: time.Now()},
@@ -142,23 +165,6 @@ func (r *CatalogServiceClaimReconciler) createTemplateIfNotExist(
 			Group:    foundTemplate.GroupVersionKind().Group,
 			Resource: foundTemplate.Kind}, "resource already exist")
 	}
-
-	// set owner reference
-	/*
-		isController := true
-		blockOwnerDeletion := true
-		ownerRef := []metav1.OwnerReference{
-			{
-				APIVersion:         owner.APIVersion,
-				Kind:               owner.Kind,
-				Name:               owner.Name,
-				UID:                owner.UID,
-				Controller:         &isController,
-				BlockOwnerDeletion: &blockOwnerDeletion,
-			},
-		}
-		template.SetOwnerReferences(ownerRef)
-	*/
 
 	// if not exists, create template
 	if err := r.Client.Create(context.TODO(), template); err != nil {
