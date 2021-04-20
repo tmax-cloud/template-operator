@@ -25,8 +25,8 @@ type ClaimStatusType string
 const (
 	ClaimAwating ClaimStatusType = "Awaiting"
 	ClaimSuccess ClaimStatusType = "Success"
-	ClaimApprove ClaimStatusType = "Approve"
-	ClaimReject  ClaimStatusType = "Reject"
+	ClaimApprove ClaimStatusType = "Approved"
+	ClaimReject  ClaimStatusType = "Rejected"
 	ClaimError   ClaimStatusType = "Error"
 )
 
