@@ -39,7 +39,7 @@ type CatalogServiceClaimStatus struct {
 	Message            string      `json:"message,omitempty"`
 	Reason             string      `json:"reason,omitempty"`
 	Handled            bool        `json:"handled,omitempty"`
-	// +kubebuilder:validation:Enum:=Awaiting;Success;Approve;Reject;Error
+	// +kubebuilder:validation:Enum:=Awaiting;Success;Approved;Rejected;Error
 	Status ClaimStatusType `json:"status,omitempty"`
 }
 

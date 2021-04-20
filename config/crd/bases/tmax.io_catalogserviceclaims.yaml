@@ -65,8 +65,8 @@ spec:
               enum:
               - Awaiting
               - Success
-              - Approve
-              - Reject
+              - Approved
+              - Rejected
               - Error
               type: string
           type: object
