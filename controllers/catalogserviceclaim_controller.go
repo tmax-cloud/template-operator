@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -25,7 +26,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -46,9 +46,8 @@ func (r *CatalogServiceClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Result
 	reqLogger.Info("Reconciling CatalogServiceClaim")
 
 	// Fetch the CatalogServiceClaim instance
-	instance := &tmaxiov1.CatalogServiceClaim{}
-	err := r.Client.Get(context.TODO(), req.NamespacedName, instance)
-	if err != nil {
+	claim := &tmaxiov1.CatalogServiceClaim{}
+	if err := r.Client.Get(context.TODO(), req.NamespacedName, claim); err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
@@ -59,32 +58,37 @@ func (r *CatalogServiceClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Result
 		return ctrl.Result{}, err
 	}
 
-	if instance.Status.Handled == true {
+	if claim.Status.Handled == true {
 		reqLogger.Info("already handled claim")
 		return ctrl.Result{}, nil
 	}
 
-	template := &tmaxiov1.Template{}
-	if err := r.Client.Get(context.TODO(), types.NamespacedName{
-		Namespace: req.Namespace,
-		Name:      instance.Spec.TemplateName,
-	}, template); err != nil {
-		if errors.IsNotFound(err) {
-			cscStatus := &tmaxiov1.CatalogServiceClaimStatus{
-				LastTransitionTime: metav1.Time{Time: time.Now()},
-				Message:            "template is not exist",
-				Reason:             err.Error(),
-				Status:             tmaxiov1.ClaimError,
-				Handled:            true,
-			}
-			return r.updateCatalogServiceClaimStatus(instance, cscStatus)
-		}
-
-		reqLogger.Error(err, "fail to get template")
-		return ctrl.Result{}, err
+	if len(claim.Spec.ResourceName) == 0 {
+		claim.Spec.ResourceName = claim.Spec.TemplateName
 	}
 
-	switch instance.Status.Status {
+	if r.checkClusterTemplateExist(claim) {
+		cscStatus := &tmaxiov1.CatalogServiceClaimStatus{
+			LastTransitionTime: metav1.Time{Time: time.Now()},
+			Message:            fmt.Sprintf("clustertemplate %s already exist", claim.Spec.ResourceName),
+			Status:             tmaxiov1.ClaimReject,
+			Handled:            true,
+		}
+		return r.updateCatalogServiceClaimStatus(claim, cscStatus)
+	}
+
+	exist, template := r.getTemplateIfExist(claim)
+	if !exist {
+		cscStatus := &tmaxiov1.CatalogServiceClaimStatus{
+			LastTransitionTime: metav1.Time{Time: time.Now()},
+			Message:            fmt.Sprintf("template %s is not exist", claim.Spec.TemplateName),
+			Status:             tmaxiov1.ClaimError,
+			Handled:            true,
+		}
+		return r.updateCatalogServiceClaimStatus(claim, cscStatus)
+	}
+
+	switch claim.Status.Status {
 	case tmaxiov1.ClaimSuccess, tmaxiov1.ClaimError:
 	case "": // if status empty
 		cscStatus := &tmaxiov1.CatalogServiceClaimStatus{
@@ -93,19 +97,9 @@ func (r *CatalogServiceClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Result
 			Status:             tmaxiov1.ClaimAwating,
 			Handled:            false,
 		}
-		return r.updateCatalogServiceClaimStatus(instance, cscStatus)
+		return r.updateCatalogServiceClaimStatus(claim, cscStatus)
 	case tmaxiov1.ClaimApprove:
-		ct := &tmaxiov1.ClusterTemplate{}
-
-		ct.TypeMeta = metav1.TypeMeta{
-			APIVersion: "tmax.io/v1",
-			Kind:       "ClusterTemplate",
-		}
-		ct.ObjectMeta = metav1.ObjectMeta{
-			Name: instance.Spec.TemplateName,
-		}
-		ct.TemplateSpec = template.TemplateSpec
-		if err = r.createTemplateIfNotExist(ct, instance); err != nil {
+		if err := r.createClusterTemplate(claim, template); err != nil {
 			cscStatus := &tmaxiov1.CatalogServiceClaimStatus{
 				LastTransitionTime: metav1.Time{Time: time.Now()},
 				Message:            "error occurs while creating cluster template",
@@ -113,7 +107,7 @@ func (r *CatalogServiceClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Result
 				Status:             tmaxiov1.ClaimError,
 				Handled:            true,
 			}
-			return r.updateCatalogServiceClaimStatus(instance, cscStatus)
+			return r.updateCatalogServiceClaimStatus(claim, cscStatus)
 		}
 
 		cscStatus := &tmaxiov1.CatalogServiceClaimStatus{
@@ -122,8 +116,7 @@ func (r *CatalogServiceClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Result
 			Status:             tmaxiov1.ClaimSuccess,
 			Handled:            true,
 		}
-
-		return r.updateCatalogServiceClaimStatus(instance, cscStatus)
+		return r.updateCatalogServiceClaimStatus(claim, cscStatus)
 	case tmaxiov1.ClaimReject:
 		cscStatus := &tmaxiov1.CatalogServiceClaimStatus{
 			LastTransitionTime: metav1.Time{Time: time.Now()},
@@ -131,7 +124,7 @@ func (r *CatalogServiceClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Result
 			Status:             tmaxiov1.ClaimReject,
 			Handled:            true,
 		}
-		return r.updateCatalogServiceClaimStatus(instance, cscStatus)
+		return r.updateCatalogServiceClaimStatus(claim, cscStatus)
 	}
 
 	return ctrl.Result{}, nil
@@ -152,26 +145,41 @@ func (r *CatalogServiceClaimReconciler) updateCatalogServiceClaimStatus(
 	return ctrl.Result{}, nil
 }
 
-func (r *CatalogServiceClaimReconciler) createTemplateIfNotExist(
-	template *tmaxiov1.ClusterTemplate, owner *tmaxiov1.CatalogServiceClaim) error {
-	foundTemplate := &tmaxiov1.ClusterTemplate{}
-
+func (r *CatalogServiceClaimReconciler) checkClusterTemplateExist(claim *tmaxiov1.CatalogServiceClaim) bool {
+	ct := &tmaxiov1.ClusterTemplate{}
 	// check if it exists
 	if err := r.Client.Get(context.TODO(), types.NamespacedName{
-		Namespace: template.Namespace,
-		Name:      template.Name,
-	}, foundTemplate); err == nil {
-		return errors.NewAlreadyExists(schema.GroupResource{
-			Group:    foundTemplate.GroupVersionKind().Group,
-			Resource: foundTemplate.Kind}, "resource already exist")
+		Namespace: "",
+		Name:      claim.Spec.ResourceName,
+	}, ct); err != nil && errors.IsNotFound(err) {
+		return false
 	}
+	return true
+}
 
-	// if not exists, create template
-	if err := r.Client.Create(context.TODO(), template); err != nil {
-		return errors.NewInternalError(err)
+func (r *CatalogServiceClaimReconciler) getTemplateIfExist(claim *tmaxiov1.CatalogServiceClaim) (bool, *tmaxiov1.Template) {
+	template := &tmaxiov1.Template{}
+	if err := r.Client.Get(context.TODO(), types.NamespacedName{
+		Namespace: claim.Namespace,
+		Name:      claim.Spec.TemplateName,
+	}, template); err != nil && errors.IsNotFound(err) {
+		return false, nil
 	}
+	return true, template
+}
 
-	return nil
+func (r *CatalogServiceClaimReconciler) createClusterTemplate(claim *tmaxiov1.CatalogServiceClaim, template *tmaxiov1.Template) error {
+	ct := &tmaxiov1.ClusterTemplate{}
+	ct.TypeMeta = metav1.TypeMeta{
+		APIVersion: "tmax.io/v1",
+		Kind:       "ClusterTemplate",
+	}
+	ct.ObjectMeta = metav1.ObjectMeta{
+		Name: claim.Spec.ResourceName,
+	}
+	ct.TemplateSpec = template.TemplateSpec
+
+	return r.Client.Create(context.TODO(), ct)
 }
 
 func (r *CatalogServiceClaimReconciler) SetupWithManager(mgr ctrl.Manager) error {

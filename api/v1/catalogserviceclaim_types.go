@@ -45,6 +45,7 @@ type CatalogServiceClaimStatus struct {
 
 // CatalogServiceClaimSpec is the Schema for the clustertemplates API
 type CatalogServiceClaimSpec struct {
+	ResourceName string `json:"resourceName,omitempty"`
 	TemplateName string `json:"template"`
 }
 
