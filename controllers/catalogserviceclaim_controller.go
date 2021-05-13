@@ -63,10 +63,6 @@ func (r *CatalogServiceClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Result
 		return ctrl.Result{}, nil
 	}
 
-	if len(claim.Spec.ResourceName) == 0 {
-		claim.Spec.ResourceName = claim.Spec.TemplateName
-	}
-
 	if r.checkClusterTemplateExist(claim) {
 		cscStatus := &tmaxiov1.CatalogServiceClaimStatus{
 			LastTransitionTime: metav1.Time{Time: time.Now()},

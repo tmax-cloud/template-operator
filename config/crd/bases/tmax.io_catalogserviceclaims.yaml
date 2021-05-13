@@ -49,6 +49,7 @@ spec:
             template:
               type: string
           required:
+          - resourceName
           - template
           type: object
         status:
