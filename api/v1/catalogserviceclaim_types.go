@@ -24,7 +24,6 @@ type ClaimStatusType string
 
 const (
 	ClaimAwating ClaimStatusType = "Awaiting"
-	ClaimSuccess ClaimStatusType = "Success"
 	ClaimApprove ClaimStatusType = "Approved"
 	ClaimReject  ClaimStatusType = "Rejected"
 	ClaimError   ClaimStatusType = "Error"
@@ -39,7 +38,7 @@ type CatalogServiceClaimStatus struct {
 	Message            string      `json:"message,omitempty"`
 	Reason             string      `json:"reason,omitempty"`
 	Handled            bool        `json:"handled,omitempty"`
-	// +kubebuilder:validation:Enum:=Awaiting;Success;Approved;Rejected;Error
+	// +kubebuilder:validation:Enum:=Awaiting;Approved;Rejected;Error
 	Status ClaimStatusType `json:"status,omitempty"`
 }
 

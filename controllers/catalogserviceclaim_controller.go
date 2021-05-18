@@ -85,7 +85,6 @@ func (r *CatalogServiceClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Result
 	}
 
 	switch claim.Status.Status {
-	case tmaxiov1.ClaimSuccess, tmaxiov1.ClaimError:
 	case "": // if status empty
 		cscStatus := &tmaxiov1.CatalogServiceClaimStatus{
 			LastTransitionTime: metav1.Time{Time: time.Now()},
@@ -109,7 +108,7 @@ func (r *CatalogServiceClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Result
 		cscStatus := &tmaxiov1.CatalogServiceClaimStatus{
 			LastTransitionTime: metav1.Time{Time: time.Now()},
 			Message:            "succeed to create cluster template",
-			Status:             tmaxiov1.ClaimSuccess,
+			Status:             tmaxiov1.ClaimApprove,
 			Handled:            true,
 		}
 		return r.updateCatalogServiceClaimStatus(claim, cscStatus)

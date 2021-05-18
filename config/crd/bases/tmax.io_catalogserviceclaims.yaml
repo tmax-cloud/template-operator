@@ -67,7 +67,6 @@ spec:
             status:
               enum:
               - Awaiting
-              - Success
               - Approved
               - Rejected
               - Error
