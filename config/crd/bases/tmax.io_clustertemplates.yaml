@@ -1,131 +1,125 @@
-
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
+apiVersion: "apiextensions.k8s.io/v1beta1"
+kind: "CustomResourceDefinition"
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.0
+    controller-gen.kubebuilder.io/version: "v0.3.0"
   creationTimestamp: null
-  name: clustertemplates.tmax.io
+  name: "clustertemplates.tmax.io"
 spec:
-  group: tmax.io
+  group: "tmax.io"
   names:
-    kind: ClusterTemplate
-    listKind: ClusterTemplateList
-    plural: clustertemplates
-    singular: clustertemplate
-  scope: Cluster
+    kind: "ClusterTemplate"
+    listKind: "ClusterTemplateList"
+    plural: "clustertemplates"
+    singular: "clustertemplate"
+  scope: "Cluster"
   subresources:
     status: {}
   validation:
     openAPIV3Schema:
-      description: ClusterTemplate is the Schema for the clustertemplates API
+      description: "%tmax.io_clustertemplates.yaml.spec.validation.openAPIV3Schema"
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation
-            of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
+          description: "%tmax.io_clustertemplates.yaml.spec.validation.openAPIV3Schema.properties.apiVersion"
+          type: "string"
         imageUrl:
-          type: string
+          type: "string"
         kind:
-          description: 'Kind is a string value representing the REST resource this
-            object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
+          description: "%tmax.io_clustertemplates.yaml.spec.validation.openAPIV3Schema.properties.kind"
+          type: "string"
         labels:
           additionalProperties:
-            type: string
-          description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster Important:
-            Run "make" to regenerate code after modifying this file'
-          type: object
+            type: "string"
+          description: "%tmax.io_clustertemplates.yaml.spec.validation.openAPIV3Schema.properties.labels"
+          type: "object"
         longDescription:
-          type: string
+          type: "string"
         markdownDescription:
-          type: string
+          type: "string"
         message:
-          type: string
+          type: "string"
         metadata:
-          type: object
+          type: "object"
         objectKinds:
           items:
-            type: string
-          type: array
+            type: "string"
+          type: "array"
         objects:
           items:
-            type: object
-          type: array
+            type: "object"
+          type: "array"
         parameters:
           items:
             properties:
               description:
-                type: string
+                type: "string"
               displayName:
-                type: string
+                type: "string"
               from:
-                type: string
+                type: "string"
               generate:
-                type: string
+                type: "string"
               name:
-                type: string
+                type: "string"
               required:
-                type: boolean
+                type: "boolean"
               value:
                 anyOf:
-                - type: integer
-                - type: string
+                - type: "integer"
+                - type: "string"
                 x-kubernetes-int-or-string: true
               valueType:
-                type: string
+                type: "string"
             required:
-            - name
-            type: object
-          type: array
+            - "name"
+            type: "object"
+          type: "array"
         plans:
           items:
             properties:
               bindable:
-                type: boolean
+                type: "boolean"
               description:
-                type: string
+                type: "string"
               free:
-                type: boolean
+                type: "boolean"
               id:
-                type: string
+                type: "string"
               maintenance_info:
                 properties:
                   description:
-                    type: string
+                    type: "string"
                   version:
-                    type: string
+                    type: "string"
                 required:
-                - version
-                type: object
+                - "version"
+                type: "object"
               maximum_polling_duration:
-                type: integer
+                type: "integer"
               metadata:
                 properties:
                   bullets:
                     items:
-                      type: string
-                    type: array
+                      type: "string"
+                    type: "array"
                   costs:
                     properties:
                       amount:
-                        type: integer
+                        type: "integer"
                       unit:
-                        type: string
+                        type: "string"
                     required:
-                    - amount
-                    - unit
-                    type: object
+                    - "amount"
+                    - "unit"
+                    type: "object"
                   displayName:
-                    type: string
-                type: object
+                    type: "string"
+                type: "object"
               name:
-                type: string
+                type: "string"
               plan_updateable:
-                type: boolean
+                type: "boolean"
               schemas:
                 properties:
                   service_binding:
@@ -135,12 +129,12 @@ spec:
                           parameters:
                             additionalProperties:
                               anyOf:
-                              - type: integer
-                              - type: string
+                              - type: "integer"
+                              - type: "string"
                               x-kubernetes-int-or-string: true
-                            type: object
-                        type: object
-                    type: object
+                            type: "object"
+                        type: "object"
+                    type: "object"
                   service_instance:
                     properties:
                       create:
@@ -148,56 +142,56 @@ spec:
                           parameters:
                             additionalProperties:
                               anyOf:
-                              - type: integer
-                              - type: string
+                              - type: "integer"
+                              - type: "string"
                               x-kubernetes-int-or-string: true
-                            type: object
-                        type: object
+                            type: "object"
+                        type: "object"
                       update:
                         properties:
                           parameters:
                             additionalProperties:
                               anyOf:
-                              - type: integer
-                              - type: string
+                              - type: "integer"
+                              - type: "string"
                               x-kubernetes-int-or-string: true
-                            type: object
-                        type: object
-                    type: object
-                type: object
+                            type: "object"
+                        type: "object"
+                    type: "object"
+                type: "object"
             required:
-            - name
-            type: object
+            - "name"
+            type: "object"
             x-kubernetes-preserve-unknown-fields: true
-          type: array
+          type: "array"
         provider:
-          type: string
+          type: "string"
         recommend:
-          type: boolean
+          type: "boolean"
         shortDescription:
-          type: string
+          type: "string"
         status:
-          description: TemplateStatus defines the observed state of Template
+          description: "%tmax.io_clustertemplates.yaml.spec.validation.openAPIV3Schema.properties.status"
           properties:
             message:
-              type: string
+              type: "string"
             reason:
-              type: string
+              type: "string"
             status:
-              type: string
-          type: object
+              type: "string"
+          type: "object"
         tags:
           items:
-            type: string
-          type: array
+            type: "string"
+          type: "array"
         urlDescription:
-          type: string
+          type: "string"
       required:
-      - urlDescription
-      type: object
-  version: v1
+      - "urlDescription"
+      type: "object"
+  version: "v1"
   versions:
-  - name: v1
+  - name: "v1"
     served: true
     storage: true
 status:

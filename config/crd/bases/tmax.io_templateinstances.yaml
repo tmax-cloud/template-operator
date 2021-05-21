@@ -1,201 +1,191 @@
-
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
+apiVersion: "apiextensions.k8s.io/v1beta1"
+kind: "CustomResourceDefinition"
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.0
+    controller-gen.kubebuilder.io/version: "v0.3.0"
   creationTimestamp: null
-  name: templateinstances.tmax.io
+  name: "templateinstances.tmax.io"
 spec:
-  group: tmax.io
+  group: "tmax.io"
   names:
-    kind: TemplateInstance
-    listKind: TemplateInstanceList
-    plural: templateinstances
-    singular: templateinstance
-  scope: Namespaced
+    kind: "TemplateInstance"
+    listKind: "TemplateInstanceList"
+    plural: "templateinstances"
+    singular: "templateinstance"
+  scope: "Namespaced"
   subresources:
     status: {}
   validation:
     openAPIV3Schema:
-      description: TemplateInstance is the Schema for the templateinstances API
+      description: "%tmax.io_templateinstances.yaml.spec.validation.openAPIV3Schema"
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation
-            of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
+          description: "%tmax.io_templateinstances.yaml.spec.validation.openAPIV3Schema.properties.apiVersion"
+          type: "string"
         kind:
-          description: 'Kind is a string value representing the REST resource this
-            object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
+          description: "%tmax.io_templateinstances.yaml.spec.validation.openAPIV3Schema.properties.kind"
+          type: "string"
         metadata:
-          type: object
+          type: "object"
         spec:
           oneOf:
-            - required:
-              - clustertemplate
-            - required:
-              - template
-          description: TemplateInstanceSpec defines the desired state of TemplateInstance
+          - required:
+            - "clustertemplate"
+          - required:
+            - "template"
+          description: "%tmax.io_templateinstances.yaml.spec.validation.openAPIV3Schema.properties.spec"
           properties:
             clustertemplate:
-              description: 'Important: Use only one of the fields Template and ClusterTemplate.
-                Fill in only metadata.name and parameters inside this field.'
+              description: "%tmax.io_templateinstances.yaml.spec.validation.openAPIV3Schema.properties.spec.properties.clustertemplate"
               properties:
                 metadata:
                   properties:
                     name:
-                      type: string
-                  type: object
+                      type: "string"
+                  type: "object"
                 objects:
                   items:
-                    type: object
-                  type: array
+                    type: "object"
+                  type: "array"
                 parameters:
                   items:
                     properties:
                       description:
-                        type: string
+                        type: "string"
                       displayName:
-                        type: string
+                        type: "string"
                       from:
-                        type: string
+                        type: "string"
                       generate:
-                        type: string
+                        type: "string"
                       name:
-                        type: string
+                        type: "string"
                       required:
-                        type: boolean
+                        type: "boolean"
                       value:
                         anyOf:
-                        - type: integer
-                        - type: string
+                        - type: "integer"
+                        - type: "string"
                         x-kubernetes-int-or-string: true
                       valueType:
-                        type: string
+                        type: "string"
                     required:
-                    - name
-                    type: object
-                  type: array
-              type: object
+                    - "name"
+                    type: "object"
+                  type: "array"
+              type: "object"
             requester:
-              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-                Important: Run "make" to regenerate code after modifying this file'
+              description: "%tmax.io_templateinstances.yaml.spec.validation.openAPIV3Schema.properties.spec.properties.requester"
               properties:
                 extra:
-                  type: object
+                  type: "object"
                   x-kubernetes-preserve-unknown-fields: true
                 groups:
                   items:
-                    type: string
-                  type: array
+                    type: "string"
+                  type: "array"
                 uid:
-                  type: string
+                  type: "string"
                 username:
-                  type: string
-              type: object
+                  type: "string"
+              type: "object"
             secret:
               properties:
                 name:
-                  type: string
-              type: object
+                  type: "string"
+              type: "object"
             template:
-              description: 'Important: Use only one of the fields Template and ClusterTemplate.
-                Fill in only metadata.name and parameters inside this field.'
+              description: "%tmax.io_templateinstances.yaml.spec.validation.openAPIV3Schema.properties.spec.properties.template"
               properties:
                 metadata:
                   properties:
                     name:
-                      type: string
-                  type: object
+                      type: "string"
+                  type: "object"
                 objects:
                   items:
-                    type: object
-                  type: array
+                    type: "object"
+                  type: "array"
                 parameters:
                   items:
                     properties:
                       description:
-                        type: string
+                        type: "string"
                       displayName:
-                        type: string
+                        type: "string"
                       from:
-                        type: string
+                        type: "string"
                       generate:
-                        type: string
+                        type: "string"
                       name:
-                        type: string
+                        type: "string"
                       required:
-                        type: boolean
+                        type: "boolean"
                       value:
                         anyOf:
-                        - type: integer
-                        - type: string
+                        - type: "integer"
+                        - type: "string"
                         x-kubernetes-int-or-string: true
                       valueType:
-                        type: string
+                        type: "string"
                     required:
-                    - name
-                    type: object
-                  type: array
-              type: object
-          type: object
+                    - "name"
+                    type: "object"
+                  type: "array"
+              type: "object"
+          type: "object"
         status:
-          description: TemplateInstanceStatus defines the observed state of TemplateInstance
+          description: "%tmax.io_templateinstances.yaml.spec.validation.openAPIV3Schema.properties.status"
           properties:
             conditions:
-              description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
-                of cluster Important: Run "make" to regenerate code after modifying
-                this file'
+              description: "%tmax.io_templateinstances.yaml.spec.validation.openAPIV3Schema.properties.status.properties.conditions"
               items:
                 properties:
                   lastTransitionTime:
-                    format: date-time
-                    type: string
+                    format: "date-time"
+                    type: "string"
                   message:
-                    type: string
+                    type: "string"
                   reason:
-                    type: string
+                    type: "string"
                   status:
-                    type: string
+                    type: "string"
                   type:
-                    type: string
+                    type: "string"
                 required:
-                - type
-                type: object
-              type: array
+                - "type"
+                type: "object"
+              type: "array"
             objects:
               items:
                 properties:
                   ref:
                     properties:
                       apiVersion:
-                        type: string
+                        type: "string"
                       fieldPath:
-                        type: string
+                        type: "string"
                       kind:
-                        type: string
+                        type: "string"
                       name:
-                        type: string
+                        type: "string"
                       namespace:
-                        type: string
+                        type: "string"
                       resourceVersion:
-                        type: string
+                        type: "string"
                       uid:
-                        type: string
-                    type: object
+                        type: "string"
+                    type: "object"
                 required:
-                - ref
-                type: object
-              type: array
-          type: object
-      type: object
-  version: v1
+                - "ref"
+                type: "object"
+              type: "array"
+          type: "object"
+      type: "object"
+  version: "v1"
   versions:
-  - name: v1
+  - name: "v1"
     served: true
     storage: true
 status:
