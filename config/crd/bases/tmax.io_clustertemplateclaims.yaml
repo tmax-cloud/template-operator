@@ -6,26 +6,20 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.0
   creationTimestamp: null
-  name: catalogserviceclaims.tmax.io
+  name: clustertemplateclaims.tmax.io
 spec:
-  additionalPrinterColumns:
-  - JSONPath: .spec.template
-    name: ResourceName
-    type: string
   group: tmax.io
   names:
-    kind: CatalogServiceClaim
-    listKind: CatalogServiceClaimList
-    plural: catalogserviceclaims
-    shortNames:
-    - csc
-    singular: catalogserviceclaim
+    kind: ClusterTemplateClaim
+    listKind: ClusterTemplateClaimList
+    plural: clustertemplateclaims
+    singular: clustertemplateclaim
   scope: Namespaced
   subresources:
     status: {}
   validation:
     openAPIV3Schema:
-      description: CatalogServiceClaim is the Schema for the catalogserviceclaims
+      description: ClusterTemplateClaim is the Schema for the clustertemplateclaims
         API
       properties:
         apiVersion:
@@ -41,8 +35,7 @@ spec:
         metadata:
           type: object
         spec:
-          description: CatalogServiceClaimSpec is the Schema for the clustertemplates
-            API
+          description: ClusterTemplateClaimSpec defines the desired state of ClusterTemplateClaim
           properties:
             resourceName:
               type: string
@@ -53,14 +46,12 @@ spec:
           - template
           type: object
         status:
-          description: CatalogServiceClaimStatus defines the observed state of CatalogServiceClaim
+          description: ClusterTemplateClaimStatus defines the observed state of ClusterTemplateClaim
           properties:
             handled:
               type: boolean
             lastTransitionTime:
               format: date-time
-              type: string
-            message:
               type: string
             reason:
               type: string
@@ -68,13 +59,11 @@ spec:
               enum:
               - Awaiting
               - Approved
-              - Rejected
+              - ClusterTemplate Deleted
               - Error
+              - Rejected
               type: string
           type: object
-      required:
-      - metadata
-      - spec
       type: object
   version: v1
   versions:

@@ -1,20 +1,24 @@
-# permissions for end users to view catalogserviceclaims.
+# permissions for end users to edit clustertemplateclaims.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: catalogserviceclaim-viewer-role
+  name: clustertemplateclaim-editor-role
 rules:
 - apiGroups:
   - tmax.io
   resources:
-  - catalogserviceclaims
+  - clustertemplateclaims
   verbs:
+  - create
+  - delete
   - get
   - list
+  - patch
+  - update
   - watch
 - apiGroups:
   - tmax.io
   resources:
-  - catalogserviceclaims/status
+  - clustertemplateclaims/status
   verbs:
   - get
