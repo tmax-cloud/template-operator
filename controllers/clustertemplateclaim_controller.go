@@ -41,6 +41,7 @@ type ClusterTemplateClaimReconciler struct {
 }
 
 const claimFinalizer = "clustertemplateclaims.tmax.io/finalizer"
+const claimLabel = "clustertemplateclaims.tmax.io/claim"
 
 // +kubebuilder:rbac:groups=tmax.io,resources=clustertemplateclaims,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=tmax.io,resources=clustertemplateclaims/status,verbs=get;update;patch
@@ -148,7 +149,7 @@ func (r *ClusterTemplateClaimReconciler) createClusterTemplate(claim *tmaxiov1.C
 
 	ct.ObjectMeta = metav1.ObjectMeta{
 		Name:   claim.Spec.ResourceName,
-		Labels: map[string]string{"claim": claim.Name + "." + claim.Namespace},
+		Labels: map[string]string{claimLabel: claim.Name + "." + claim.Namespace},
 	}
 
 	ct.TemplateSpec = template.TemplateSpec

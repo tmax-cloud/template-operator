@@ -135,7 +135,7 @@ func (r *ClusterTemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 func (r *ClusterTemplateReconciler) updateClaimStatus(reqLogger logr.Logger, ct *tmaxiov1.ClusterTemplate) error {
 	claim := &tmaxiov1.ClusterTemplateClaim{}
 
-	claimInfo := strings.Split(ct.ObjectMeta.Labels["claim"], ".")
+	claimInfo := strings.Split(ct.ObjectMeta.Labels[claimLabel], ".")
 	claimNamespacedName := types.NamespacedName{
 		Namespace: claimInfo[1],
 		Name:      claimInfo[0],
