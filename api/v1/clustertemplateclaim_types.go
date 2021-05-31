@@ -23,7 +23,7 @@ import (
 const (
 	Awating                string = "Awaiting"
 	Approved               string = "Approved"
-	ClusterTemplateDeleted string = "ClusterTemplate Deleted"
+	ClusterTemplateDeleted string = "Cluster Template Deleted"
 	Rejected               string = "Rejected"
 	Error                  string = "Error"
 )
@@ -39,7 +39,7 @@ type ClusterTemplateClaimStatus struct {
 	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
 	Reason             string      `json:"reason,omitempty"`
 	Handled            bool        `json:"handled,omitempty"`
-	// +kubebuilder:validation:Enum:=Awaiting;Approved;ClusterTemplate Deleted;Error;Rejected
+	// +kubebuilder:validation:Enum:=Awaiting;Approved;Cluster Template Deleted;Error;Rejected
 	Status string `json:"status,omitempty"`
 }
 

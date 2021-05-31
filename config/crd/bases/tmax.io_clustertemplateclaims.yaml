@@ -59,7 +59,7 @@ spec:
               enum:
               - Awaiting
               - Approved
-              - ClusterTemplate Deleted
+              - Cluster Template Deleted
               - Error
               - Rejected
               type: string
