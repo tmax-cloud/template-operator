@@ -19,14 +19,19 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/conversion"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	tmaxiov1 "github.com/tmax-cloud/template-operator/api/v1"
 )
@@ -46,8 +51,8 @@ func (r *ClusterTemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	reqLogger.Info("Reconciling ClusterTemplate")
 
 	// Fetch the ClusterTemplate instance
-	instance := &tmaxiov1.ClusterTemplate{}
-	err := r.Client.Get(context.TODO(), req.NamespacedName, instance)
+	template := &tmaxiov1.ClusterTemplate{}
+	err := r.Client.Get(context.TODO(), req.NamespacedName, template)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -59,17 +64,30 @@ func (r *ClusterTemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		return ctrl.Result{}, err
 	}
 
+	// if ClusterTemplate was created by claim, claim status must be updated when the ClusterTemplate is deleted
+	if template.GetDeletionTimestamp() != nil && controllerutil.ContainsFinalizer(template, claimFinalizer) {
+		if err := r.updateClaimStatus(reqLogger, template); err != nil {
+			return ctrl.Result{}, err
+		}
+
+		controllerutil.RemoveFinalizer(template, claimFinalizer)
+		if r.Client.Update(context.TODO(), template); err != nil {
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{}, nil
+	}
+
 	// if status field is not nil, end reconcile
-	if len(instance.Status.Status) != 0 {
+	if len(template.Status.Status) != 0 {
 		reqLogger.Info("already handled template")
 		return ctrl.Result{}, nil
 	}
 
-	updateInstance := instance.DeepCopy()
+	updateInstance := template.DeepCopy()
 
 	// add kind to objectKinds fields
 	objectKinds := make([]string, 0)
-	for _, obj := range instance.Objects {
+	for _, obj := range template.Objects {
 		var in runtime.Object
 		var scope conversion.Scope // While not actually used within the function, need to pass in
 		if err = runtime.Convert_runtime_RawExtension_To_runtime_Object(&obj, &in, scope); err != nil {
@@ -78,7 +96,7 @@ func (r *ClusterTemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 				Message: "cannot decode object",
 				Status:  tmaxiov1.TemplateError,
 			}
-			return r.updateClusterTemplateStatus(instance, templateStatus)
+			return r.updateClusterTemplateStatus(template, templateStatus)
 		}
 
 		unstrObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(in)
@@ -88,7 +106,7 @@ func (r *ClusterTemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 				Message: "cannot decode object",
 				Status:  tmaxiov1.TemplateError,
 			}
-			return r.updateClusterTemplateStatus(instance, templateStatus)
+			return r.updateClusterTemplateStatus(template, templateStatus)
 		}
 
 		unstr := unstructured.Unstructured{Object: unstrObj}
@@ -98,20 +116,50 @@ func (r *ClusterTemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	updateInstance.ObjectKinds = objectKinds
 	reqLogger.Info(fmt.Sprintf("%v", objectKinds))
 
-	if err = r.Client.Patch(context.TODO(), updateInstance, client.MergeFrom(instance)); err != nil {
+	if err = r.Client.Patch(context.TODO(), updateInstance, client.MergeFrom(template)); err != nil {
 		reqLogger.Error(err, "cannot update clustertemplate")
 		templateStatus := &tmaxiov1.TemplateStatus{
 			Message: "cannot update clustertemplate",
 			Status:  tmaxiov1.TemplateError,
 		}
-		return r.updateClusterTemplateStatus(instance, templateStatus)
+		return r.updateClusterTemplateStatus(template, templateStatus)
 	}
 
 	templateStatus := &tmaxiov1.TemplateStatus{
 		Message: "update success",
 		Status:  tmaxiov1.TemplateSuccess,
 	}
-	return r.updateClusterTemplateStatus(instance, templateStatus)
+	return r.updateClusterTemplateStatus(template, templateStatus)
+}
+
+func (r *ClusterTemplateReconciler) updateClaimStatus(reqLogger logr.Logger, ct *tmaxiov1.ClusterTemplate) error {
+	claim := &tmaxiov1.ClusterTemplateClaim{}
+
+	claimInfo := strings.Split(ct.ObjectMeta.Labels["claim"], ".")
+	claimNamespacedName := types.NamespacedName{
+		Namespace: claimInfo[1],
+		Name:      claimInfo[0],
+	}
+	if err := r.Client.Get(context.TODO(), claimNamespacedName, claim); err != nil {
+		reqLogger.Error(err, "Failed to get claim")
+		return err
+	}
+
+	updatedClaim := claim.DeepCopy()
+	updatedClaim.Status = tmaxiov1.ClusterTemplateClaimStatus{
+		LastTransitionTime: metav1.Time{Time: time.Now()},
+		Reason:             "ClusterTemplate was deleted",
+		Status:             tmaxiov1.ClusterTemplateDeleted,
+		Handled:            true,
+	}
+
+	if err := r.Client.Status().Patch(context.TODO(), updatedClaim, client.MergeFrom(claim)); err != nil {
+		reqLogger.Error(err, "Error occurs while updating ClusterTemplateClaim status")
+		return err
+	}
+
+	reqLogger.Info("Successfully finalized clustertemplate")
+	return nil
 }
 
 func (r *ClusterTemplateReconciler) updateClusterTemplateStatus(

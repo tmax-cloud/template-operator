@@ -28,6 +28,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	tmaxiov1 "github.com/tmax-cloud/template-operator/api/v1"
 )
@@ -38,6 +39,8 @@ type ClusterTemplateClaimReconciler struct {
 	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
+
+const claimFinalizer = "clustertemplateclaims.tmax.io/finalizer"
 
 // +kubebuilder:rbac:groups=tmax.io,resources=clustertemplateclaims,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=tmax.io,resources=clustertemplateclaims/status,verbs=get;update;patch
@@ -142,10 +145,16 @@ func (r *ClusterTemplateClaimReconciler) createClusterTemplate(claim *tmaxiov1.C
 		APIVersion: "tmax.io/v1",
 		Kind:       "ClusterTemplate",
 	}
+
 	ct.ObjectMeta = metav1.ObjectMeta{
-		Name: claim.Spec.ResourceName,
+		Name:   claim.Spec.ResourceName,
+		Labels: map[string]string{"claim": claim.Name + "." + claim.Namespace},
 	}
+
 	ct.TemplateSpec = template.TemplateSpec
+
+	// Add finalizer to update claim status when ClusterTemplate is deleted
+	controllerutil.AddFinalizer(ct, claimFinalizer)
 
 	return r.Client.Create(context.TODO(), ct)
 }
