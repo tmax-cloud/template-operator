@@ -75,14 +75,6 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Template")
 		os.Exit(1)
 	}
-	if err = (&controllers.CatalogServiceClaimReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("CatalogServiceClaim"),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "CatalogServiceClaim")
-		os.Exit(1)
-	}
 	if err = (&controllers.ClusterTemplateReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("ClusterTemplate"),
@@ -97,6 +89,14 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "TemplateInstance")
+		os.Exit(1)
+	}
+	if err = (&controllers.ClusterTemplateClaimReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("ClusterTemplateClaim"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "ClusterTemplateClaim")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

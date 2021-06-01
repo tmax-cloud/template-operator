@@ -6,13 +6,13 @@ resources:
   kind: Template
   version: v1
 - group: tmax.io
-  kind: CatalogServiceClaim
-  version: v1
-- group: tmax.io
   kind: ClusterTemplate
   version: v1
 - group: tmax.io
   kind: TemplateInstance
+  version: v1
+- group: tmax.io
+  kind: ClusterTemplateClaim
   version: v1
 version: 3-alpha
 plugins:

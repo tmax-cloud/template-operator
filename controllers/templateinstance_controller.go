@@ -133,7 +133,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		}
 		if (len(objectInfo.Parameters[idx].ValueType) == 0 || objectInfo.Parameters[idx].ValueType == "string") && objectInfo.Parameters[idx].Value.Type == 0 {
 			if objectInfo.Parameters[idx].Value.IntValue() == 0 {
-				objectInfo.Parameters[idx].Value = intstr.IntOrString{1, 0, ""}
+				objectInfo.Parameters[idx].Value = intstr.IntOrString{Type: 1, IntVal: 0, StrVal: ""}
 			}
 		}
 		//set param value

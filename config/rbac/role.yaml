@@ -9,7 +9,7 @@ rules:
 - apiGroups:
   - tmax.io
   resources:
-  - catalogserviceclaims
+  - clustertemplateclaims
   verbs:
   - create
   - delete
@@ -21,7 +21,7 @@ rules:
 - apiGroups:
   - tmax.io
   resources:
-  - catalogserviceclaims/status
+  - clustertemplateclaims/status
   verbs:
   - get
   - patch

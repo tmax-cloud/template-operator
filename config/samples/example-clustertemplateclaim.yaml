@@ -1,0 +1,8 @@
+apiVersion: tmax.io/v1
+kind: ClusterTemplateClaim
+metadata:
+  name: claim-test2
+  namespace: tsb-ns
+spec:
+  resourceName: claim-test2
+  template: nginx-template2
