@@ -40,8 +40,10 @@ type ClusterTemplateClaimReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-const claimFinalizer = "clustertemplateclaims.tmax.io/finalizer"
-const claimLabel = "clustertemplateclaims.tmax.io/claim"
+const (
+	claimFinalizer = "clustertemplateclaims.tmax.io/finalizer"
+	claimLabel     = "clustertemplateclaims.tmax.io/claim"
+)
 
 // +kubebuilder:rbac:groups=tmax.io,resources=clustertemplateclaims,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=tmax.io,resources=clustertemplateclaims/status,verbs=get;update;patch
