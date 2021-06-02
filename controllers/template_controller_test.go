@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	tmaxiov1 "github.com/tmax-cloud/template-operator/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -15,8 +17,6 @@ import (
 )
 
 func TestTemplateController(t *testing.T) {
-	logf.SetLogger(logf.ZapLogger(true))
-
 	var (
 		name      = "test"
 		namespace = "template-test"
@@ -57,21 +57,18 @@ func TestTemplateController(t *testing.T) {
 		},
 	}
 
-	if _, err := r.Reconcile(req); err != nil {
-		t.Fatalf("reconcile: (%v)", err)
-	}
+	_, err := r.Reconcile(req)
+	require.NoError(t, err)
 
 	// Check if the correct value is added to the ObjectKinds field
 	tp := &tmaxiov1.Template{}
-	if err := r.Client.Get(context.TODO(), req.NamespacedName, tp); err != nil {
-		t.Fatalf("get template: (%v)", err)
-	}
+	err = r.Client.Get(context.TODO(), req.NamespacedName, tp)
+	require.NoError(t, err)
 
 	ok := tp.ObjectKinds
-	if len(ok) == 0 {
-		t.Error("ObjectKinds is empty")
-	}
-	if ok[0] != "Deployment" || ok[1] != "Service" || ok[2] != "Secret" {
-		t.Error("ObjectKinds have unexpected value")
-	}
+	assert.NotEqual(t, 0, len(ok), "ObjectKinds is empty")
+
+	assert.Equal(t, "Deployment", ok[0], "ObjectKinds have unexpected value")
+	assert.Equal(t, "Service", ok[1], "ObjectKinds have unexpected value")
+	assert.Equal(t, "Secret", ok[2], "ObjectKinds have unexpected value")
 }
