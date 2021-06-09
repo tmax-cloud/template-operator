@@ -62,10 +62,6 @@ spec:
                 type: string
               displayName:
                 type: string
-              from:
-                type: string
-              generate:
-                type: string
               name:
                 type: string
               required:
@@ -76,6 +72,9 @@ spec:
                 - type: string
                 x-kubernetes-int-or-string: true
               valueType:
+                enum:
+                - string
+                - number
                 type: string
             required:
             - name

@@ -28,21 +28,6 @@ type MetadataSpec struct {
 	Name string `json:"name,omitempty"`
 }
 
-// +kubebuilder:validation:XPreserveUnknownFields
-type ExtraSpec struct {
-}
-
-type RequesterSpec struct {
-	Extra    ExtraSpec `json:"extra,omitempty"`
-	Groups   []string  `json:"groups,omitempty"`
-	Uid      string    `json:"uid,omitempty"`
-	Username string    `json:"username,omitempty"`
-}
-
-type SecretSpec struct {
-	Name string `json:"name,omitempty"`
-}
-
 type ObjectInfo struct {
 	Metadata   MetadataSpec           `json:"metadata,omitempty"`
 	Objects    []runtime.RawExtension `json:"objects,omitempty"`
@@ -54,8 +39,6 @@ type ObjectInfo struct {
 type TemplateInstanceSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Requester RequesterSpec `json:"requester,omitempty"`
-	Secret    SecretSpec    `json:"secret,omitempty"`
 	// Important: Use only one of the fields Template and ClusterTemplate. Fill in only metadata.name and parameters inside this field.
 	// +kubebuilder:validation:OneOf [TODO: 나중에 추가할것]
 	Template *ObjectInfo `json:"template,omitempty"`
