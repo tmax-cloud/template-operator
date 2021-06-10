@@ -41,6 +41,11 @@ type TemplateInstanceReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+const (
+	stringType = "string"
+	numberType = "number"
+)
+
 // +kubebuilder:rbac:groups=tmax.io,resources=templateinstances,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=tmax.io,resources=templateinstances/status,verbs=get;update;patch
 
@@ -68,144 +73,125 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		return ctrl.Result{}, nil
 	}
 
-	// Get the template it refers
-	refTemplate := &tmaxiov1.Template{}
-	refClusterTemplate := &tmaxiov1.ClusterTemplate{}
+	// template/clustertemplate both empty or inserted
+	if (instance.Spec.ClusterTemplate == nil) == (instance.Spec.Template == nil) {
+		err := errors.NewBadRequest("You should insert either template or clustertemplate")
+		reqLogger.Error(err, "Error occurs while get template info")
+		return r.updateTemplateInstanceStatus(instance, err)
+	}
+
 	objectInfo := &tmaxiov1.ObjectInfo{}
 	instanceParameters := []tmaxiov1.ParamSpec{}
-	instanceWithTemplate := instance.DeepCopy()
+	updateInstance := instance.DeepCopy()
 
-	if instance.Spec.ClusterTemplate == nil && instance.Spec.Template == nil {
-		err := errors.NewBadRequest("cannot find any template info in instance spec")
-		reqLogger.Error(err, "")
-		return r.updateTemplateInstanceStatus(instance, err)
-	} else if instance.Spec.ClusterTemplate != nil && instance.Spec.Template != nil {
-		err := errors.NewBadRequest("you should insert either template or clustertemplate")
-		reqLogger.Error(err, "")
-		return r.updateTemplateInstanceStatus(instance, err)
-	} else if instance.Spec.ClusterTemplate != nil {
-		err = r.Client.Get(context.TODO(), types.NamespacedName{
+	if instance.Spec.ClusterTemplate != nil { // instance with clustertemplate
+		instanceParameters = instance.Spec.ClusterTemplate.Parameters
+		updateInstance.Spec.ClusterTemplate = objectInfo
+
+		// Get the clustertemplate info
+		template := &tmaxiov1.ClusterTemplate{}
+		if err = r.Client.Get(context.TODO(), types.NamespacedName{
 			Name: instance.Spec.ClusterTemplate.Metadata.Name,
-		}, refClusterTemplate)
-		if err != nil {
-			reqLogger.Error(err, "clusterTemplate not found")
+		}, template); err != nil {
+			reqLogger.Error(err, "Error occurs while get clustertemplate")
 			return r.updateTemplateInstanceStatus(instance, err)
 		}
 		objectInfo.Metadata.Name = instance.Spec.ClusterTemplate.Metadata.Name
-		objectInfo.Objects = refClusterTemplate.Objects
-		objectInfo.Parameters = refClusterTemplate.Parameters[0:]
-		instanceParameters = instance.Spec.ClusterTemplate.Parameters[0:]
-		instanceWithTemplate.Spec.ClusterTemplate = objectInfo
-	} else {
-		err = r.Client.Get(context.TODO(), types.NamespacedName{
+		objectInfo.Objects = template.Objects
+		objectInfo.Parameters = template.Parameters
+	} else { // instance with template
+		instanceParameters = instance.Spec.Template.Parameters
+		updateInstance.Spec.Template = objectInfo
+
+		// Get the template info
+		template := &tmaxiov1.Template{}
+		if err = r.Client.Get(context.TODO(), types.NamespacedName{
 			Namespace: instance.Namespace,
 			Name:      instance.Spec.Template.Metadata.Name,
-		}, refTemplate)
-		if err != nil {
-			reqLogger.Error(err, "template not found")
+		}, template); err != nil {
+			reqLogger.Error(err, "Error occurs while get template")
 			return r.updateTemplateInstanceStatus(instance, err)
 		}
 		objectInfo.Metadata.Name = instance.Spec.Template.Metadata.Name
-		objectInfo.Objects = refTemplate.Objects
-		objectInfo.Parameters = refTemplate.Parameters[0:]
-		instanceParameters = instance.Spec.Template.Parameters[0:]
-		instanceWithTemplate.Spec.Template = objectInfo
+		objectInfo.Objects = template.Objects
+		objectInfo.Parameters = template.Parameters
 	}
 
-	//parameter map
-	params := make(map[string]intstr.IntOrString)
-
 	// make instance parameter map
+	instanceParams := make(map[string]intstr.IntOrString)
 	for _, param := range instanceParameters {
-		params[param.Name] = param.Value
+		instanceParams[param.Name] = param.Value
 	}
 
 	// make real parameter with instance and default parameter
 	for idx, param := range objectInfo.Parameters {
-		if val, ok := params[param.Name]; ok {
-			// if a instance param was given, change instance param value
-			objectInfo.Parameters[idx].Value = val
-		} else if param.Required || param.Value.Size() == 0 {
-			// if param not found && (the param was required or default value was not set)
-			err := errors.NewBadRequest("parameter: " + param.Name + " must be included")
-			reqLogger.Error(err, "error occurs while setting parameters")
+		// reflect a given instance parameter
+		if val, exist := instanceParams[param.Name]; exist {
+			convertedVal := val
+			if param.ValueType == numberType && val.Type == intstr.String {
+				convertedVal = intstr.IntOrString{Type: intstr.Int, IntVal: int32(val.IntValue())}
+			}
+			if param.ValueType == stringType && val.Type == intstr.Int {
+				convertedVal = intstr.IntOrString{Type: intstr.String, StrVal: val.String()}
+			}
+			param.Value = convertedVal
+		}
+		// If the required field has no value
+		if param.Required && param.Value.Size() == 0 {
+			err := errors.NewBadRequest(param.Name + "must have a value")
+			reqLogger.Error(err, "Required parameter has no value")
 			return r.updateTemplateInstanceStatus(instance, err)
 		}
-		if (len(objectInfo.Parameters[idx].ValueType) == 0 || objectInfo.Parameters[idx].ValueType == "string") && objectInfo.Parameters[idx].Value.Type == 0 {
-			if objectInfo.Parameters[idx].Value.IntValue() == 0 {
-				objectInfo.Parameters[idx].Value = intstr.IntOrString{Type: 1, IntVal: 0, StrVal: ""}
+
+		// Set default value for not required parameter
+		if param.Value.Size() == 0 {
+			if len(param.ValueType) == 0 || param.ValueType == stringType {
+				param.Value = intstr.IntOrString{Type: intstr.String, StrVal: ""}
+			}
+			if param.ValueType == numberType {
+				param.Value = intstr.IntOrString{Type: intstr.Int, IntVal: 0}
 			}
 		}
-		//set param value
-		params[param.Name] = objectInfo.Parameters[idx].Value
+		objectInfo.Parameters[idx] = param
 	}
 
 	//replace parameter name to value in object and check exist k8s object
-	for i := range objectInfo.Objects {
-		if err = r.replaceParamsWithValue(&(objectInfo.Objects[i]), &params); err != nil {
-			reqLogger.Error(err, "error occurs while replacing parameters")
+	totalParam := make(map[string]intstr.IntOrString)
+	for _, param := range objectInfo.Parameters {
+		totalParam[param.Name] = param.Value
+	}
+
+	for idx := range objectInfo.Objects {
+		if err = r.replaceParamsWithValue(&(objectInfo.Objects[idx]), totalParam); err != nil {
+			reqLogger.Error(err, "error occurs while replace parameters")
 			return r.updateTemplateInstanceStatus(instance, err)
 		}
-		if err = r.existK8sObject(&(objectInfo.Objects[i]), instance); err != nil {
+		if err = r.checkObjectExist(&(objectInfo.Objects[idx]), instance.Namespace); err != nil {
 			reqLogger.Error(err, "exist resource")
 			return r.updateTemplateInstanceStatus(instance, err)
 		}
 	}
 
 	//create k8s object
-	for i := range objectInfo.Objects {
-		if err = r.createK8sObject(&(objectInfo.Objects[i]), instance); err != nil {
+	for idx := range objectInfo.Objects {
+		if err = r.createObject(&(objectInfo.Objects[idx]), instance); err != nil {
 			reqLogger.Error(err, "error occurs while create k8s object")
 			return r.updateTemplateInstanceStatus(instance, err)
 		}
 	}
 
-	// finally, update template instance
-	res, e := r.updateTemplateInstanceStatus(instanceWithTemplate, nil)
-	if err = r.Client.Patch(context.TODO(), instanceWithTemplate, client.MergeFrom(instance)); err != nil {
-		reqLogger.Error(err, "could not update template instance")
+	// update template instance
+	if res, err := r.updateTemplateInstanceStatus(updateInstance, nil); err != nil {
+		return res, err
+	}
+	if err = r.Client.Patch(context.TODO(), updateInstance, client.MergeFrom(instance)); err != nil {
+		reqLogger.Error(err, "error occurs while update templateinstance")
 		return r.updateTemplateInstanceStatus(instance, err)
 	}
-	return res, e
+	return ctrl.Result{}, nil
 }
 
-func (r *TemplateInstanceReconciler) replaceParamsWithValue(obj *runtime.RawExtension, params *map[string]intstr.IntOrString) error {
-	reqLogger := r.Log.WithName("replace k8s object")
-	objYamlStr := string(obj.Raw)
-	reqLogger.Info("original object: " + objYamlStr)
-	for key, value := range *params {
-		reqLogger.Info("key: " + key + " value: " + value.String())
-		if value.Type == 0 {
-			objYamlStr = strings.Replace(objYamlStr, "\"${"+key+"}\"", value.String(), -1)
-		}
-		objYamlStr = strings.Replace(objYamlStr, "${"+key+"}", value.String(), -1)
-	}
-	reqLogger.Info("replaced object: " + objYamlStr)
-
-	obj.Raw = []byte(objYamlStr)
-	return nil
-}
-
-func (r *TemplateInstanceReconciler) existK8sObject(obj *runtime.RawExtension, owner *tmaxiov1.TemplateInstance) error {
-	unstr, err := internal.BytesToUnstructuredObject(obj)
-	if err != nil {
-		return err
-	}
-	unstr.SetNamespace(owner.Namespace)
-	// check if the object already exist
-	check := unstr.DeepCopy()
-	if err = r.Client.Get(context.TODO(), types.NamespacedName{
-		Namespace: check.GetNamespace(),
-		Name:      check.GetName(),
-	}, check); err == nil {
-		return errors.NewAlreadyExists(schema.GroupResource{
-			Group:    check.GroupVersionKind().Group,
-			Resource: check.GetKind()}, "namespace: "+check.GetNamespace()+" name: "+check.GetName())
-	}
-	return nil
-}
-
-func (r *TemplateInstanceReconciler) createK8sObject(obj *runtime.RawExtension, owner *tmaxiov1.TemplateInstance) error {
+func (r *TemplateInstanceReconciler) createObject(obj *runtime.RawExtension, owner *tmaxiov1.TemplateInstance) error {
 	//reqLogger := r.Log.WithName("replace createK8sObject")
 	// get unstructured object
 	unstr, err := internal.BytesToUnstructuredObject(obj)
@@ -244,6 +230,43 @@ func (r *TemplateInstanceReconciler) createK8sObject(obj *runtime.RawExtension, 
 	return nil
 }
 
+func (r *TemplateInstanceReconciler) checkObjectExist(obj *runtime.RawExtension, ns string) error {
+	unstr, err := internal.BytesToUnstructuredObject(obj)
+	if err != nil {
+		return err
+	}
+	unstr.SetNamespace(ns)
+	// check if the object already exist
+	check := unstr.DeepCopy()
+	if err = r.Client.Get(context.TODO(), types.NamespacedName{
+		Namespace: check.GetNamespace(),
+		Name:      check.GetName(),
+	}, check); err == nil {
+		return errors.NewAlreadyExists(schema.GroupResource{
+			Group:    check.GroupVersionKind().Group,
+			Resource: check.GetKind()}, "namespace: "+check.GetNamespace()+" name: "+check.GetName())
+	}
+	return nil
+}
+
+func (r *TemplateInstanceReconciler) replaceParamsWithValue(obj *runtime.RawExtension, params map[string]intstr.IntOrString) error {
+	reqLogger := r.Log.WithName("replace k8s object")
+	objStr := string(obj.Raw)
+	reqLogger.Info("original object: " + objStr)
+	for key, value := range params {
+		reqLogger.Info("key: " + key + " value: " + value.String())
+		if value.Type == intstr.Int {
+			objStr = strings.Replace(objStr, "\"${"+key+"}\"", value.String(), -1)
+		} else {
+			objStr = strings.Replace(objStr, "${"+key+"}", value.String(), -1)
+		}
+	}
+	reqLogger.Info("replaced object: " + objStr)
+
+	obj.Raw = []byte(objStr)
+	return nil
+}
+
 func (r *TemplateInstanceReconciler) updateTemplateInstanceStatus(instance *tmaxiov1.TemplateInstance, err error) (ctrl.Result, error) {
 	reqLogger := r.Log.WithName("update template instance status")
 	// set condition depending on the error
@@ -252,7 +275,7 @@ func (r *TemplateInstanceReconciler) updateTemplateInstanceStatus(instance *tmax
 	var cond tmaxiov1.ConditionSpec
 	if err == nil {
 		cond.Message = "succeed to create instances"
-		cond.Status = "Success"
+		cond.Status = "Succeeded"
 	} else {
 		cond.Message = err.Error()
 		cond.Reason = "error occurs while create instance"

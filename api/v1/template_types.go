@@ -81,12 +81,11 @@ type SchemaParameters struct {
 type ParamSpec struct {
 	Description string             `json:"description,omitempty"`
 	DisplayName string             `json:"displayName,omitempty"`
-	From        string             `json:"from,omitempty"`
-	Generate    string             `json:"generate,omitempty"`
 	Name        string             `json:"name"`
 	Required    bool               `json:"required,omitempty"`
 	Value       intstr.IntOrString `json:"value,omitempty"`
-	ValueType   string             `json:"valueType,omitempty"`
+	// +kubebuilder:validation:Enum:=string;number
+	ValueType string `json:"valueType,omitempty"`
 }
 
 type LabelSpec struct {

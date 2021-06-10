@@ -61,10 +61,6 @@ spec:
                         type: string
                       displayName:
                         type: string
-                      from:
-                        type: string
-                      generate:
-                        type: string
                       name:
                         type: string
                       required:
@@ -75,35 +71,19 @@ spec:
                         - type: string
                         x-kubernetes-int-or-string: true
                       valueType:
+                        enum:
+                        - string
+                        - number
                         type: string
                     required:
                     - name
                     type: object
                   type: array
               type: object
-            requester:
-              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-                Important: Run "make" to regenerate code after modifying this file'
-              properties:
-                extra:
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
-                groups:
-                  items:
-                    type: string
-                  type: array
-                uid:
-                  type: string
-                username:
-                  type: string
-              type: object
-            secret:
-              properties:
-                name:
-                  type: string
-              type: object
             template:
-              description: 'Important: Use only one of the fields Template and ClusterTemplate.
+              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                Important: Run "make" to regenerate code after modifying this file
+                Important: Use only one of the fields Template and ClusterTemplate.
                 Fill in only metadata.name and parameters inside this field.'
               properties:
                 metadata:
@@ -122,10 +102,6 @@ spec:
                         type: string
                       displayName:
                         type: string
-                      from:
-                        type: string
-                      generate:
-                        type: string
                       name:
                         type: string
                       required:
@@ -136,6 +112,9 @@ spec:
                         - type: string
                         x-kubernetes-int-or-string: true
                       valueType:
+                        enum:
+                        - string
+                        - number
                         type: string
                     required:
                     - name
