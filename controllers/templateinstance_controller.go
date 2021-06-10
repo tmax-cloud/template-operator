@@ -134,7 +134,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 			if param.ValueType == stringType && val.Type == intstr.Int {
 				convertedVal = intstr.IntOrString{Type: intstr.String, StrVal: val.String()}
 			}
-			objectInfo.Parameters[idx].Value = convertedVal
+			param.Value = convertedVal
 		}
 		// If the required field has no value
 		if param.Required && param.Value.Size() == 0 {
@@ -146,12 +146,13 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		// Set default value for not required parameter
 		if param.Value.Size() == 0 {
 			if len(param.ValueType) == 0 || param.ValueType == stringType {
-				objectInfo.Parameters[idx].Value = intstr.IntOrString{Type: intstr.String, StrVal: ""}
+				param.Value = intstr.IntOrString{Type: intstr.String, StrVal: ""}
 			}
 			if param.ValueType == numberType {
-				objectInfo.Parameters[idx].Value = intstr.IntOrString{Type: intstr.Int, IntVal: 0}
+				param.Value = intstr.IntOrString{Type: intstr.Int, IntVal: 0}
 			}
 		}
+		objectInfo.Parameters[idx] = param
 	}
 
 	//replace parameter name to value in object and check exist k8s object
