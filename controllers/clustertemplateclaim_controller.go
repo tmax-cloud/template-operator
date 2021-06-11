@@ -119,9 +119,13 @@ func (r *ClusterTemplateClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 		}
 		return r.updateClusterTemplateClaimStatus(claim, status)
 	case tmaxiov1.Rejected:
+		rejectReason := claim.Status.Reason
+		if len(rejectReason) == 0 {
+			rejectReason = "Rejected by admin"
+		}
 		status := &tmaxiov1.ClusterTemplateClaimStatus{
 			LastTransitionTime: metav1.Time{Time: time.Now()},
-			Reason:             "Rejected by admin",
+			Reason:             rejectReason,
 			Status:             tmaxiov1.Rejected,
 			Handled:            false,
 		}
