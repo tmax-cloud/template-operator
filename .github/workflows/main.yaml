@@ -41,7 +41,7 @@ jobs:
           go get -u golang.org/x/lint/golint 
           make test-lint
   deploy-release:
-    if: startsWith(github.ref, 'refs/tags/*')
+    if: startsWith(github.ref, 'refs/tags/')
     needs: [test_gen, test_verify, test_lint, test_unit, test_crd]
     runs-on: ubuntu-18.04
     steps:
