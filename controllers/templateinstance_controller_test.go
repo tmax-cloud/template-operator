@@ -4,8 +4,11 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	tmaxiov1 "github.com/tmax-cloud/template-operator/api/v1"
+
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -32,11 +35,13 @@ func TestTemplateInstanceController(t *testing.T) {
 		},
 		TemplateSpec: tmaxiov1.TemplateSpec{
 			Objects: []runtime.RawExtension{
-				{Raw: []byte(`{"kind": "Pod", "apiVersion": "v1", "metadata": { "name": "${NAME}"}}`)},
+				{Raw: []byte(`{"kind": "Deployment", "apiVersion": "apps/v1", "metadata": { "name": "${NAME}"},
+				"spec": { "replicas": "${REPLICAS}"}}`)},
 				{Raw: []byte(`{"kind": "Service", "apiVersion": "v1", "metadata": { "name": "${NAME}"}}`)},
 			},
 			Parameters: []tmaxiov1.ParamSpec{
 				{Name: "NAME", ValueType: "string"},
+				{Name: "REPLICAS", ValueType: "number"},
 			},
 		},
 	}
@@ -52,7 +57,8 @@ func TestTemplateInstanceController(t *testing.T) {
 					Name: templateName,
 				},
 				Parameters: []tmaxiov1.ParamSpec{
-					{Name: "NAME", Value: intstr.IntOrString{Type: 1, StrVal: objectName}},
+					{Name: "NAME", Value: intstr.IntOrString{Type: intstr.String, StrVal: objectName}},
+					{Name: "REPLICAS", Value: intstr.IntOrString{Type: intstr.String, StrVal: "2"}},
 				},
 			},
 		},
@@ -82,8 +88,12 @@ func TestTemplateInstanceController(t *testing.T) {
 	_, err := r.Reconcile(req)
 	require.NoError(t, err)
 
-	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: objectName, Namespace: namespace}, &corev1.Pod{})
+	TestDeploy := &appsv1.Deployment{}
+	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: objectName, Namespace: namespace}, TestDeploy)
 	require.NoError(t, err)
+
+	assert.Equal(t, *TestDeploy.Spec.Replicas, int32(2))
 	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: objectName, Namespace: namespace}, &corev1.Service{})
 	require.NoError(t, err)
+
 }

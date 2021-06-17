@@ -139,6 +139,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		// If the required field has no value
 		if param.Required && param.Value.Size() == 0 {
 			err := errors.NewBadRequest(param.Name + "must have a value")
+
 			reqLogger.Error(err, "Required parameter has no value")
 			return r.updateTemplateInstanceStatus(instance, err)
 		}
