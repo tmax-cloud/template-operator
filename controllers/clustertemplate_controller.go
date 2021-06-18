@@ -149,8 +149,9 @@ func (r *ClusterTemplateReconciler) updateClaimStatus(reqLogger logr.Logger, ct 
 	updatedClaim.Status = tmaxiov1.ClusterTemplateClaimStatus{
 		LastTransitionTime: metav1.Time{Time: time.Now()},
 		Reason:             "ClusterTemplate was deleted",
-		Status:             tmaxiov1.ClusterTemplateDeleted,
-		Handled:            true,
+
+		Status:  tmaxiov1.ClusterTemplateDeleted,
+		Handled: true,
 	}
 
 	if err := r.Client.Status().Patch(context.TODO(), updatedClaim, client.MergeFrom(claim)); err != nil {
