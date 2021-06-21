@@ -65,6 +65,26 @@ func (r *TemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, nil
 	}
 
+	//Fill the TemplateSpec field with default values
+	if instance.TemplateSpec.ShortDescription == "" {
+		instance.TemplateSpec.ShortDescription = instance.ObjectMeta.Name
+	}
+
+	if instance.TemplateSpec.ImageUrl == "" {
+		instance.TemplateSpec.ImageUrl = "https://folo.co.kr/img/gm_noimage.png"
+	}
+	if instance.TemplateSpec.LongDescription == "" {
+		instance.TemplateSpec.LongDescription = instance.ObjectMeta.Name
+	}
+
+	if instance.TemplateSpec.MarkDownDescription == "" {
+		instance.TemplateSpec.MarkDownDescription = instance.ObjectMeta.Name
+	}
+
+	if instance.TemplateSpec.Provider == "" {
+		instance.TemplateSpec.Provider = "tmax"
+	}
+
 	updateInstance := instance.DeepCopy()
 
 	// add kind to objectKinds fields
