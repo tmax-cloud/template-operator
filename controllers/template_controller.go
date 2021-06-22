@@ -65,10 +65,7 @@ func (r *TemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, nil
 	}
 
-	err = setTemplateSpecDefaultField(instance)
-	if err != nil {
-		reqLogger.Info("Updating Template Default Field is failed")
-	}
+	setTemplateSpecDefaultField(instance)
 	updateInstance := instance.DeepCopy()
 
 	// add kind to objectKinds fields
@@ -133,7 +130,7 @@ func (r *TemplateReconciler) updateTemplateStatus(
 	return ctrl.Result{}, nil
 }
 
-func setTemplateSpecDefaultField(template *tmaxiov1.Template) error {
+func setTemplateSpecDefaultField(template *tmaxiov1.Template) {
 	if template.ShortDescription == "" {
 		template.ShortDescription = template.ObjectMeta.Name
 	}
@@ -152,7 +149,6 @@ func setTemplateSpecDefaultField(template *tmaxiov1.Template) error {
 	if template.Provider == "" {
 		template.Provider = "tmax"
 	}
-	return nil
 }
 
 func (r *TemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {

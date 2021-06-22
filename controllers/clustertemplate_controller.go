@@ -83,11 +83,7 @@ func (r *ClusterTemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		return ctrl.Result{}, nil
 	}
 
-	err = setClusterTemplateSpecDefaultField(template)
-	if err != nil {
-		reqLogger.Info("Updating Cluster Template Default Field is failed")
-	}
-
+	setClusterTemplateSpecDefaultField(template)
 	updateInstance := template.DeepCopy()
 
 	// add kind to objectKinds fields
@@ -183,7 +179,7 @@ func (r *ClusterTemplateReconciler) updateClusterTemplateStatus(
 	return ctrl.Result{}, nil
 }
 
-func setClusterTemplateSpecDefaultField(template *tmaxiov1.ClusterTemplate) error {
+func setClusterTemplateSpecDefaultField(template *tmaxiov1.ClusterTemplate) {
 	if template.ShortDescription == "" {
 		template.ShortDescription = template.ObjectMeta.Name
 	}
@@ -202,7 +198,6 @@ func setClusterTemplateSpecDefaultField(template *tmaxiov1.ClusterTemplate) erro
 	if template.Provider == "" {
 		template.Provider = "tmax"
 	}
-	return nil
 }
 
 func (r *ClusterTemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {
