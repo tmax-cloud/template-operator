@@ -65,26 +65,10 @@ func (r *TemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, nil
 	}
 
-	//Fill the TemplateSpec field with default values
-	if instance.TemplateSpec.ShortDescription == "" {
-		instance.TemplateSpec.ShortDescription = instance.ObjectMeta.Name
+	err = setTemplateSpecDefaultField(instance)
+	if err != nil {
+		reqLogger.Info("Updating Template Default Field is failed")
 	}
-
-	if instance.TemplateSpec.ImageUrl == "" {
-		instance.TemplateSpec.ImageUrl = "https://folo.co.kr/img/gm_noimage.png"
-	}
-	if instance.TemplateSpec.LongDescription == "" {
-		instance.TemplateSpec.LongDescription = instance.ObjectMeta.Name
-	}
-
-	if instance.TemplateSpec.MarkDownDescription == "" {
-		instance.TemplateSpec.MarkDownDescription = instance.ObjectMeta.Name
-	}
-
-	if instance.TemplateSpec.Provider == "" {
-		instance.TemplateSpec.Provider = "tmax"
-	}
-
 	updateInstance := instance.DeepCopy()
 
 	// add kind to objectKinds fields
@@ -147,6 +131,28 @@ func (r *TemplateReconciler) updateTemplateStatus(
 	}
 
 	return ctrl.Result{}, nil
+}
+
+func setTemplateSpecDefaultField(template *tmaxiov1.Template) error {
+	if template.ShortDescription == "" {
+		template.ShortDescription = template.ObjectMeta.Name
+	}
+
+	if template.ImageUrl == "" {
+		template.ImageUrl = "https://folo.co.kr/img/gm_noimage.png"
+	}
+	if template.LongDescription == "" {
+		template.LongDescription = template.ObjectMeta.Name
+	}
+
+	if template.MarkDownDescription == "" {
+		template.MarkDownDescription = template.ObjectMeta.Name
+	}
+
+	if template.Provider == "" {
+		template.Provider = "tmax"
+	}
+	return nil
 }
 
 func (r *TemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {

@@ -83,24 +83,9 @@ func (r *ClusterTemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		return ctrl.Result{}, nil
 	}
 
-	//Fill the ClusterTemplateSpec field with default values
-	if template.TemplateSpec.ShortDescription == "" {
-		template.TemplateSpec.ShortDescription = template.ObjectMeta.Name
-	}
-
-	if template.TemplateSpec.ImageUrl == "" {
-		template.TemplateSpec.ImageUrl = "https://folo.co.kr/img/gm_noimage.png"
-	}
-	if template.TemplateSpec.LongDescription == "" {
-		template.TemplateSpec.LongDescription = template.ObjectMeta.Name
-	}
-
-	if template.TemplateSpec.MarkDownDescription == "" {
-		template.TemplateSpec.MarkDownDescription = template.ObjectMeta.Name
-	}
-
-	if template.TemplateSpec.Provider == "" {
-		template.TemplateSpec.Provider = "tmax"
+	err = setClusterTemplateSpecDefaultField(template)
+	if err != nil {
+		reqLogger.Info("Updating Cluster Template Default Field is failed")
 	}
 
 	updateInstance := template.DeepCopy()
@@ -196,6 +181,28 @@ func (r *ClusterTemplateReconciler) updateClusterTemplateStatus(
 	}
 
 	return ctrl.Result{}, nil
+}
+
+func setClusterTemplateSpecDefaultField(template *tmaxiov1.ClusterTemplate) error {
+	if template.ShortDescription == "" {
+		template.ShortDescription = template.ObjectMeta.Name
+	}
+
+	if template.ImageUrl == "" {
+		template.ImageUrl = "https://folo.co.kr/img/gm_noimage.png"
+	}
+	if template.LongDescription == "" {
+		template.LongDescription = template.ObjectMeta.Name
+	}
+
+	if template.MarkDownDescription == "" {
+		template.MarkDownDescription = template.ObjectMeta.Name
+	}
+
+	if template.Provider == "" {
+		template.Provider = "tmax"
+	}
+	return nil
 }
 
 func (r *ClusterTemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {
