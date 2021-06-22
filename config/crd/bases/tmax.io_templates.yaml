@@ -192,7 +192,8 @@ spec:
         urlDescription:
           type: string
       required:
-      - urlDescription
+      - objects
+      - shortDescription
       type: object
   version: v1
   versions:

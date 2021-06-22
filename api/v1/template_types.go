@@ -99,16 +99,16 @@ type TemplateSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 	Labels              map[string]string      `json:"labels,omitempty"`
 	Message             string                 `json:"message,omitempty"`
-	ShortDescription    string                 `json:"shortDescription,omitempty"`
+	ShortDescription    string                 `json:"shortDescription"`
 	LongDescription     string                 `json:"longDescription,omitempty"`
-	UrlDescription      string                 `json:"urlDescription"`
+	UrlDescription      string                 `json:"urlDescription,omitempty"`
 	MarkDownDescription string                 `json:"markdownDescription,omitempty"`
 	Provider            string                 `json:"provider,omitempty"`
 	ImageUrl            string                 `json:"imageUrl,omitempty"`
 	Recommend           bool                   `json:"recommend,omitempty"`
 	Tags                []string               `json:"tags,omitempty"`
 	ObjectKinds         []string               `json:"objectKinds,omitempty"`
-	Objects             []runtime.RawExtension `json:"objects,omitempty"`
+	Objects             []runtime.RawExtension `json:"objects"`
 	Plans               []PlanSpec             `json:"plans,omitempty"`
 	Parameters          []ParamSpec            `json:"parameters,omitempty"`
 }
