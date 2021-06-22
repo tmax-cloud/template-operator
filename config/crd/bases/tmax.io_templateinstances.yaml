@@ -34,11 +34,6 @@ spec:
         metadata:
           type: object
         spec:
-          oneOf:
-            - required:
-              - clustertemplate
-            - required:
-              - template
           description: TemplateInstanceSpec defines the desired state of TemplateInstance
           properties:
             clustertemplate:
