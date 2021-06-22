@@ -65,6 +65,7 @@ func (r *TemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, nil
 	}
 
+	setTemplateSpecDefaultField(instance)
 	updateInstance := instance.DeepCopy()
 
 	// add kind to objectKinds fields
@@ -127,6 +128,27 @@ func (r *TemplateReconciler) updateTemplateStatus(
 	}
 
 	return ctrl.Result{}, nil
+}
+
+func setTemplateSpecDefaultField(template *tmaxiov1.Template) {
+	if template.ShortDescription == "" {
+		template.ShortDescription = template.ObjectMeta.Name
+	}
+
+	if template.ImageUrl == "" {
+		template.ImageUrl = "https://folo.co.kr/img/gm_noimage.png"
+	}
+	if template.LongDescription == "" {
+		template.LongDescription = template.ObjectMeta.Name
+	}
+
+	if template.MarkDownDescription == "" {
+		template.MarkDownDescription = template.ObjectMeta.Name
+	}
+
+	if template.Provider == "" {
+		template.Provider = "tmax"
+	}
 }
 
 func (r *TemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {

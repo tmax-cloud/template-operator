@@ -83,6 +83,7 @@ func (r *ClusterTemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		return ctrl.Result{}, nil
 	}
 
+	setClusterTemplateSpecDefaultField(template)
 	updateInstance := template.DeepCopy()
 
 	// add kind to objectKinds fields
@@ -176,6 +177,27 @@ func (r *ClusterTemplateReconciler) updateClusterTemplateStatus(
 	}
 
 	return ctrl.Result{}, nil
+}
+
+func setClusterTemplateSpecDefaultField(template *tmaxiov1.ClusterTemplate) {
+	if template.ShortDescription == "" {
+		template.ShortDescription = template.ObjectMeta.Name
+	}
+
+	if template.ImageUrl == "" {
+		template.ImageUrl = "https://folo.co.kr/img/gm_noimage.png"
+	}
+	if template.LongDescription == "" {
+		template.LongDescription = template.ObjectMeta.Name
+	}
+
+	if template.MarkDownDescription == "" {
+		template.MarkDownDescription = template.ObjectMeta.Name
+	}
+
+	if template.Provider == "" {
+		template.Provider = "tmax"
+	}
 }
 
 func (r *ClusterTemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {
