@@ -83,8 +83,9 @@ func (r *ClusterTemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		return ctrl.Result{}, nil
 	}
 
-	setClusterTemplateSpecDefaultField(template)
 	updateInstance := template.DeepCopy()
+
+	setClusterTemplateSpecDefaultField(updateInstance)
 
 	// add kind to objectKinds fields
 	objectKinds := make([]string, 0)
@@ -180,22 +181,22 @@ func (r *ClusterTemplateReconciler) updateClusterTemplateStatus(
 }
 
 func setClusterTemplateSpecDefaultField(template *tmaxiov1.ClusterTemplate) {
-	if template.ShortDescription == "" {
+	if len(template.ShortDescription) == 0 {
 		template.ShortDescription = template.ObjectMeta.Name
 	}
 
-	if template.ImageUrl == "" {
+	if len(template.ImageUrl) == 0 {
 		template.ImageUrl = "https://folo.co.kr/img/gm_noimage.png"
 	}
-	if template.LongDescription == "" {
+	if len(template.LongDescription) == 0 {
 		template.LongDescription = template.ObjectMeta.Name
 	}
 
-	if template.MarkDownDescription == "" {
+	if len(template.MarkDownDescription) == 0 {
 		template.MarkDownDescription = template.ObjectMeta.Name
 	}
 
-	if template.Provider == "" {
+	if len(template.Provider) == 0 {
 		template.Provider = "tmax"
 	}
 }
