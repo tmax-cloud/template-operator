@@ -99,7 +99,7 @@ type TemplateSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 	Labels              map[string]string      `json:"labels,omitempty"`
 	Message             string                 `json:"message,omitempty"`
-	ShortDescription    string                 `json:"shortDescription"`
+	ShortDescription    string                 `json:"shortDescription,omitempty"`
 	LongDescription     string                 `json:"longDescription,omitempty"`
 	UrlDescription      string                 `json:"urlDescription,omitempty"`
 	MarkDownDescription string                 `json:"markdownDescription,omitempty"`

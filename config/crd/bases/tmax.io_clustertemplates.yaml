@@ -193,7 +193,6 @@ spec:
           type: string
       required:
       - objects
-      - shortDescription
       type: object
   version: v1
   versions:
