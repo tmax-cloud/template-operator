@@ -67,12 +67,6 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		return ctrl.Result{}, err
 	}
 
-	// if status field is not nil, end reconcile
-	if len(instance.Status.Conditions) != 0 {
-		reqLogger.Info("already handled instance")
-		return ctrl.Result{}, nil
-	}
-
 	// template/clustertemplate both empty or inserted
 	if (instance.Spec.ClusterTemplate == nil) == (instance.Spec.Template == nil) {
 		err := errors.NewBadRequest("You should insert either template or clustertemplate")
