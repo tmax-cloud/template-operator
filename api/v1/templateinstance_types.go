@@ -36,13 +36,10 @@ type ObjectInfo struct {
 
 // +kubebuilder:resource:shortName="ti"
 // TemplateInstanceSpec defines the desired state of TemplateInstance
+// Important: Use only one of the fields Template and ClusterTemplate. Fill in only metadata.name and parameters inside this field.
 type TemplateInstanceSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-	// Important: Use only one of the fields Template and ClusterTemplate. Fill in only metadata.name and parameters inside this field.
 	// +kubebuilder:validation:OneOf [TODO: 나중에 추가할것]
 	Template *ObjectInfo `json:"template,omitempty"`
-	// Important: Use only one of the fields Template and ClusterTemplate. Fill in only metadata.name and parameters inside this field.
 	// +kubebuilder:validation:OneOf [TODO: 나중에 추가할것]
 	ClusterTemplate *ObjectInfo `json:"clustertemplate,omitempty"`
 }
@@ -71,8 +68,6 @@ type ConditionSpec struct {
 
 // TemplateInstanceStatus defines the observed state of TemplateInstance
 type TemplateInstanceStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 	Conditions []ConditionSpec    `json:"conditions,omitempty"`
 	Objects    []StatusObjectSpec `json:"objects,omitempty"`
 }

@@ -39,11 +39,11 @@ spec:
               - clustertemplate
             - required:
               - template
-          description: TemplateInstanceSpec defines the desired state of TemplateInstance
+          description: 'TemplateInstanceSpec defines the desired state of TemplateInstance
+            Important: Use only one of the fields Template and ClusterTemplate. Fill
+            in only metadata.name and parameters inside this field.'
           properties:
             clustertemplate:
-              description: 'Important: Use only one of the fields Template and ClusterTemplate.
-                Fill in only metadata.name and parameters inside this field.'
               properties:
                 metadata:
                   properties:
@@ -102,10 +102,6 @@ spec:
                   type: array
               type: object
             template:
-              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-                Important: Run "make" to regenerate code after modifying this file
-                Important: Use only one of the fields Template and ClusterTemplate.
-                Fill in only metadata.name and parameters inside this field.'
               properties:
                 metadata:
                   properties:
@@ -168,9 +164,6 @@ spec:
           description: TemplateInstanceStatus defines the observed state of TemplateInstance
           properties:
             conditions:
-              description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
-                of cluster Important: Run "make" to regenerate code after modifying
-                this file'
               items:
                 properties:
                   lastTransitionTime:
