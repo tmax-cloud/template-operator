@@ -163,6 +163,64 @@ spec:
         status:
           description: TemplateInstanceStatus defines the observed state of TemplateInstance
           properties:
+            clustertemplate:
+              properties:
+                metadata:
+                  properties:
+                    name:
+                      type: string
+                  type: object
+                objects:
+                  items:
+                    type: object
+                  type: array
+                parameters:
+                  items:
+                    properties:
+                      description:
+                        description: A description of the parameter. Provide more
+                          detailed information for the purpose of the parameter, including
+                          any constraints on the expected value. Descriptions should
+                          use complete sentences to follow the console’s text standards.
+                          Don’t make this a duplicate of the display name.
+                        type: string
+                      displayName:
+                        description: The user-friendly name for the parameter. This
+                          will be displayed to users.
+                        type: string
+                      name:
+                        description: The name of the parameter. This value is used
+                          to reference the parameter within the template.
+                        type: string
+                      required:
+                        description: Indicates this parameter is required, meaning
+                          the user cannot override it with an empty value. If the
+                          parameter does not provide a default or generated value,
+                          the user must supply a value.
+                        type: boolean
+                      value:
+                        anyOf:
+                        - type: integer
+                        - type: string
+                        description: A default value for the parameter which will
+                          be used if the user does not override the value when instantiating
+                          the template. Avoid using default values for things like
+                          passwords, instead use generated parameters in combination
+                          with Secrets.
+                        x-kubernetes-int-or-string: true
+                      valueType:
+                        description: Set the data type of the parameter. You can specify
+                          string and number for a string or integer type. If not specified,
+                          it defaults to string.
+                        enum:
+                        - string
+                        - number
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  type: array
+              type: object
             conditions:
               items:
                 properties:
@@ -205,6 +263,64 @@ spec:
                 - ref
                 type: object
               type: array
+            template:
+              properties:
+                metadata:
+                  properties:
+                    name:
+                      type: string
+                  type: object
+                objects:
+                  items:
+                    type: object
+                  type: array
+                parameters:
+                  items:
+                    properties:
+                      description:
+                        description: A description of the parameter. Provide more
+                          detailed information for the purpose of the parameter, including
+                          any constraints on the expected value. Descriptions should
+                          use complete sentences to follow the console’s text standards.
+                          Don’t make this a duplicate of the display name.
+                        type: string
+                      displayName:
+                        description: The user-friendly name for the parameter. This
+                          will be displayed to users.
+                        type: string
+                      name:
+                        description: The name of the parameter. This value is used
+                          to reference the parameter within the template.
+                        type: string
+                      required:
+                        description: Indicates this parameter is required, meaning
+                          the user cannot override it with an empty value. If the
+                          parameter does not provide a default or generated value,
+                          the user must supply a value.
+                        type: boolean
+                      value:
+                        anyOf:
+                        - type: integer
+                        - type: string
+                        description: A default value for the parameter which will
+                          be used if the user does not override the value when instantiating
+                          the template. Avoid using default values for things like
+                          passwords, instead use generated parameters in combination
+                          with Secrets.
+                        x-kubernetes-int-or-string: true
+                      valueType:
+                        description: Set the data type of the parameter. You can specify
+                          string and number for a string or integer type. If not specified,
+                          it defaults to string.
+                        enum:
+                        - string
+                        - number
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  type: array
+              type: object
           type: object
       type: object
   version: v1
