@@ -18,8 +18,11 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
+	"reflect"
 	"strings"
 
+	jsonpatch "github.com/evanphx/json-patch"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,6 +32,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	tmaxiov1 "github.com/tmax-cloud/template-operator/api/v1"
 	"github.com/tmax-cloud/template-operator/internal"
@@ -58,12 +63,8 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 	err := r.Client.Get(context.TODO(), req.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			// Request object not found, could have been deleted after reconcile request.
-			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-			// Return and don't requeue
 			return ctrl.Result{}, nil
 		}
-		// Error reading the object - requeue the request.
 		return ctrl.Result{}, err
 	}
 
@@ -80,36 +81,50 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 
 	if instance.Spec.ClusterTemplate != nil { // instance with clustertemplate
 		instanceParameters = instance.Spec.ClusterTemplate.Parameters
-		updateInstance.Spec.ClusterTemplate = objectInfo
+		if updateInstance.Status.ClusterTemplate == nil { // initial apply of instance
+			updateInstance.Status.ClusterTemplate = objectInfo
+			// Get the clustertemplate info
+			template := &tmaxiov1.ClusterTemplate{}
+			if err = r.Client.Get(context.TODO(), types.NamespacedName{
+				Name: instance.Spec.ClusterTemplate.Metadata.Name,
+			}, template); err != nil {
+				reqLogger.Error(err, "Error occurs while get clustertemplate")
+				return r.updateTemplateInstanceStatus(instance, err)
+			}
 
-		// Get the clustertemplate info
-		template := &tmaxiov1.ClusterTemplate{}
-		if err = r.Client.Get(context.TODO(), types.NamespacedName{
-			Name: instance.Spec.ClusterTemplate.Metadata.Name,
-		}, template); err != nil {
-			reqLogger.Error(err, "Error occurs while get clustertemplate")
-			return r.updateTemplateInstanceStatus(instance, err)
-		}
-		objectInfo.Metadata.Name = instance.Spec.ClusterTemplate.Metadata.Name
-		objectInfo.Objects = template.Objects
-		objectInfo.Parameters = template.Parameters
-	} else { // instance with template
-		instanceParameters = instance.Spec.Template.Parameters
-		updateInstance.Spec.Template = objectInfo
+			objectInfo.Metadata.Name = instance.Spec.ClusterTemplate.Metadata.Name
+			objectInfo.Objects = template.Objects
+			objectInfo.Parameters = template.Parameters
 
-		// Get the template info
-		template := &tmaxiov1.Template{}
-		if err = r.Client.Get(context.TODO(), types.NamespacedName{
-			Namespace: instance.Namespace,
-			Name:      instance.Spec.Template.Metadata.Name,
-		}, template); err != nil {
-			reqLogger.Error(err, "Error occurs while get template")
-			return r.updateTemplateInstanceStatus(instance, err)
+		} else {
+			objectInfo = updateInstance.Status.ClusterTemplate
 		}
-		objectInfo.Metadata.Name = instance.Spec.Template.Metadata.Name
-		objectInfo.Objects = template.Objects
-		objectInfo.Parameters = template.Parameters
 	}
+	if instance.Spec.Template != nil { // instance with template
+		instanceParameters = instance.Spec.Template.Parameters
+		if updateInstance.Status.Template == nil { // initial apply of instance
+			updateInstance.Status.Template = objectInfo
+
+			// Get the template info
+			template := &tmaxiov1.Template{}
+			if err = r.Client.Get(context.TODO(), types.NamespacedName{
+				Namespace: instance.Namespace,
+				Name:      instance.Spec.Template.Metadata.Name,
+			}, template); err != nil {
+				reqLogger.Error(err, "Error occurs while get template")
+				return r.updateTemplateInstanceStatus(instance, err)
+			}
+
+			objectInfo.Metadata.Name = instance.Spec.Template.Metadata.Name
+			objectInfo.Objects = template.Objects
+			objectInfo.Parameters = template.Parameters
+
+		} else {
+			objectInfo = updateInstance.Status.Template
+		}
+	}
+
+	tempObjectInfo := objectInfo.DeepCopy()
 
 	// make instance parameter map
 	instanceParams := make(map[string]intstr.IntOrString)
@@ -118,7 +133,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 	}
 
 	// make real parameter with instance and default parameter
-	for idx, param := range objectInfo.Parameters {
+	for idx, param := range tempObjectInfo.Parameters {
 		// reflect a given instance parameter
 		if val, exist := instanceParams[param.Name]; exist {
 			convertedVal := val
@@ -147,42 +162,61 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 				param.Value = intstr.IntOrString{Type: intstr.Int, IntVal: 0}
 			}
 		}
-		objectInfo.Parameters[idx] = param
+		tempObjectInfo.Parameters[idx] = param
 	}
 
 	//replace parameter name to value in object and check exist k8s object
 	totalParam := make(map[string]intstr.IntOrString)
-	for _, param := range objectInfo.Parameters {
+	for _, param := range tempObjectInfo.Parameters {
 		totalParam[param.Name] = param.Value
 	}
 
-	for idx := range objectInfo.Objects {
-		if err = r.replaceParamsWithValue(&(objectInfo.Objects[idx]), totalParam); err != nil {
-			reqLogger.Error(err, "error occurs while replace parameters")
-			return r.updateTemplateInstanceStatus(instance, err)
+	if instance.Status.ClusterTemplate == nil && instance.Status.Template == nil {
+		for idx := range tempObjectInfo.Objects {
+			if err = r.replaceParamsWithValue(&(tempObjectInfo.Objects[idx]), totalParam); err != nil {
+				reqLogger.Error(err, "error occurs while replace parameters")
+				return r.updateTemplateInstanceStatus(instance, err)
+			}
+			if err = r.checkObjectExist(&(tempObjectInfo.Objects[idx]), instance.Namespace); err != nil {
+				reqLogger.Error(err, "exist resource")
+				return r.updateTemplateInstanceStatus(instance, err)
+			}
 		}
-		if err = r.checkObjectExist(&(objectInfo.Objects[idx]), instance.Namespace); err != nil {
-			reqLogger.Error(err, "exist resource")
-			return r.updateTemplateInstanceStatus(instance, err)
+
+		//create k8s object
+		for idx := range tempObjectInfo.Objects {
+			if err = r.createObject(&(tempObjectInfo.Objects[idx]), instance); err != nil {
+				reqLogger.Error(err, "error occurs while create k8s object")
+				return r.updateTemplateInstanceStatus(instance, err)
+			}
+		}
+
+		if res, err := r.updateTemplateInstanceStatus(updateInstance, nil); err != nil {
+			return res, err
+		}
+	}
+	if instance.Status.ClusterTemplate != nil || instance.Status.Template != nil {
+		for idx := range tempObjectInfo.Objects {
+			if err = r.replaceParamsWithValue(&(tempObjectInfo.Objects[idx]), totalParam); err != nil {
+				reqLogger.Error(err, "error occurs while replace parameters")
+				return r.updateTemplateInstanceStatus(instance, err)
+			}
+		}
+
+		//update k8s object
+		for idx := range tempObjectInfo.Objects {
+			if err = r.updateObject(&(tempObjectInfo.Objects[idx]), instance.Namespace); err != nil {
+				reqLogger.Error(err, "error occurs while update k8s object")
+				return r.updateTemplateInstanceStatus(instance, err)
+			}
 		}
 	}
 
-	//create k8s object
-	for idx := range objectInfo.Objects {
-		if err = r.createObject(&(objectInfo.Objects[idx]), instance); err != nil {
-			reqLogger.Error(err, "error occurs while create k8s object")
-			return r.updateTemplateInstanceStatus(instance, err)
-		}
+	if err := r.Client.Status().Patch(context.TODO(), updateInstance, client.MergeFrom(instance)); err != nil {
+		reqLogger.Error(err, "could not update template instance status")
+		return ctrl.Result{}, err
 	}
 
-	// update template instance
-	if res, err := r.updateTemplateInstanceStatus(updateInstance, nil); err != nil {
-		return res, err
-	}
-	if err = r.Client.Patch(context.TODO(), updateInstance, client.MergeFrom(instance)); err != nil {
-		reqLogger.Error(err, "error occurs while update templateinstance")
-		return r.updateTemplateInstanceStatus(instance, err)
-	}
 	return ctrl.Result{}, nil
 }
 
@@ -219,6 +253,41 @@ func (r *TemplateInstanceReconciler) createObject(obj *runtime.RawExtension, own
 	//reqLogger.Info("after: " + fmt.Sprintf("%+v\n", unstr.GetOwnerReferences()))
 	// create object
 	if err = r.Client.Create(context.TODO(), unstr); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Apply changed parameters on existing k8s objects which are populated by templateinstance.
+// Get k8s obejcts as unstructured type and transform to []byte for applying parameters.
+func (r *TemplateInstanceReconciler) updateObject(obj *runtime.RawExtension, ns string) error {
+	updateUnstr, err := internal.BytesToUnstructuredObject(obj)
+	if err != nil {
+		return err
+	}
+	updateUnstr.SetNamespace(ns)
+	unstr := updateUnstr.DeepCopy()
+
+	// get already existing k8s object as unstructured type
+	if err = r.Client.Get(context.TODO(), types.NamespacedName{
+		Namespace: updateUnstr.GetNamespace(),
+		Name:      updateUnstr.GetName(),
+	}, unstr); err != nil {
+		return err
+	}
+
+	bytedUnstr, _ := unstr.MarshalJSON()
+	bytedUpdateUnstr, _ := updateUnstr.MarshalJSON()
+	patchedByte, _ := jsonpatch.MergePatch(bytedUnstr, bytedUpdateUnstr)
+
+	finalPatch := make(map[string]interface{})
+	if err := json.Unmarshal(patchedByte, &finalPatch); err != nil {
+		return err
+	}
+	unstr.SetUnstructuredContent(finalPatch)
+
+	if err = r.Client.Update(context.TODO(), unstr); err != nil {
 		return err
 	}
 
@@ -282,11 +351,13 @@ func (r *TemplateInstanceReconciler) updateTemplateInstanceStatus(instance *tmax
 		Conditions: []tmaxiov1.ConditionSpec{
 			cond,
 		},
-		Objects: nil,
+		Objects:         nil,
+		ClusterTemplate: instance.Status.ClusterTemplate,
+		Template:        instance.Status.Template,
 	}
 
 	if errUp := r.Client.Status().Patch(context.TODO(), instanceWithStatus, client.MergeFrom(instance)); errUp != nil {
-		reqLogger.Error(errUp, "could not update template instance")
+		reqLogger.Error(errUp, "could not create template instance")
 		return ctrl.Result{}, errUp
 	}
 
@@ -294,8 +365,20 @@ func (r *TemplateInstanceReconciler) updateTemplateInstanceStatus(instance *tmax
 	return ctrl.Result{}, err
 }
 
+func ignoreStatusUpdate() predicate.Predicate {
+	return predicate.Funcs{
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			// Ignore to call reconcile loop when TemplateInstanceStatus is updated
+			oldSpec := e.ObjectOld.(*tmaxiov1.TemplateInstance).DeepCopy().Spec
+			newSpec := e.ObjectNew.(*tmaxiov1.TemplateInstance).DeepCopy().Spec
+			return !reflect.DeepEqual(oldSpec, newSpec)
+		},
+	}
+}
+
 func (r *TemplateInstanceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&tmaxiov1.TemplateInstance{}).
+		WithEventFilter(ignoreStatusUpdate()).
 		Complete(r)
 }

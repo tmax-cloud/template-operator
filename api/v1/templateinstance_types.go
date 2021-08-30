@@ -68,8 +68,10 @@ type ConditionSpec struct {
 
 // TemplateInstanceStatus defines the observed state of TemplateInstance
 type TemplateInstanceStatus struct {
-	Conditions []ConditionSpec    `json:"conditions,omitempty"`
-	Objects    []StatusObjectSpec `json:"objects,omitempty"`
+	Conditions      []ConditionSpec    `json:"conditions,omitempty"`
+	Objects         []StatusObjectSpec `json:"objects,omitempty"`
+	Template        *ObjectInfo        `json:"template,omitempty"`
+	ClusterTemplate *ObjectInfo        `json:"clustertemplate,omitempty"`
 }
 
 // +kubebuilder:object:root=true
