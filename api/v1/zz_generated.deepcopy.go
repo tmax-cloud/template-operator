@@ -634,6 +634,11 @@ func (in *TemplateSpec) DeepCopyInto(out *TemplateSpec) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.Categories != nil {
+		in, out := &in.Categories, &out.Categories
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.ObjectKinds != nil {
 		in, out := &in.ObjectKinds, &out.ObjectKinds
 		*out = make([]string, len(*in))
