@@ -159,6 +159,9 @@ type TemplateSpec struct {
 	// Add tags that will include it into one of the provided catalog categories.
 	// +optional
 	Tags []string `json:"tags,omitempty"`
+	// Categories for arranging templates by similarity
+	// +optional
+	Categories []string `json:"categories,omitempty"`
 	// The kind list of objects that will be created by the template.
 	// Populated by the system.
 	// Read-only.

@@ -26,6 +26,11 @@ spec:
             of an object. Servers should convert recognized schemas to the latest
             internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
+        categories:
+          description: Categories for arranging templates by similarity
+          items:
+            type: string
+          type: array
         imageUrl:
           description: An image url to be displayed with your template in the web
             console.
