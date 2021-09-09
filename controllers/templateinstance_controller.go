@@ -321,6 +321,7 @@ func (r *TemplateInstanceReconciler) replaceParamsWithValue(obj *runtime.RawExte
 		reqLogger.Info("key: " + key + " value: " + value.String())
 		if value.Type == intstr.Int {
 			objStr = strings.Replace(objStr, "\"${"+key+"}\"", value.String(), -1)
+			objStr = strings.Replace(objStr, "${"+key+"}", value.String(), -1)
 		} else {
 			objStr = strings.Replace(objStr, "${"+key+"}", value.String(), -1)
 		}
