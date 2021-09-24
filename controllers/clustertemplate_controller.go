@@ -77,12 +77,6 @@ func (r *ClusterTemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		return ctrl.Result{}, nil
 	}
 
-	// if status field is not nil, end reconcile
-	if len(template.Status.Status) != 0 {
-		reqLogger.Info("already handled template")
-		return ctrl.Result{}, nil
-	}
-
 	updateInstance := template.DeepCopy()
 
 	setClusterTemplateSpecDefaultField(updateInstance)
