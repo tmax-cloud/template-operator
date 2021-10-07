@@ -59,6 +59,12 @@ func (r *TemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 
+	// if status field is not nil, end reconcile
+	if len(instance.Status.Status) != 0 {
+		reqLogger.Info("already handled template")
+		return ctrl.Result{}, nil
+	}
+
 	updateInstance := instance.DeepCopy()
 
 	setTemplateSpecDefaultField(updateInstance)
