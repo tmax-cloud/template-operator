@@ -72,6 +72,11 @@ spec:
                         description: The name of the parameter. This value is used
                           to reference the parameter within the template.
                         type: string
+                      regex:
+                        description: Set the "regex" value for the parameter value.
+                          Given "regex" is used to validate parameter value from template
+                          instance.
+                        type: string
                       required:
                         description: Indicates this parameter is required, meaning
                           the user cannot override it with an empty value. If the
@@ -129,6 +134,11 @@ spec:
                       name:
                         description: The name of the parameter. This value is used
                           to reference the parameter within the template.
+                        type: string
+                      regex:
+                        description: Set the "regex" value for the parameter value.
+                          Given "regex" is used to validate parameter value from template
+                          instance.
                         type: string
                       required:
                         description: Indicates this parameter is required, meaning
@@ -191,6 +201,11 @@ spec:
                       name:
                         description: The name of the parameter. This value is used
                           to reference the parameter within the template.
+                        type: string
+                      regex:
+                        description: Set the "regex" value for the parameter value.
+                          Given "regex" is used to validate parameter value from template
+                          instance.
                         type: string
                       required:
                         description: Indicates this parameter is required, meaning
@@ -291,6 +306,11 @@ spec:
                       name:
                         description: The name of the parameter. This value is used
                           to reference the parameter within the template.
+                        type: string
+                      regex:
+                        description: Set the "regex" value for the parameter value.
+                          Given "regex" is used to validate parameter value from template
+                          instance.
                         type: string
                       required:
                         description: Indicates this parameter is required, meaning
