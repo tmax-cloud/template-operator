@@ -58,7 +58,8 @@ func TestTemplateInstanceController(t *testing.T) {
 				},
 				Parameters: []tmaxiov1.ParamSpec{
 					{Name: "NAME", Value: intstr.IntOrString{Type: intstr.String, StrVal: objectName}},
-					{Name: "REPLICAS", Value: intstr.IntOrString{Type: intstr.String, StrVal: "2"}},
+					// {Name: "REPLICAS", Value: intstr.IntOrString{Type: intstr.String, StrVal: "2"}},  // original case (Regex 추가 후 controller.go:143 변경 확인)
+					{Name: "REPLICAS", Value: intstr.IntOrString{Type: intstr.Int, IntVal: 2}},
 				},
 			},
 		},

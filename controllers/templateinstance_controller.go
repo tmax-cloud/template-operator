@@ -19,7 +19,10 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"reflect"
+	"regexp"
+	"strconv"
 	"strings"
 
 	jsonpatch "github.com/evanphx/json-patch"
@@ -137,9 +140,10 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		// reflect a given instance parameter
 		if val, exist := instanceParams[param.Name]; exist {
 			convertedVal := val
-			if param.ValueType == numberType && val.Type == intstr.String {
-				convertedVal = intstr.IntOrString{Type: intstr.Int, IntVal: int32(val.IntValue())}
-			}
+			// [TODO : 아래 경우는 무조건 0으로 받아지기 때문에 필요 없음 / 문제생기는지 체크 필요]
+			// if param.ValueType == numberType && val.Type == intstr.String {
+			// 	convertedVal = intstr.IntOrString{Type: intstr.Int, IntVal: int32(val.IntValue())}
+			// }
 			if param.ValueType == stringType && val.Type == intstr.Int {
 				convertedVal = intstr.IntOrString{Type: intstr.String, StrVal: val.String()}
 			}
@@ -171,6 +175,25 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		totalParam[param.Name] = param.Value
 	}
 
+	// check parameter value matches regex
+	regCheckParam := make(map[string]string)
+	for name, val := range totalParam {
+		if val.Type == intstr.Int {
+			regCheckParam[name] = strconv.Itoa(int(val.IntVal))
+		} else {
+			regCheckParam[name] = val.StrVal
+		}
+	}
+
+	for _, param := range objectInfo.Parameters {
+		name := param.Name
+		if matched, err := regexp.MatchString(param.Regex, regCheckParam[name]); !matched {
+			reqLogger.Error(err, "error occurs while checking parameter matches regex")
+			return r.updateTemplateInstanceStatus(instance,
+				fmt.Errorf("parameter:%s value:%s doesn't match with given regex", name, regCheckParam[name]))
+		}
+	}
+
 	if instance.Status.ClusterTemplate == nil && instance.Status.Template == nil {
 		for idx := range tempObjectInfo.Objects {
 			if err = r.replaceParamsWithValue(&(tempObjectInfo.Objects[idx]), totalParam); err != nil {
@@ -195,6 +218,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 			return res, err
 		}
 	}
+
 	if instance.Status.ClusterTemplate != nil || instance.Status.Template != nil {
 		for idx := range tempObjectInfo.Objects {
 			if err = r.replaceParamsWithValue(&(tempObjectInfo.Objects[idx]), totalParam); err != nil {

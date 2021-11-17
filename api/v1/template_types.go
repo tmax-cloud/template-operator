@@ -113,6 +113,9 @@ type ParamSpec struct {
 	// If not specified, it defaults to string.
 	// +kubebuilder:validation:Enum:=string;number
 	ValueType string `json:"valueType,omitempty"`
+	// Set the "regex" value for the parameter value.
+	// Given "regex" is used to validate parameter value from template instance.
+	Regex string `json:"regex,omitempty"`
 }
 
 type LabelSpec struct {
