@@ -25,8 +25,6 @@ import (
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/conversion"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -34,6 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	tmplv1 "github.com/tmax-cloud/template-operator/api/v1"
+	"github.com/tmax-cloud/template-operator/internal/resolver"
 )
 
 // ClusterTemplateReconciler reconciles a ClusterTemplate object
@@ -86,9 +85,9 @@ func (r *ClusterTemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	// copy reconciling template from original
 	updateInstance := template.DeepCopy()
 
-	r.setClusterTemplateSpecDefaultField(updateInstance)
-
-	if err := r.setObjectKinds(updateInstance); err != nil {
+	templateResolver := resolver.NewTemplateResolver(updateInstance.GetObjectMeta().GetName(), updateInstance.TemplateSpec)
+	templateResolver.SetTemplateDefaultFields()
+	if err := templateResolver.SetObjectKinds(); err != nil {
 		reqLogger.Error(err, "cannot decode object")
 		templateStatus := &tmplv1.TemplateStatus{
 			Message: "cannot decode object",
@@ -96,6 +95,8 @@ func (r *ClusterTemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		}
 		return r.updateClusterTemplateStatus(template, templateStatus)
 	}
+
+	updateInstance.TemplateSpec = templateResolver.Get()
 
 	reqLogger.Info(fmt.Sprintf("object kinds: %v", updateInstance.ObjectKinds))
 
@@ -161,49 +162,6 @@ func (r *ClusterTemplateReconciler) updateClusterTemplateStatus(
 	}
 
 	return ctrl.Result{}, nil
-}
-
-func (r *ClusterTemplateReconciler) setClusterTemplateSpecDefaultField(template *tmplv1.ClusterTemplate) {
-	if template.ShortDescription == "" {
-		template.ShortDescription = template.ObjectMeta.Name
-	}
-
-	if template.ImageUrl == "" {
-		template.ImageUrl = "https://folo.co.kr/img/gm_noimage.png"
-	}
-
-	if template.LongDescription == "" {
-		template.LongDescription = template.ObjectMeta.Name
-	}
-
-	if template.MarkDownDescription == "" {
-		template.MarkDownDescription = template.ObjectMeta.Name
-	}
-
-	if template.Provider == "" {
-		template.Provider = "tmax"
-	}
-}
-
-func (r *ClusterTemplateReconciler) setObjectKinds(template *tmplv1.ClusterTemplate) error {
-	objectKinds := make([]string, 0)
-	for _, obj := range template.Objects {
-		var in runtime.Object
-		var scope conversion.Scope
-		if err := runtime.Convert_runtime_RawExtension_To_runtime_Object(&obj, &in, scope); err != nil {
-			return err
-		}
-
-		if unstrObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(in); err != nil {
-			return err
-		} else {
-			unstr := unstructured.Unstructured{Object: unstrObj}
-			objectKinds = append(objectKinds, unstr.GetKind())
-		}
-	}
-
-	template.ObjectKinds = objectKinds
-	return nil
 }
 
 func (r *ClusterTemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {

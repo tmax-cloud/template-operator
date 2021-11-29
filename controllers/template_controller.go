@@ -22,13 +22,12 @@ import (
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/conversion"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	tmplv1 "github.com/tmax-cloud/template-operator/api/v1"
+	"github.com/tmax-cloud/template-operator/internal/resolver"
 )
 
 // TemplateReconciler reconciles a Template object
@@ -68,9 +67,9 @@ func (r *TemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// copy reconciling template from original
 	updateInstance := instance.DeepCopy()
 
-	r.setTemplateSpecDefaultField(updateInstance)
-
-	if err := r.setObjectKinds(updateInstance); err != nil {
+	templateResolver := resolver.NewTemplateResolver(updateInstance.GetObjectMeta().GetName(), updateInstance.TemplateSpec)
+	templateResolver.SetTemplateDefaultFields()
+	if err := templateResolver.SetObjectKinds(); err != nil {
 		reqLogger.Error(err, "cannot decode object")
 		templateStatus := &tmplv1.TemplateStatus{
 			Message: "cannot decode object",
@@ -78,6 +77,8 @@ func (r *TemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 		return r.updateTemplateStatus(instance, templateStatus)
 	}
+
+	updateInstance.TemplateSpec = templateResolver.Get()
 
 	reqLogger.Info(fmt.Sprintf("object kinds: %v", updateInstance.ObjectKinds))
 
@@ -112,49 +113,6 @@ func (r *TemplateReconciler) updateTemplateStatus(
 	}
 
 	return ctrl.Result{}, nil
-}
-
-func (r *TemplateReconciler) setTemplateSpecDefaultField(template *tmplv1.Template) {
-	if template.ShortDescription == "" {
-		template.ShortDescription = template.ObjectMeta.Name
-	}
-
-	if template.ImageUrl == "" {
-		template.ImageUrl = "https://folo.co.kr/img/gm_noimage.png"
-	}
-
-	if template.LongDescription == "" {
-		template.LongDescription = template.ObjectMeta.Name
-	}
-
-	if template.MarkDownDescription == "" {
-		template.MarkDownDescription = template.ObjectMeta.Name
-	}
-
-	if template.Provider == "" {
-		template.Provider = "tmax"
-	}
-}
-
-func (r *TemplateReconciler) setObjectKinds(template *tmplv1.Template) error {
-	objectKinds := make([]string, 0)
-	for _, obj := range template.Objects {
-		var in runtime.Object
-		var scope conversion.Scope
-		if err := runtime.Convert_runtime_RawExtension_To_runtime_Object(&obj, &in, scope); err != nil {
-			return err
-		}
-
-		if unstrObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(in); err != nil {
-			return err
-		} else {
-			unstr := unstructured.Unstructured{Object: unstrObj}
-			objectKinds = append(objectKinds, unstr.GetKind())
-		}
-	}
-
-	template.ObjectKinds = objectKinds
-	return nil
 }
 
 func (r *TemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {
