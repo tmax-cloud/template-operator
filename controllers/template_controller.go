@@ -22,13 +22,12 @@ import (
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/conversion"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	tmaxiov1 "github.com/tmax-cloud/template-operator/api/v1"
+	tmplv1 "github.com/tmax-cloud/template-operator/api/v1"
+	"github.com/tmax-cloud/template-operator/internal/resolver"
 )
 
 // TemplateReconciler reconciles a Template object
@@ -46,7 +45,7 @@ func (r *TemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	reqLogger.Info("Reconciling Template")
 
 	// Fetch the Template instance
-	instance := &tmaxiov1.Template{}
+	instance := &tmplv1.Template{}
 	err := r.Client.Get(context.TODO(), req.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -65,59 +64,44 @@ func (r *TemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, nil
 	}
 
+	// copy reconciling template from original
 	updateInstance := instance.DeepCopy()
 
-	setTemplateSpecDefaultField(updateInstance)
-
-	// add kind to objectKinds fields
-	objectKinds := make([]string, 0)
-	for _, obj := range instance.Objects {
-		var in runtime.Object
-		var scope conversion.Scope // While not actually used within the function, need to pass in
-		if err = runtime.Convert_runtime_RawExtension_To_runtime_Object(&obj, &in, scope); err != nil {
-			reqLogger.Error(err, "cannot decode object")
-			templateStatus := &tmaxiov1.TemplateStatus{
-				Message: "cannot decode object",
-				Status:  tmaxiov1.TemplateError,
-			}
-			return r.updateTemplateStatus(instance, templateStatus)
-		}
-
-		unstrObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(in)
-		if err != nil {
-			reqLogger.Error(err, "cannot decode object")
-			templateStatus := &tmaxiov1.TemplateStatus{
-				Message: "cannot decode object",
-				Status:  tmaxiov1.TemplateError,
-			}
-			return r.updateTemplateStatus(instance, templateStatus)
-		}
-
-		unstr := unstructured.Unstructured{Object: unstrObj}
-		reqLogger.Info(fmt.Sprintf("kind: %s", unstr.GetKind()))
-		objectKinds = append(objectKinds, unstr.GetKind())
-	}
-	updateInstance.ObjectKinds = objectKinds
-	reqLogger.Info(fmt.Sprintf("%v", objectKinds))
-
-	if err = r.Client.Patch(context.TODO(), updateInstance, client.MergeFrom(instance)); err != nil {
-		reqLogger.Error(err, "cannot update template")
-		templateStatus := &tmaxiov1.TemplateStatus{
-			Message: "cannot update template",
-			Status:  tmaxiov1.TemplateError,
+	templateResolver := resolver.NewTemplateResolver(updateInstance.GetObjectMeta().GetName(), updateInstance.TemplateSpec)
+	templateResolver.SetTemplateDefaultFields()
+	if err := templateResolver.SetObjectKinds(); err != nil {
+		reqLogger.Error(err, "cannot decode object")
+		templateStatus := &tmplv1.TemplateStatus{
+			Message: "cannot decode object",
+			Status:  tmplv1.TemplateError,
 		}
 		return r.updateTemplateStatus(instance, templateStatus)
 	}
 
-	templateStatus := &tmaxiov1.TemplateStatus{
+	updateInstance.TemplateSpec = templateResolver.Get()
+
+	reqLogger.Info(fmt.Sprintf("object kinds: %v", updateInstance.ObjectKinds))
+
+	// Patch reconciled template
+	if err = r.Client.Patch(context.TODO(), updateInstance, client.MergeFrom(instance)); err != nil {
+		reqLogger.Error(err, "cannot update template")
+		templateStatus := &tmplv1.TemplateStatus{
+			Message: "cannot update template",
+			Status:  tmplv1.TemplateError,
+		}
+		return r.updateTemplateStatus(instance, templateStatus)
+	}
+
+	// update status when succeed
+	templateStatus := &tmplv1.TemplateStatus{
 		Message: "update success",
-		Status:  tmaxiov1.TemplateSuccess,
+		Status:  tmplv1.TemplateSuccess,
 	}
 	return r.updateTemplateStatus(instance, templateStatus)
 }
 
 func (r *TemplateReconciler) updateTemplateStatus(
-	template *tmaxiov1.Template, status *tmaxiov1.TemplateStatus) (ctrl.Result, error) {
+	template *tmplv1.Template, status *tmplv1.TemplateStatus) (ctrl.Result, error) {
 	reqLogger := r.Log.WithName("update template status")
 
 	updatedTemplate := template.DeepCopy()
@@ -131,29 +115,8 @@ func (r *TemplateReconciler) updateTemplateStatus(
 	return ctrl.Result{}, nil
 }
 
-func setTemplateSpecDefaultField(template *tmaxiov1.Template) {
-	if len(template.ShortDescription) == 0 {
-		template.ShortDescription = template.ObjectMeta.Name
-	}
-
-	if len(template.ImageUrl) == 0 {
-		template.ImageUrl = "https://folo.co.kr/img/gm_noimage.png"
-	}
-	if len(template.LongDescription) == 0 {
-		template.LongDescription = template.ObjectMeta.Name
-	}
-
-	if len(template.MarkDownDescription) == 0 {
-		template.MarkDownDescription = template.ObjectMeta.Name
-	}
-
-	if len(template.Provider) == 0 {
-		template.Provider = "tmax"
-	}
-}
-
 func (r *TemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&tmaxiov1.Template{}).
+		For(&tmplv1.Template{}).
 		Complete(r)
 }
