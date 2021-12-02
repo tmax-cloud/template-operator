@@ -106,6 +106,22 @@ spec:
                     type: object
                   type: array
               type: object
+            gitops:
+              description: Spec for Application CR
+              properties:
+                destination:
+                  description: Target cluster
+                  type: string
+                path:
+                  description: Git repo directory
+                  type: string
+                secret:
+                  description: Secret name which contains user credentials
+                  type: string
+                sourcegitrepo:
+                  description: Git repo. ex)https://github.com/user/repo
+                  type: string
+              type: object
             template:
               properties:
                 metadata:

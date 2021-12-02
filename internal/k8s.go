@@ -1,9 +1,13 @@
 package internal
 
 import (
+	"encoding/json"
+
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/conversion"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	tmaxiov1 "github.com/tmax-cloud/template-operator/api/v1"
 )
 
 func BytesToUnstructuredObject(obj *runtime.RawExtension) (*unstructured.Unstructured, error) {
@@ -20,4 +24,20 @@ func BytesToUnstructuredObject(obj *runtime.RawExtension) (*unstructured.Unstruc
 	}
 
 	return &unstructured.Unstructured{Object: unstrObj}, nil
+}
+
+func SetNamespace(obj *runtime.RawExtension, owner *tmaxiov1.TemplateInstance) error {
+	unstr, err := BytesToUnstructuredObject(obj)
+	if err != nil {
+		return err
+	}
+
+	unstr.SetNamespace(owner.Namespace)
+	raw, err := json.Marshal(unstr)
+	if err != nil {
+		return err
+	}
+	obj.Raw = raw
+
+	return nil
 }
