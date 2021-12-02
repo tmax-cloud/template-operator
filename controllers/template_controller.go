@@ -44,9 +44,9 @@ func (r *TemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	reqLogger := r.Log.WithValues("Request.Namespace", req.Namespace, "Request.Name", req.Name)
 	reqLogger.Info("Reconciling Template")
 
-	// Fetch the Template instance
-	instance := &tmplv1.Template{}
-	err := r.Client.Get(context.TODO(), req.NamespacedName, instance)
+	// Fetch the Template
+	template := &tmplv1.Template{}
+	err := r.Client.Get(context.TODO(), req.NamespacedName, template)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -59,15 +59,15 @@ func (r *TemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	// if status field is not nil, end reconcile
-	if len(instance.Status.Status) != 0 {
+	if len(template.Status.Status) != 0 {
 		reqLogger.Info("already handled template")
 		return ctrl.Result{}, nil
 	}
 
 	// copy reconciling template from original
-	updateInstance := instance.DeepCopy()
+	updateTemplate := template.DeepCopy()
 
-	templateResolver := resolver.NewTemplateResolver(updateInstance.GetObjectMeta().GetName(), updateInstance.TemplateSpec)
+	templateResolver := resolver.NewTemplateResolver(updateTemplate.GetObjectMeta().GetName(), updateTemplate.TemplateSpec)
 	templateResolver.SetTemplateDefaultFields()
 	if err := templateResolver.SetObjectKinds(); err != nil {
 		reqLogger.Error(err, "cannot decode object")
@@ -75,21 +75,21 @@ func (r *TemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			Message: "cannot decode object",
 			Status:  tmplv1.TemplateError,
 		}
-		return r.updateTemplateStatus(instance, templateStatus)
+		return r.updateTemplateStatus(template, templateStatus)
 	}
 
-	updateInstance.TemplateSpec = templateResolver.Get()
+	updateTemplate.TemplateSpec = templateResolver.Get()
 
-	reqLogger.Info(fmt.Sprintf("object kinds: %v", updateInstance.ObjectKinds))
+	reqLogger.Info(fmt.Sprintf("object kinds: %v", updateTemplate.ObjectKinds))
 
 	// Patch reconciled template
-	if err = r.Client.Patch(context.TODO(), updateInstance, client.MergeFrom(instance)); err != nil {
+	if err = r.Client.Patch(context.TODO(), updateTemplate, client.MergeFrom(template)); err != nil {
 		reqLogger.Error(err, "cannot update template")
 		templateStatus := &tmplv1.TemplateStatus{
 			Message: "cannot update template",
 			Status:  tmplv1.TemplateError,
 		}
-		return r.updateTemplateStatus(instance, templateStatus)
+		return r.updateTemplateStatus(template, templateStatus)
 	}
 
 	// update status when succeed
@@ -97,7 +97,7 @@ func (r *TemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		Message: "update success",
 		Status:  tmplv1.TemplateSuccess,
 	}
-	return r.updateTemplateStatus(instance, templateStatus)
+	return r.updateTemplateStatus(template, templateStatus)
 }
 
 func (r *TemplateReconciler) updateTemplateStatus(

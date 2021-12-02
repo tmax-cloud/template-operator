@@ -20,7 +20,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 	http "github.com/go-git/go-git/v5/plumbing/transport/http"
 	memory "github.com/go-git/go-git/v5/storage/memory"
-	tmaxiov1 "github.com/tmax-cloud/template-operator/api/v1"
+	tmplv1 "github.com/tmax-cloud/template-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -31,7 +31,7 @@ var (
 	defaultRemoteName = "main"
 )
 
-func PushToGivenRepo(instance *tmaxiov1.TemplateInstance, obj runtime.RawExtension, c client.Client) error {
+func PushToGivenRepo(instance *tmplv1.TemplateInstance, obj runtime.RawExtension, c client.Client) error {
 	storer = memory.NewStorage()
 	fs = memfs.New()
 

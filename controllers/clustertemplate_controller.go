@@ -83,9 +83,9 @@ func (r *ClusterTemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	}
 
 	// copy reconciling template from original
-	updateInstance := template.DeepCopy()
+	updateTemplate := template.DeepCopy()
 
-	templateResolver := resolver.NewTemplateResolver(updateInstance.GetObjectMeta().GetName(), updateInstance.TemplateSpec)
+	templateResolver := resolver.NewTemplateResolver(updateTemplate.GetObjectMeta().GetName(), updateTemplate.TemplateSpec)
 	templateResolver.SetTemplateDefaultFields()
 	if err := templateResolver.SetObjectKinds(); err != nil {
 		reqLogger.Error(err, "cannot decode object")
@@ -96,12 +96,12 @@ func (r *ClusterTemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		return r.updateClusterTemplateStatus(template, templateStatus)
 	}
 
-	updateInstance.TemplateSpec = templateResolver.Get()
+	updateTemplate.TemplateSpec = templateResolver.Get()
 
-	reqLogger.Info(fmt.Sprintf("object kinds: %v", updateInstance.ObjectKinds))
+	reqLogger.Info(fmt.Sprintf("object kinds: %v", updateTemplate.ObjectKinds))
 
 	// Patch reconciled template
-	if err = r.Client.Patch(context.TODO(), updateInstance, client.MergeFrom(template)); err != nil {
+	if err = r.Client.Patch(context.TODO(), updateTemplate, client.MergeFrom(template)); err != nil {
 		reqLogger.Error(err, "cannot update clustertemplate")
 		templateStatus := &tmplv1.TemplateStatus{
 			Message: "cannot update clustertemplate",

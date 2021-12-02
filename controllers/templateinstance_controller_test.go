@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	tmaxiov1 "github.com/tmax-cloud/template-operator/api/v1"
+	tmplv1 "github.com/tmax-cloud/template-operator/api/v1"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -28,35 +28,35 @@ func TestTemplateInstanceController(t *testing.T) {
 		namespace    = "test-ns"
 	)
 
-	template := &tmaxiov1.Template{
+	template := &tmplv1.Template{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      templateName,
 			Namespace: namespace,
 		},
-		TemplateSpec: tmaxiov1.TemplateSpec{
+		TemplateSpec: tmplv1.TemplateSpec{
 			Objects: []runtime.RawExtension{
 				{Raw: []byte(`{"kind": "Deployment", "apiVersion": "apps/v1", "metadata": { "name": "${NAME}"},
 				"spec": { "replicas": "${REPLICAS}"}}`)},
 				{Raw: []byte(`{"kind": "Service", "apiVersion": "v1", "metadata": { "name": "${NAME}"}}`)},
 			},
-			Parameters: []tmaxiov1.ParamSpec{
+			Parameters: []tmplv1.ParamSpec{
 				{Name: "NAME", ValueType: "string"},
 				{Name: "REPLICAS", ValueType: "number"},
 			},
 		},
 	}
 
-	instance := &tmaxiov1.TemplateInstance{
+	instance := &tmplv1.TemplateInstance{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instanceName,
 			Namespace: namespace,
 		},
-		Spec: tmaxiov1.TemplateInstanceSpec{
-			Template: &tmaxiov1.ObjectInfo{
-				Metadata: tmaxiov1.MetadataSpec{
+		Spec: tmplv1.TemplateInstanceSpec{
+			Template: &tmplv1.ObjectInfo{
+				Metadata: tmplv1.MetadataSpec{
 					Name: templateName,
 				},
-				Parameters: []tmaxiov1.ParamSpec{
+				Parameters: []tmplv1.ParamSpec{
 					{Name: "NAME", Value: intstr.IntOrString{Type: intstr.String, StrVal: objectName}},
 					// {Name: "REPLICAS", Value: intstr.IntOrString{Type: intstr.String, StrVal: "2"}},  // original case (Regex 추가 후 controller.go:143 변경 확인)
 					{Name: "REPLICAS", Value: intstr.IntOrString{Type: intstr.Int, IntVal: 2}},
@@ -68,8 +68,8 @@ func TestTemplateInstanceController(t *testing.T) {
 	objs := []runtime.Object{template, instance}
 
 	s := scheme.Scheme
-	s.AddKnownTypes(tmaxiov1.SchemeBuilder.GroupVersion, template)
-	s.AddKnownTypes(tmaxiov1.SchemeBuilder.GroupVersion, instance)
+	s.AddKnownTypes(tmplv1.SchemeBuilder.GroupVersion, template)
+	s.AddKnownTypes(tmplv1.SchemeBuilder.GroupVersion, instance)
 
 	cl := fake.NewFakeClient(objs...)
 

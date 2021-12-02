@@ -36,7 +36,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	tmaxiov1 "github.com/tmax-cloud/template-operator/api/v1"
+	tmplv1 "github.com/tmax-cloud/template-operator/api/v1"
 	"github.com/tmax-cloud/template-operator/internal"
 )
 
@@ -60,7 +60,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 	reqLogger.Info("Reconciling TemplateInstance")
 
 	// Fetch the TemplateInstance instance
-	instance := &tmaxiov1.TemplateInstance{}
+	instance := &tmplv1.TemplateInstance{}
 	err := r.Client.Get(context.TODO(), req.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -76,8 +76,8 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		return r.updateTemplateInstanceStatus(instance, err)
 	}
 
-	objectInfo := &tmaxiov1.ObjectInfo{}
-	instanceParameters := []tmaxiov1.ParamSpec{}
+	objectInfo := &tmplv1.ObjectInfo{}
+	instanceParameters := []tmplv1.ParamSpec{}
 	updateInstance := instance.DeepCopy()
 
 	if instance.Spec.ClusterTemplate != nil { // instance with clustertemplate
@@ -85,7 +85,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		if updateInstance.Status.ClusterTemplate == nil { // initial apply of instance
 			updateInstance.Status.ClusterTemplate = objectInfo
 			// Get the clustertemplate info
-			template := &tmaxiov1.ClusterTemplate{}
+			template := &tmplv1.ClusterTemplate{}
 			if err = r.Client.Get(context.TODO(), types.NamespacedName{
 				Name: instance.Spec.ClusterTemplate.Metadata.Name,
 			}, template); err != nil {
@@ -107,7 +107,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 			updateInstance.Status.Template = objectInfo
 
 			// Get the template info
-			template := &tmaxiov1.Template{}
+			template := &tmplv1.Template{}
 			if err = r.Client.Get(context.TODO(), types.NamespacedName{
 				Namespace: instance.Namespace,
 				Name:      instance.Spec.Template.Metadata.Name,
@@ -271,7 +271,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 	return ctrl.Result{}, nil
 }
 
-func (r *TemplateInstanceReconciler) createObject(obj *runtime.RawExtension, owner *tmaxiov1.TemplateInstance) error {
+func (r *TemplateInstanceReconciler) createObject(obj *runtime.RawExtension, owner *tmplv1.TemplateInstance) error {
 	//reqLogger := r.Log.WithName("replace createK8sObject")
 	// get unstructured object
 	unstr, err := internal.BytesToUnstructuredObject(obj)
@@ -383,12 +383,12 @@ func (r *TemplateInstanceReconciler) replaceParamsWithValue(obj *runtime.RawExte
 	return nil
 }
 
-func (r *TemplateInstanceReconciler) updateTemplateInstanceStatus(instance *tmaxiov1.TemplateInstance, err error) (ctrl.Result, error) {
+func (r *TemplateInstanceReconciler) updateTemplateInstanceStatus(instance *tmplv1.TemplateInstance, err error) (ctrl.Result, error) {
 	reqLogger := r.Log.WithName("update template instance status")
 	// set condition depending on the error
 	instanceWithStatus := instance.DeepCopy()
 
-	var cond tmaxiov1.ConditionSpec
+	var cond tmplv1.ConditionSpec
 	if err == nil {
 		cond.Message = "succeed to create instances"
 		cond.Status = "Succeeded"
@@ -399,8 +399,8 @@ func (r *TemplateInstanceReconciler) updateTemplateInstanceStatus(instance *tmax
 	}
 
 	// set status
-	instanceWithStatus.Status = tmaxiov1.TemplateInstanceStatus{
-		Conditions: []tmaxiov1.ConditionSpec{
+	instanceWithStatus.Status = tmplv1.TemplateInstanceStatus{
+		Conditions: []tmplv1.ConditionSpec{
 			cond,
 		},
 		Objects:         nil,
@@ -421,8 +421,8 @@ func ignoreStatusUpdate() predicate.Predicate {
 	return predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			// Ignore to call reconcile loop when TemplateInstanceStatus is updated
-			oldSpec := e.ObjectOld.(*tmaxiov1.TemplateInstance).DeepCopy().Spec
-			newSpec := e.ObjectNew.(*tmaxiov1.TemplateInstance).DeepCopy().Spec
+			oldSpec := e.ObjectOld.(*tmplv1.TemplateInstance).DeepCopy().Spec
+			newSpec := e.ObjectNew.(*tmplv1.TemplateInstance).DeepCopy().Spec
 			return !reflect.DeepEqual(oldSpec, newSpec)
 		},
 	}
@@ -430,7 +430,7 @@ func ignoreStatusUpdate() predicate.Predicate {
 
 func (r *TemplateInstanceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&tmaxiov1.TemplateInstance{}).
+		For(&tmplv1.TemplateInstance{}).
 		WithEventFilter(ignoreStatusUpdate()).
 		Complete(r)
 }

@@ -5,11 +5,11 @@ import (
 	"regexp"
 	"strconv"
 
-	tmaxiov1 "github.com/tmax-cloud/template-operator/api/v1"
+	tmplv1 "github.com/tmax-cloud/template-operator/api/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func RegexValidate(checkParamAsMap map[string]intstr.IntOrString, paramSpec []tmaxiov1.ParamSpec) (matched bool, msg string) {
+func RegexValidate(checkParamAsMap map[string]intstr.IntOrString, paramSpec []tmplv1.ParamSpec) (matched bool, msg string) {
 
 	regCheckParam := make(map[string]string)
 	m := "Regex Validation succeeded"

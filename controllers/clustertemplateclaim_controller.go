@@ -30,7 +30,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	tmaxiov1 "github.com/tmax-cloud/template-operator/api/v1"
+	tmplv1 "github.com/tmax-cloud/template-operator/api/v1"
 )
 
 // ClusterTemplateClaimReconciler reconciles a ClusterTemplateClaim object
@@ -53,7 +53,7 @@ func (r *ClusterTemplateClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 	logger.Info("Reconciling ClusterTemplateClaim")
 
 	// Get the ClusterTemplateClaim instance
-	claim := &tmaxiov1.ClusterTemplateClaim{}
+	claim := &tmplv1.ClusterTemplateClaim{}
 	if err := r.Client.Get(context.TODO(), req.NamespacedName, claim); err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -71,10 +71,10 @@ func (r *ClusterTemplateClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 	}
 
 	if r.checkClusterTemplateExist(claim) {
-		status := &tmaxiov1.ClusterTemplateClaimStatus{
+		status := &tmplv1.ClusterTemplateClaimStatus{
 			LastTransitionTime: metav1.Time{Time: time.Now()},
 			Reason:             fmt.Sprintf("ClusterTemplate %s already exist", claim.Spec.ResourceName),
-			Status:             tmaxiov1.Rejected,
+			Status:             tmplv1.Rejected,
 			Handled:            false,
 		}
 		return r.updateClusterTemplateClaimStatus(claim, status)
@@ -82,10 +82,10 @@ func (r *ClusterTemplateClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 
 	exist, template := r.getTemplateIfExist(claim)
 	if !exist {
-		status := &tmaxiov1.ClusterTemplateClaimStatus{
+		status := &tmplv1.ClusterTemplateClaimStatus{
 			LastTransitionTime: metav1.Time{Time: time.Now()},
 			Reason:             fmt.Sprintf("Fail to get template %s", claim.Spec.TemplateName),
-			Status:             tmaxiov1.Error,
+			Status:             tmplv1.Error,
 			Handled:            false,
 		}
 		return r.updateClusterTemplateClaimStatus(claim, status)
@@ -93,40 +93,40 @@ func (r *ClusterTemplateClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 
 	switch claim.Status.Status {
 	case "":
-		status := &tmaxiov1.ClusterTemplateClaimStatus{
+		status := &tmplv1.ClusterTemplateClaimStatus{
 			LastTransitionTime: metav1.Time{Time: time.Now()},
 			Reason:             "Waiting for admin permission",
-			Status:             tmaxiov1.Awating,
+			Status:             tmplv1.Awating,
 			Handled:            false,
 		}
 		return r.updateClusterTemplateClaimStatus(claim, status)
-	case tmaxiov1.Approved:
+	case tmplv1.Approved:
 		if err := r.createClusterTemplate(claim, template); err != nil {
-			status := &tmaxiov1.ClusterTemplateClaimStatus{
+			status := &tmplv1.ClusterTemplateClaimStatus{
 				LastTransitionTime: metav1.Time{Time: time.Now()},
 				Reason:             "Error occurs while creating cluster template",
-				Status:             tmaxiov1.Error,
+				Status:             tmplv1.Error,
 				Handled:            false,
 			}
 			return r.updateClusterTemplateClaimStatus(claim, status)
 		}
 
-		status := &tmaxiov1.ClusterTemplateClaimStatus{
+		status := &tmplv1.ClusterTemplateClaimStatus{
 			LastTransitionTime: metav1.Time{Time: time.Now()},
 			Reason:             "Succeed to create cluster template",
-			Status:             tmaxiov1.Approved,
+			Status:             tmplv1.Approved,
 			Handled:            true,
 		}
 		return r.updateClusterTemplateClaimStatus(claim, status)
-	case tmaxiov1.Rejected:
+	case tmplv1.Rejected:
 		rejectReason := claim.Status.Reason
 		if len(rejectReason) == 0 {
 			rejectReason = "Rejected by admin"
 		}
-		status := &tmaxiov1.ClusterTemplateClaimStatus{
+		status := &tmplv1.ClusterTemplateClaimStatus{
 			LastTransitionTime: metav1.Time{Time: time.Now()},
 			Reason:             rejectReason,
-			Status:             tmaxiov1.Rejected,
+			Status:             tmplv1.Rejected,
 			Handled:            false,
 		}
 		return r.updateClusterTemplateClaimStatus(claim, status)
@@ -135,8 +135,8 @@ func (r *ClusterTemplateClaimReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 	return ctrl.Result{}, nil
 }
 
-func (r *ClusterTemplateClaimReconciler) checkClusterTemplateExist(claim *tmaxiov1.ClusterTemplateClaim) bool {
-	ct := &tmaxiov1.ClusterTemplate{}
+func (r *ClusterTemplateClaimReconciler) checkClusterTemplateExist(claim *tmplv1.ClusterTemplateClaim) bool {
+	ct := &tmplv1.ClusterTemplate{}
 	if err := r.Client.Get(context.TODO(), types.NamespacedName{
 		Namespace: "",
 		Name:      claim.Spec.ResourceName,
@@ -146,8 +146,8 @@ func (r *ClusterTemplateClaimReconciler) checkClusterTemplateExist(claim *tmaxio
 	return true
 }
 
-func (r *ClusterTemplateClaimReconciler) createClusterTemplate(claim *tmaxiov1.ClusterTemplateClaim, template *tmaxiov1.Template) error {
-	ct := &tmaxiov1.ClusterTemplate{}
+func (r *ClusterTemplateClaimReconciler) createClusterTemplate(claim *tmplv1.ClusterTemplateClaim, template *tmplv1.Template) error {
+	ct := &tmplv1.ClusterTemplate{}
 	ct.TypeMeta = metav1.TypeMeta{
 		APIVersion: "tmax.io/v1",
 		Kind:       "ClusterTemplate",
@@ -166,8 +166,8 @@ func (r *ClusterTemplateClaimReconciler) createClusterTemplate(claim *tmaxiov1.C
 	return r.Client.Create(context.TODO(), ct)
 }
 
-func (r *ClusterTemplateClaimReconciler) getTemplateIfExist(claim *tmaxiov1.ClusterTemplateClaim) (bool, *tmaxiov1.Template) {
-	template := &tmaxiov1.Template{}
+func (r *ClusterTemplateClaimReconciler) getTemplateIfExist(claim *tmplv1.ClusterTemplateClaim) (bool, *tmplv1.Template) {
+	template := &tmplv1.Template{}
 	if err := r.Client.Get(context.TODO(), types.NamespacedName{
 		Namespace: claim.Namespace,
 		Name:      claim.Spec.TemplateName,
@@ -178,7 +178,7 @@ func (r *ClusterTemplateClaimReconciler) getTemplateIfExist(claim *tmaxiov1.Clus
 }
 
 func (r *ClusterTemplateClaimReconciler) updateClusterTemplateClaimStatus(
-	claim *tmaxiov1.ClusterTemplateClaim, status *tmaxiov1.ClusterTemplateClaimStatus) (ctrl.Result, error) {
+	claim *tmplv1.ClusterTemplateClaim, status *tmplv1.ClusterTemplateClaimStatus) (ctrl.Result, error) {
 	logger := r.Log.WithName("Update ClusterTemplateClaim status")
 
 	updatedClaim := claim.DeepCopy()
@@ -193,6 +193,6 @@ func (r *ClusterTemplateClaimReconciler) updateClusterTemplateClaimStatus(
 
 func (r *ClusterTemplateClaimReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&tmaxiov1.ClusterTemplateClaim{}).
+		For(&tmplv1.ClusterTemplateClaim{}).
 		Complete(r)
 }
