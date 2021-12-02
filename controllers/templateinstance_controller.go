@@ -21,8 +21,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"regexp"
-	"strconv"
 	"strings"
 
 	jsonpatch "github.com/evanphx/json-patch"
@@ -175,23 +173,52 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		totalParam[param.Name] = param.Value
 	}
 
-	// check parameter value matches regex
-	regCheckParam := make(map[string]string)
-	for name, val := range totalParam {
-		if val.Type == intstr.Int {
-			regCheckParam[name] = strconv.Itoa(int(val.IntVal))
-		} else {
-			regCheckParam[name] = val.StrVal
-		}
+	// Regex validating parameter values
+	if matched, m := internal.RegexValidate(totalParam, objectInfo.Parameters); !matched {
+		reqLogger.Error(err, "error occurs while checking parameter matches regex")
+		return r.updateTemplateInstanceStatus(instance, fmt.Errorf(m))
 	}
 
-	for _, param := range objectInfo.Parameters {
-		name := param.Name
-		if matched, err := regexp.MatchString(param.Regex, regCheckParam[name]); !matched {
-			reqLogger.Error(err, "error occurs while checking parameter matches regex")
-			return r.updateTemplateInstanceStatus(instance,
-				fmt.Errorf("parameter:%s value:%s doesn't match with given regex", name, regCheckParam[name]))
+	// [TODO]: 1. application 생성 안하는거 분기 필요
+	if instance.Annotations["gitops"] == "enable" {
+		// Push template obejcts to given repo
+		for idx := range tempObjectInfo.Objects {
+			if err = r.replaceParamsWithValue(&(tempObjectInfo.Objects[idx]), totalParam); err != nil {
+				reqLogger.Error(err, "error occurs while replace parameters")
+				return r.updateTemplateInstanceStatus(instance, err)
+			}
+
+			if err = internal.SetNamespace(&(tempObjectInfo.Objects[idx]), instance); err != nil {
+				reqLogger.Error(err, "error occurs while update namespace")
+				return r.updateTemplateInstanceStatus(instance, err)
+			}
+
+			if err = internal.PushToGivenRepo(instance, tempObjectInfo.Objects[idx], r.Client); err != nil {
+				reqLogger.Error(err, "error occurs while push objects")
+				return r.updateTemplateInstanceStatus(instance, err)
+			}
 		}
+		// Create Application CR through unstructrued type
+		unstrApp, err := internal.CreateApplicationAsUnstr(instance)
+		if err != nil {
+			reqLogger.Error(err, "error occurs while get unstrApp")
+			return r.updateTemplateInstanceStatus(instance, err)
+		}
+		if err = r.Client.Create(context.TODO(), unstrApp); err != nil {
+			return r.updateTemplateInstanceStatus(instance, err)
+		}
+
+		// set template instance status
+		if res, err := r.updateTemplateInstanceStatus(updateInstance, nil); err != nil {
+			return res, err
+		}
+
+		if err := r.Client.Status().Patch(context.TODO(), updateInstance, client.MergeFrom(instance)); err != nil {
+			reqLogger.Error(err, "could not update template instance status")
+			return ctrl.Result{}, err
+		}
+
+		return ctrl.Result{}, nil
 	}
 
 	if instance.Status.ClusterTemplate == nil && instance.Status.Template == nil {

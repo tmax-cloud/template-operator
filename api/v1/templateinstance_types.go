@@ -42,6 +42,19 @@ type TemplateInstanceSpec struct {
 	Template *ObjectInfo `json:"template,omitempty"`
 	// +kubebuilder:validation:OneOf [TODO: 나중에 추가할것]
 	ClusterTemplate *ObjectInfo `json:"clustertemplate,omitempty"`
+	// Spec for Application CR
+	Gitops GitopsSpec `json:"gitops,omitempty"`
+}
+
+type GitopsSpec struct {
+	// Git repo. ex)https://github.com/user/repo
+	SourceGitRepo string `json:"sourcegitrepo,omitempty"`
+	// Git repo directory
+	Path string `json:"path,omitempty"`
+	// Target cluster
+	Destination string `json:"destination,omitempty"`
+	// Secret name which contains user credentials
+	Secret string `json:"secret,omitempty"`
 }
 
 type RefSpec struct {
