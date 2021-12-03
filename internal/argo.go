@@ -34,7 +34,9 @@ func CreateApplicationAsUnstr(instance *tmplv1.TemplateInstance) (*unstructured.
 	app.Spec.Destination.Server = instance.Spec.Gitops.Destination
 	app.Spec.Destination.Namespace = instance.Namespace
 
-	syncPolicy := &schemas.SyncPolicyAutomated{}
+	syncPolicy := &schemas.SyncPolicyAutomated{
+		Prune: true,
+	}
 	app.Spec.SyncPolicy = &schemas.SyncPolicy{
 		Automated: syncPolicy,
 	}
