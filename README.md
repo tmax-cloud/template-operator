@@ -126,3 +126,7 @@
     - ClusterTemplate을 기반으로 instance 생성 할 경우 [파일](./config/samples/cluster-example-template-instance.yaml)과 같이 사용
     - Template 기반으로 instance 생성 할 시에는 기존과 동일하게 사용 가능
 4. template-operator 와 template-service-broker가 독립적으로 동작 할 수 있도록 로직 분리 
+5. Gitops option 기능 추가
+    - Template Instance 생성 시 annotations field에 "gitops: enable" 추가
+    - Template Instance Spec에 Template manifests push할 Source Git repo와 path 입력
+    - Source Git 접속 시 필요한 credential은 secret으로 Template Instance 생성 할 Namespace에 생성 (User ID / Access token)
