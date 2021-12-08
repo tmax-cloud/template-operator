@@ -36,7 +36,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	tmaxiov1 "github.com/tmax-cloud/template-operator/api/v1"
+	tmplv1 "github.com/tmax-cloud/template-operator/api/v1"
 	"github.com/tmax-cloud/template-operator/internal"
 )
 
@@ -48,8 +48,7 @@ type TemplateInstanceReconciler struct {
 }
 
 const (
-	stringType = "string"
-	numberType = "number"
+	argoDefaultNs = "argocd"
 )
 
 // +kubebuilder:rbac:groups=tmax.io,resources=templateinstances,verbs=get;list;watch;create;update;patch;delete
@@ -60,7 +59,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 	reqLogger.Info("Reconciling TemplateInstance")
 
 	// Fetch the TemplateInstance instance
-	instance := &tmaxiov1.TemplateInstance{}
+	instance := &tmplv1.TemplateInstance{}
 	err := r.Client.Get(context.TODO(), req.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -76,16 +75,19 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		return r.updateTemplateInstanceStatus(instance, err)
 	}
 
-	objectInfo := &tmaxiov1.ObjectInfo{}
-	instanceParameters := []tmaxiov1.ParamSpec{}
+	objectInfo := &tmplv1.ObjectInfo{}
+	instanceParameters := []tmplv1.ParamSpec{}
 	updateInstance := instance.DeepCopy()
+	var templateName string
 
 	if instance.Spec.ClusterTemplate != nil { // instance with clustertemplate
 		instanceParameters = instance.Spec.ClusterTemplate.Parameters
+		templateName = instance.Spec.ClusterTemplate.Metadata.Name
+
 		if updateInstance.Status.ClusterTemplate == nil { // initial apply of instance
 			updateInstance.Status.ClusterTemplate = objectInfo
 			// Get the clustertemplate info
-			template := &tmaxiov1.ClusterTemplate{}
+			template := &tmplv1.ClusterTemplate{}
 			if err = r.Client.Get(context.TODO(), types.NamespacedName{
 				Name: instance.Spec.ClusterTemplate.Metadata.Name,
 			}, template); err != nil {
@@ -103,11 +105,12 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 	}
 	if instance.Spec.Template != nil { // instance with template
 		instanceParameters = instance.Spec.Template.Parameters
+		templateName = instance.Spec.Template.Metadata.Name
+
 		if updateInstance.Status.Template == nil { // initial apply of instance
 			updateInstance.Status.Template = objectInfo
-
 			// Get the template info
-			template := &tmaxiov1.Template{}
+			template := &tmplv1.Template{}
 			if err = r.Client.Get(context.TODO(), types.NamespacedName{
 				Namespace: instance.Namespace,
 				Name:      instance.Spec.Template.Metadata.Name,
@@ -127,51 +130,14 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 
 	tempObjectInfo := objectInfo.DeepCopy()
 
-	// make instance parameter map
-	instanceParams := make(map[string]intstr.IntOrString)
-	for _, param := range instanceParameters {
-		instanceParams[param.Name] = param.Value
+	paramHandler := internal.NewParamHandler(tempObjectInfo.Parameters, instanceParameters)
+
+	if err := paramHandler.ReviseParam(); err != nil {
+		reqLogger.Error(err, "Required parameter has no value")
+		return r.updateTemplateInstanceStatus(instance, err)
 	}
 
-	// make real parameter with instance and default parameter
-	for idx, param := range tempObjectInfo.Parameters {
-		// reflect a given instance parameter
-		if val, exist := instanceParams[param.Name]; exist {
-			convertedVal := val
-			// [TODO : 아래 경우는 무조건 0으로 받아지기 때문에 필요 없음 / 문제생기는지 체크 필요]
-			// if param.ValueType == numberType && val.Type == intstr.String {
-			// 	convertedVal = intstr.IntOrString{Type: intstr.Int, IntVal: int32(val.IntValue())}
-			// }
-			if param.ValueType == stringType && val.Type == intstr.Int {
-				convertedVal = intstr.IntOrString{Type: intstr.String, StrVal: val.String()}
-			}
-			param.Value = convertedVal
-		}
-		// If the required field has no value
-		if param.Required && param.Value.Size() == 0 {
-			err := errors.NewBadRequest(param.Name + "must have a value")
-
-			reqLogger.Error(err, "Required parameter has no value")
-			return r.updateTemplateInstanceStatus(instance, err)
-		}
-
-		// Set default value for not required parameter
-		if param.Value.Size() == 0 {
-			if len(param.ValueType) == 0 || param.ValueType == stringType {
-				param.Value = intstr.IntOrString{Type: intstr.String, StrVal: ""}
-			}
-			if param.ValueType == numberType {
-				param.Value = intstr.IntOrString{Type: intstr.Int, IntVal: 0}
-			}
-		}
-		tempObjectInfo.Parameters[idx] = param
-	}
-
-	//replace parameter name to value in object and check exist k8s object
-	totalParam := make(map[string]intstr.IntOrString)
-	for _, param := range tempObjectInfo.Parameters {
-		totalParam[param.Name] = param.Value
-	}
+	totalParam := internal.GetParamAsMap(paramHandler.GetTemplateParameters())
 
 	// Regex validating parameter values
 	if matched, m := internal.RegexValidate(totalParam, objectInfo.Parameters); !matched {
@@ -179,7 +145,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		return r.updateTemplateInstanceStatus(instance, fmt.Errorf(m))
 	}
 
-	// [TODO]: 1. application 생성 안하는거 분기 필요
+	// gitops options
 	if instance.Annotations["gitops"] == "enable" {
 		// Push template obejcts to given repo
 		for idx := range tempObjectInfo.Objects {
@@ -204,8 +170,14 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 			reqLogger.Error(err, "error occurs while get unstrApp")
 			return r.updateTemplateInstanceStatus(instance, err)
 		}
-		if err = r.Client.Create(context.TODO(), unstrApp); err != nil {
-			return r.updateTemplateInstanceStatus(instance, err)
+
+		if err := r.Client.Get(context.TODO(), types.NamespacedName{
+			Namespace: argoDefaultNs,
+			Name:      instance.Name + "-" + templateName,
+		}, unstrApp); err != nil {
+			if err = r.Client.Create(context.TODO(), unstrApp); err != nil {
+				return r.updateTemplateInstanceStatus(instance, err)
+			}
 		}
 
 		// set template instance status
@@ -221,6 +193,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		return ctrl.Result{}, nil
 	}
 
+	// normal case (do not use gitops option)
 	if instance.Status.ClusterTemplate == nil && instance.Status.Template == nil {
 		for idx := range tempObjectInfo.Objects {
 			if err = r.replaceParamsWithValue(&(tempObjectInfo.Objects[idx]), totalParam); err != nil {
@@ -271,7 +244,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 	return ctrl.Result{}, nil
 }
 
-func (r *TemplateInstanceReconciler) createObject(obj *runtime.RawExtension, owner *tmaxiov1.TemplateInstance) error {
+func (r *TemplateInstanceReconciler) createObject(obj *runtime.RawExtension, owner *tmplv1.TemplateInstance) error {
 	//reqLogger := r.Log.WithName("replace createK8sObject")
 	// get unstructured object
 	unstr, err := internal.BytesToUnstructuredObject(obj)
@@ -383,12 +356,12 @@ func (r *TemplateInstanceReconciler) replaceParamsWithValue(obj *runtime.RawExte
 	return nil
 }
 
-func (r *TemplateInstanceReconciler) updateTemplateInstanceStatus(instance *tmaxiov1.TemplateInstance, err error) (ctrl.Result, error) {
+func (r *TemplateInstanceReconciler) updateTemplateInstanceStatus(instance *tmplv1.TemplateInstance, err error) (ctrl.Result, error) {
 	reqLogger := r.Log.WithName("update template instance status")
 	// set condition depending on the error
 	instanceWithStatus := instance.DeepCopy()
 
-	var cond tmaxiov1.ConditionSpec
+	var cond tmplv1.ConditionSpec
 	if err == nil {
 		cond.Message = "succeed to create instances"
 		cond.Status = "Succeeded"
@@ -399,8 +372,8 @@ func (r *TemplateInstanceReconciler) updateTemplateInstanceStatus(instance *tmax
 	}
 
 	// set status
-	instanceWithStatus.Status = tmaxiov1.TemplateInstanceStatus{
-		Conditions: []tmaxiov1.ConditionSpec{
+	instanceWithStatus.Status = tmplv1.TemplateInstanceStatus{
+		Conditions: []tmplv1.ConditionSpec{
 			cond,
 		},
 		Objects:         nil,
@@ -421,8 +394,8 @@ func ignoreStatusUpdate() predicate.Predicate {
 	return predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			// Ignore to call reconcile loop when TemplateInstanceStatus is updated
-			oldSpec := e.ObjectOld.(*tmaxiov1.TemplateInstance).DeepCopy().Spec
-			newSpec := e.ObjectNew.(*tmaxiov1.TemplateInstance).DeepCopy().Spec
+			oldSpec := e.ObjectOld.(*tmplv1.TemplateInstance).DeepCopy().Spec
+			newSpec := e.ObjectNew.(*tmplv1.TemplateInstance).DeepCopy().Spec
 			return !reflect.DeepEqual(oldSpec, newSpec)
 		},
 	}
@@ -430,7 +403,7 @@ func ignoreStatusUpdate() predicate.Predicate {
 
 func (r *TemplateInstanceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&tmaxiov1.TemplateInstance{}).
+		For(&tmplv1.TemplateInstance{}).
 		WithEventFilter(ignoreStatusUpdate()).
 		Complete(r)
 }

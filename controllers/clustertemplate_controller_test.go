@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	tmaxiov1 "github.com/tmax-cloud/template-operator/api/v1"
+	tmplv1 "github.com/tmax-cloud/template-operator/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -22,11 +22,11 @@ func TestClusterTemplateController(t *testing.T) {
 	)
 
 	// Template object with metadata and Objects Info
-	template := &tmaxiov1.ClusterTemplate{
+	template := &tmplv1.ClusterTemplate{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 		},
-		TemplateSpec: tmaxiov1.TemplateSpec{
+		TemplateSpec: tmplv1.TemplateSpec{
 			Objects: []runtime.RawExtension{
 				{Raw: []byte(`{"kind": "Deployment"}`)},
 				{Raw: []byte(`{"kind": "Service"}`)},
@@ -38,7 +38,7 @@ func TestClusterTemplateController(t *testing.T) {
 	objs := []runtime.Object{template}
 
 	s := scheme.Scheme
-	s.AddKnownTypes(tmaxiov1.SchemeBuilder.GroupVersion, template)
+	s.AddKnownTypes(tmplv1.SchemeBuilder.GroupVersion, template)
 
 	cl := fake.NewFakeClient(objs...)
 
@@ -58,7 +58,7 @@ func TestClusterTemplateController(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check if the correct value is added to the ObjectKinds field
-	ct := &tmaxiov1.ClusterTemplate{}
+	ct := &tmplv1.ClusterTemplate{}
 	err = r.Client.Get(context.TODO(), req.NamespacedName, ct)
 	require.NoError(t, err)
 

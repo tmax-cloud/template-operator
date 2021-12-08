@@ -9,7 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	tmaxiov1 "github.com/tmax-cloud/template-operator/api/v1"
+	tmplv1 "github.com/tmax-cloud/template-operator/api/v1"
 )
 
 var (
@@ -19,7 +19,7 @@ var (
 )
 
 // Template일 경우도 추가
-func CreateApplicationAsUnstr(instance *tmaxiov1.TemplateInstance) (*unstructured.Unstructured, error) {
+func CreateApplicationAsUnstr(instance *tmplv1.TemplateInstance) (*unstructured.Unstructured, error) {
 	// Set Default Application values from template instance
 	app := &schemas.Application{}
 	app.APIVersion = appAPIVersion
@@ -34,7 +34,9 @@ func CreateApplicationAsUnstr(instance *tmaxiov1.TemplateInstance) (*unstructure
 	app.Spec.Destination.Server = instance.Spec.Gitops.Destination
 	app.Spec.Destination.Namespace = instance.Namespace
 
-	syncPolicy := &schemas.SyncPolicyAutomated{}
+	syncPolicy := &schemas.SyncPolicyAutomated{
+		Prune: true,
+	}
 	app.Spec.SyncPolicy = &schemas.SyncPolicy{
 		Automated: syncPolicy,
 	}
