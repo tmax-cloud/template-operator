@@ -1,0 +1,24 @@
+apiVersion: tmax.io/v1
+kind: TemplateInstance
+metadata:
+  name: gitops-test-instance
+  namespace: template
+  annotations:
+    gitops: enable
+spec:
+  gitops:
+    sourcegitrepo: https://github.com/user/repo
+    path: test
+    secret: user-secret
+  clustertemplate:
+    metadata:
+      name: cluster-nginx-template
+    parameters:
+    - name: NAME
+      value: test
+    - name: SERVICE_TYPE
+      value: ClusterIP
+    - name: IMAGE
+      value: testimage
+    - name: PORT
+      value: 80
