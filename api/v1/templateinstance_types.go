@@ -51,8 +51,6 @@ type GitopsSpec struct {
 	SourceGitRepo string `json:"sourcegitrepo,omitempty"`
 	// Git repo directory
 	Path string `json:"path,omitempty"`
-	// Target cluster
-	Destination string `json:"destination,omitempty"`
 	// Secret name which contains user credentials
 	Secret string `json:"secret,omitempty"`
 }

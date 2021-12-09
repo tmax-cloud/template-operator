@@ -47,10 +47,6 @@ type TemplateInstanceReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-const (
-	argoDefaultNs = "argocd"
-)
-
 // +kubebuilder:rbac:groups=tmax.io,resources=templateinstances,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=tmax.io,resources=templateinstances/status,verbs=get;update;patch
 
@@ -78,11 +74,9 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 	objectInfo := &tmplv1.ObjectInfo{}
 	instanceParameters := []tmplv1.ParamSpec{}
 	updateInstance := instance.DeepCopy()
-	var templateName string
 
 	if instance.Spec.ClusterTemplate != nil { // instance with clustertemplate
 		instanceParameters = instance.Spec.ClusterTemplate.Parameters
-		templateName = instance.Spec.ClusterTemplate.Metadata.Name
 
 		if updateInstance.Status.ClusterTemplate == nil { // initial apply of instance
 			updateInstance.Status.ClusterTemplate = objectInfo
@@ -105,7 +99,6 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 	}
 	if instance.Spec.Template != nil { // instance with template
 		instanceParameters = instance.Spec.Template.Parameters
-		templateName = instance.Spec.Template.Metadata.Name
 
 		if updateInstance.Status.Template == nil { // initial apply of instance
 			updateInstance.Status.Template = objectInfo
@@ -161,21 +154,6 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 
 			if err = internal.PushToGivenRepo(instance, tempObjectInfo.Objects[idx], r.Client); err != nil {
 				reqLogger.Error(err, "error occurs while push objects")
-				return r.updateTemplateInstanceStatus(instance, err)
-			}
-		}
-		// Create Application CR through unstructrued type
-		unstrApp, err := internal.CreateApplicationAsUnstr(instance)
-		if err != nil {
-			reqLogger.Error(err, "error occurs while get unstrApp")
-			return r.updateTemplateInstanceStatus(instance, err)
-		}
-
-		if err := r.Client.Get(context.TODO(), types.NamespacedName{
-			Namespace: argoDefaultNs,
-			Name:      instance.Name + "-" + templateName,
-		}, unstrApp); err != nil {
-			if err = r.Client.Create(context.TODO(), unstrApp); err != nil {
 				return r.updateTemplateInstanceStatus(instance, err)
 			}
 		}

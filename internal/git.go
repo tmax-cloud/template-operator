@@ -24,11 +24,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-var storer *memory.Storage
-var fs billy.Filesystem
-
 var (
 	defaultRemoteName = "main"
+	storer            *memory.Storage
+	fs                billy.Filesystem
 )
 
 func PushToGivenRepo(instance *tmplv1.TemplateInstance, obj runtime.RawExtension, c client.Client) error {

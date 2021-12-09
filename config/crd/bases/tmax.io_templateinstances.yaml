@@ -109,9 +109,6 @@ spec:
             gitops:
               description: Spec for Application CR
               properties:
-                destination:
-                  description: Target cluster
-                  type: string
                 path:
                   description: Git repo directory
                   type: string
