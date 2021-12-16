@@ -32,13 +32,17 @@ func (p *ParamHandler) ReviseParam() error {
 	instanceParams := GetParamAsMap(p.instanceParameters)
 
 	for idx, param := range p.templateParameters {
-		if val, exist := instanceParams[param.Name]; exist && len(val.StrVal) != 0 {
+		if val, exist := instanceParams[param.Name]; exist {
 			convertedVal := val
 			if param.ValueType == numberType && val.Type == intstr.String {
 				convertedVal = intstr.IntOrString{Type: intstr.Int, IntVal: int32(val.IntValue())}
 			}
 			if param.ValueType == stringType && val.Type == intstr.Int {
 				convertedVal = intstr.IntOrString{Type: intstr.String, StrVal: val.String()}
+			}
+			// in case of Service Instance has no value
+			if param.ValueType == stringType && val.Type == intstr.String && len(val.StrVal) == 0 {
+				convertedVal = param.Value
 			}
 			param.Value = convertedVal
 		}
