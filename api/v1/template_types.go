@@ -111,7 +111,7 @@ type ParamSpec struct {
 	// Set the data type of the parameter.
 	// You can specify string and number for a string or integer type.
 	// If not specified, it defaults to string.
-	// +kubebuilder:validation:Enum:=string;number [TODO] : Instance CRD에서는 required 삭제
+	// +kubebuilder:validation:Enum:=string;number
 	ValueType string `json:"valueType"`
 	// Set the "regex" value for the parameter value.
 	// Given "regex" is used to validate parameter value from template instance.
