@@ -24,6 +24,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
+// [TODO] : err 처리 log로 바꾸기
 var (
 	defaultRemoteName = "main"
 	storer            *memory.Storage

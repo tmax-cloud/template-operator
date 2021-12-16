@@ -34,15 +34,19 @@ func (p *ParamHandler) ReviseParam() error {
 	for idx, param := range p.templateParameters {
 		if val, exist := instanceParams[param.Name]; exist {
 			convertedVal := val
-			// [TODO : 아래 경우는 무조건 0으로 받아지기 때문에 필요 없음 / 문제생기는지 체크 필요]
-			// if param.ValueType == numberType && val.Type == intstr.String {
-			// 	convertedVal = intstr.IntOrString{Type: intstr.Int, IntVal: int32(val.IntValue())}
-			// }
+			if param.ValueType == numberType && val.Type == intstr.String {
+				convertedVal = intstr.IntOrString{Type: intstr.Int, IntVal: int32(val.IntValue())}
+			}
 			if param.ValueType == stringType && val.Type == intstr.Int {
 				convertedVal = intstr.IntOrString{Type: intstr.String, StrVal: val.String()}
 			}
+			// in case of Service Instance has no value
+			if param.ValueType == stringType && val.Type == intstr.String && len(val.StrVal) == 0 {
+				convertedVal = param.Value
+			}
 			param.Value = convertedVal
 		}
+		// [TODO]: UI 변경되면 확인해야함 (tsb create Template Instance 부분)
 		// If the required field has no value
 		if param.Required && param.Value.Type == 1 && len(param.Value.StrVal) == 0 {
 			err := errors.NewBadRequest(param.Name + "must have a value")

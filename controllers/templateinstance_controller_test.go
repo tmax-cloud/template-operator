@@ -58,8 +58,8 @@ func TestTemplateInstanceController(t *testing.T) {
 				},
 				Parameters: []tmplv1.ParamSpec{
 					{Name: "NAME", Value: intstr.IntOrString{Type: intstr.String, StrVal: objectName}},
-					// {Name: "REPLICAS", Value: intstr.IntOrString{Type: intstr.String, StrVal: "2"}},  // original case (Regex 추가 후 param.go:39 변경 확인)
-					{Name: "REPLICAS", Value: intstr.IntOrString{Type: intstr.Int, IntVal: 2}},
+					{Name: "REPLICAS", Value: intstr.IntOrString{Type: intstr.String, StrVal: "2"}},
+					// {Name: "REPLICAS", Value: intstr.IntOrString{Type: intstr.Int, IntVal: 2}},
 				},
 			},
 		},
