@@ -69,6 +69,7 @@ func (r *TemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	templateResolver := resolver.NewTemplateResolver(updateTemplate.GetObjectMeta().GetName(), updateTemplate.TemplateSpec)
 	templateResolver.SetTemplateDefaultFields()
+	templateResolver.SetParameterDefaultFields()
 	if err := templateResolver.SetObjectKinds(); err != nil {
 		reqLogger.Error(err, "cannot decode object")
 		templateStatus := &tmplv1.TemplateStatus{
