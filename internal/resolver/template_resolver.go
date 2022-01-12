@@ -28,6 +28,7 @@ func (r *TemplateResolver) SetTemplateDefaultFields() {
 		r.spec.ImageUrl = "https://folo.co.kr/img/gm_noimage.png"
 	}
 
+	
 	if r.spec.LongDescription == "" {
 		r.spec.LongDescription = r.templateName
 	}
@@ -39,6 +40,18 @@ func (r *TemplateResolver) SetTemplateDefaultFields() {
 	if r.spec.Provider == "" {
 		r.spec.Provider = "tmax"
 	}
+}
+
+func (r *TemplateResolver) SetParameterDefaultFields() {
+	var newParams []tmplv1.ParamSpec
+
+	for _, param := range r.spec.Parameters {
+		if len(param.ValueType) == 0 {
+			param.ValueType = "string"
+		}
+		newParams = append(newParams, param)
+	}
+	r.spec.Parameters = newParams
 }
 
 func (r *TemplateResolver) SetObjectKinds() error {

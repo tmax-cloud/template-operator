@@ -138,6 +138,11 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		return r.updateTemplateInstanceStatus(instance, fmt.Errorf(m))
 	}
 
+	for key, val := range totalParam {
+		reqLogger := r.Log.WithName("replace k8s object")
+		reqLogger.Info("key: " + key + " value: " + val.String())
+	}
+
 	// gitops options
 	if instance.Annotations["gitops"] == "enable" {
 		// Push template obejcts to given repo
@@ -320,7 +325,7 @@ func (r *TemplateInstanceReconciler) replaceParamsWithValue(obj *runtime.RawExte
 	objStr := string(obj.Raw)
 	reqLogger.Info("original object: " + objStr)
 	for key, value := range params {
-		reqLogger.Info("key: " + key + " value: " + value.String())
+		// reqLogger.Info("key: " + key + " value: " + value.String())
 		if value.Type == intstr.Int {
 			objStr = strings.Replace(objStr, "\"${"+key+"}\"", value.String(), -1)
 			objStr = strings.Replace(objStr, "${"+key+"}", value.String(), -1)
