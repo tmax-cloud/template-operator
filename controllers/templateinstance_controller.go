@@ -27,6 +27,7 @@ import (
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
@@ -189,12 +190,19 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 			}
 		}
 
+		cacheUnstr := []*unstructured.Unstructured{} // cache for case of error
 		//create k8s object
 		for idx := range tempObjectInfo.Objects {
-			if err = r.createObject(&(tempObjectInfo.Objects[idx]), instance); err != nil {
+			cache := &unstructured.Unstructured{}
+
+			if cache, err = r.createObject(&(tempObjectInfo.Objects[idx]), instance); err != nil {
 				reqLogger.Error(err, "error occurs while create k8s object")
+				for _, cacheObj := range cacheUnstr {
+					r.Client.Delete(context.TODO(), cacheObj) // when error occurs during create objects, delete already created objects
+				}
 				return r.updateTemplateInstanceStatus(instance, err)
 			}
+			cacheUnstr = append(cacheUnstr, cache)
 		}
 
 		if res, err := r.updateTemplateInstanceStatus(updateInstance, nil); err != nil {
@@ -227,12 +235,12 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 	return ctrl.Result{}, nil
 }
 
-func (r *TemplateInstanceReconciler) createObject(obj *runtime.RawExtension, owner *tmplv1.TemplateInstance) error {
-	//reqLogger := r.Log.WithName("replace createK8sObject")
+func (r *TemplateInstanceReconciler) createObject(obj *runtime.RawExtension, owner *tmplv1.TemplateInstance) (cache *unstructured.Unstructured, err error) {
+	reqLogger := r.Log.WithName("replace createK8sObject") // for test
 	// get unstructured object
 	unstr, err := internal.BytesToUnstructuredObject(obj)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// set namespace if not exist
@@ -257,13 +265,15 @@ func (r *TemplateInstanceReconciler) createObject(obj *runtime.RawExtension, own
 	}
 	ownerRefs = append(ownerRefs, ownerRef)
 	unstr.SetOwnerReferences(ownerRefs)
+
 	//reqLogger.Info("after: " + fmt.Sprintf("%+v\n", unstr.GetOwnerReferences()))
 	// create object
 	if err = r.Client.Create(context.TODO(), unstr); err != nil {
-		return err
+		reqLogger.Error(err, "failed to create", unstr.GetKind(), "obejct") // for test
+		return nil, err
 	}
 
-	return nil
+	return unstr, nil
 }
 
 // Apply changed parameters on existing k8s objects which are populated by templateinstance.
@@ -304,6 +314,7 @@ func (r *TemplateInstanceReconciler) updateObject(obj *runtime.RawExtension, ns 
 func (r *TemplateInstanceReconciler) checkObjectExist(obj *runtime.RawExtension, ns string) error {
 	unstr, err := internal.BytesToUnstructuredObject(obj)
 	if err != nil {
+
 		return err
 	}
 	unstr.SetNamespace(ns)
