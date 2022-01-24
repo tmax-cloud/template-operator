@@ -191,6 +191,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		}
 
 		cacheUnstr := []*unstructured.Unstructured{} // cache for case of error
+
 		//create k8s object
 		for idx := range tempObjectInfo.Objects {
 			cache := &unstructured.Unstructured{}
@@ -199,6 +200,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 				reqLogger.Error(err, "error occurs while create k8s object")
 				for _, cacheObj := range cacheUnstr {
 					r.Client.Delete(context.TODO(), cacheObj) // when error occurs during create objects, delete already created objects
+					reqLogger.Info("Object: " + cacheObj.GetKind() + " is deleted")
 				}
 				return r.updateTemplateInstanceStatus(instance, err)
 			}
@@ -236,7 +238,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 }
 
 func (r *TemplateInstanceReconciler) createObject(obj *runtime.RawExtension, owner *tmplv1.TemplateInstance) (cache *unstructured.Unstructured, err error) {
-	reqLogger := r.Log.WithName("replace createK8sObject") // for test
+
 	// get unstructured object
 	unstr, err := internal.BytesToUnstructuredObject(obj)
 	if err != nil {
@@ -269,7 +271,6 @@ func (r *TemplateInstanceReconciler) createObject(obj *runtime.RawExtension, own
 	//reqLogger.Info("after: " + fmt.Sprintf("%+v\n", unstr.GetOwnerReferences()))
 	// create object
 	if err = r.Client.Create(context.TODO(), unstr); err != nil {
-		reqLogger.Error(err, "failed to create", unstr.GetKind(), "obejct") // for test
 		return nil, err
 	}
 
