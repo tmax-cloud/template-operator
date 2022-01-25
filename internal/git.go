@@ -52,13 +52,13 @@ func PushToGivenRepo(instance *tmplv1.TemplateInstance, obj runtime.RawExtension
 
 	repository := MutateRepoURL(instance.Spec.Gitops.SourceGitRepo)
 	repo, err := git.Clone(storer, fs, &git.CloneOptions{
-		URL:  repository,
-		Auth: auth,
-
-		RemoteName:    defaultRemoteName,
-		ReferenceName: plumbing.ReferenceName("refs/heads/main"),
-		SingleBranch:  true,
-		Tags:          git.NoTags,
+		URL:             repository,
+		Auth:            auth,
+		InsecureSkipTLS: true,
+		RemoteName:      defaultRemoteName,
+		ReferenceName:   plumbing.ReferenceName("refs/heads/main"),
+		SingleBranch:    true,
+		Tags:            git.NoTags,
 	})
 	if err != nil {
 		fmt.Printf("%v", err)
