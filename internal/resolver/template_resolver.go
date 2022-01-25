@@ -5,6 +5,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/conversion"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 type TemplateResolver struct {
@@ -28,7 +29,6 @@ func (r *TemplateResolver) SetTemplateDefaultFields() {
 		r.spec.ImageUrl = "https://folo.co.kr/img/gm_noimage.png"
 	}
 
-	
 	if r.spec.LongDescription == "" {
 		r.spec.LongDescription = r.templateName
 	}
@@ -49,6 +49,12 @@ func (r *TemplateResolver) SetParameterDefaultFields() {
 		if len(param.ValueType) == 0 {
 			param.ValueType = "string"
 		}
+
+		// IntOrString default value{0 0 }    for param.go:44
+		if param.ValueType == "string" && len(param.Value.StrVal) == 0 {
+			param.Value = intstr.IntOrString{Type: intstr.String, StrVal: ""}
+		}
+
 		newParams = append(newParams, param)
 	}
 	r.spec.Parameters = newParams
