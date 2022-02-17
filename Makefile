@@ -154,9 +154,9 @@ test-unit:
 save-sha-gen:
 	$(eval GENSHA=$(shell sha512sum api/v1/zz_generated.deepcopy.go))
 
-# compare-sha-gen:
-# 	$(eval GENSHA_AFTER=$(shell sha512sum api/v1/zz_generated.deepcopy.go))
-# 	@if [ "${GENSHA_AFTER}" = "${GENSHA}" ]; then echo "zz_generated.deepcopy.go is not changed"; else echo "zz_generated.deepcopy.go file is changed"; exit 1; fi
+compare-sha-gen:
+	$(eval GENSHA_AFTER=$(shell sha512sum api/v1/zz_generated.deepcopy.go))
+	@if [ "${GENSHA_AFTER}" = "${GENSHA}" ]; then echo "zz_generated.deepcopy.go is not changed"; else echo "zz_generated.deepcopy.go file is changed"; exit 1; fi
 
 save-sha-crd:
 	$(eval CRDSHA1=$(shell sha512sum config/crd/bases/tmax.io_catalogserviceclaims.yaml))
