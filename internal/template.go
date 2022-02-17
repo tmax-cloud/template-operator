@@ -43,6 +43,5 @@ func TemplateExec(tmpl *tmplv1.ClusterTemplate, param map[string]intstr.IntOrStr
 		cache.Raw, _ = yaml.YAMLToJSON(buf.Bytes())
 		result = append(result, cache)
 	}
-
 	return result, nil
 }
