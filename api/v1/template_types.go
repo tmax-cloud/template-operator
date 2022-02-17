@@ -172,8 +172,8 @@ type TemplateSpec struct {
 	// Objects can be any valid API object, such as a IntegrationConfig, Deployment, Service, etc.
 	// The object will be created exactly as defined here, with any parameter values substituted in prior to creation.
 	// The definition of these objects can reference parameters defined earlier.
-	Objects   []runtime.RawExtension `json:"objects,omitempty"`
-	GoObjects []string               `json:"goObjects,omitempty"`
+	Objects []runtime.RawExtension `json:"objects,omitempty"`
+	Object  []string               `json:"object,omitempty"`
 	// Service plan information to be used in the service catalog.
 	Plans []PlanSpec `json:"plans,omitempty"`
 	// Parameters allow a value to be supplied by the user or generated when the template is instantiated.

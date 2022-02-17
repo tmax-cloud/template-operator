@@ -279,6 +279,11 @@ func (in *ObjectInfo) DeepCopyInto(out *ObjectInfo) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.Object != nil {
+		in, out := &in.Object, &out.Object
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.Parameters != nil {
 		in, out := &in.Parameters, &out.Parameters
 		*out = make([]ParamSpec, len(*in))
@@ -667,8 +672,8 @@ func (in *TemplateSpec) DeepCopyInto(out *TemplateSpec) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
-	if in.GoObjects != nil {
-		in, out := &in.GoObjects, &out.GoObjects
+	if in.Object != nil {
+		in, out := &in.Object, &out.Object
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}

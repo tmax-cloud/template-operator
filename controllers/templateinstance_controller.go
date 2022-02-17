@@ -94,7 +94,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 			globalTemplate = template
 			objectInfo.Metadata.Name = instance.Spec.ClusterTemplate.Metadata.Name
 			objectInfo.Objects = template.Objects
-			objectInfo.Object = template.GoObjects
+			objectInfo.Object = template.Object
 			objectInfo.Parameters = template.Parameters
 
 		} else {

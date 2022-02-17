@@ -31,10 +31,6 @@ spec:
           items:
             type: string
           type: array
-        goObjects:
-          items:
-            type: string
-          type: array
         imageUrl:
           description: An image url to be displayed with your template in the web
             console.
@@ -68,6 +64,10 @@ spec:
           type: string
         metadata:
           type: object
+        object:
+          items:
+            type: string
+          type: array
         objectKinds:
           description: The kind list of objects that will be created by the template.
             Populated by the system. Read-only.

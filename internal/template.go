@@ -26,7 +26,7 @@ func TemplateExec(tmpl *tmplv1.ClusterTemplate, param map[string]intstr.IntOrStr
 
 	t := template.New("object template")
 	cache := runtime.RawExtension{}
-	for _, tp := range tmpl.GoObjects {
+	for _, tp := range tmpl.Object {
 		t, err = t.Parse(tp)
 		if err != nil {
 			log.Error(err, "parsing error")
