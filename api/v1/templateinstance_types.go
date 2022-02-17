@@ -31,6 +31,7 @@ type MetadataSpec struct {
 type ObjectInfo struct {
 	Metadata   MetadataSpec           `json:"metadata,omitempty"`
 	Objects    []runtime.RawExtension `json:"objects,omitempty"`
+	Object     []string               `json:"object,omitempty"`
 	Parameters []ParamSpec            `json:"parameters,omitempty"`
 }
 

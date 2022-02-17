@@ -31,6 +31,10 @@ spec:
           items:
             type: string
           type: array
+        goObjects:
+          items:
+            type: string
+          type: array
         imageUrl:
           description: An image url to be displayed with your template in the web
             console.
@@ -277,8 +281,6 @@ spec:
         urlDescription:
           description: A URL referencing further documentation for the template.
           type: string
-      required:
-      - objects
       type: object
   version: v1
   versions:
