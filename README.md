@@ -1,8 +1,7 @@
 # Template-operator
 
-> Template-operator for HyperCloud Service
-
-**Architecture**
+> Template-operator is Kubernetes-native deployment service. With setted templates, you can deploy k8s applications by creating template instances.
+> Supports both namespaced scope templates and cluster scope cluster templates.  
 
 ## prerequisite Install
 - kubernetes
