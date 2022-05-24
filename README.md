@@ -3,6 +3,8 @@
 > Template-operator is Kubernetes-native deployment service. With setted templates, you can deploy k8s applications by creating template instances.
 > Supports both namespaced scope templates and cluster scope cluster templates.  
 
+![image](https://raw.githubusercontent.com/tmax-cloud/template-operator/master/docs/template.JPG)
+
 ## prerequisite Install
 - kubernetes
 
