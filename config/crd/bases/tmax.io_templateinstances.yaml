@@ -1,6 +1,6 @@
 
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
@@ -15,352 +15,355 @@ spec:
     plural: templateinstances
     singular: templateinstance
   scope: Namespaced
-  subresources:
-    status: {}
-  validation:
-    openAPIV3Schema:
-      description: TemplateInstance is the Schema for the templateinstances API
-      properties:
-        apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation
-            of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
-        kind:
-          description: 'Kind is a string value representing the REST resource this
-            object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
-        metadata:
-          type: object
-        spec:
-          oneOf:
-            - required:
-              - clustertemplate
-            - required:
-              - template
-          description: 'TemplateInstanceSpec defines the desired state of TemplateInstance
-            Important: Use only one of the fields Template and ClusterTemplate. Fill
-            in only metadata.name and parameters inside this field.'
-          properties:
-            clustertemplate:
-              properties:
-                metadata:
-                  properties:
-                    name:
-                      type: string
-                  type: object
-                objects:
-                  items:
-                    type: object
-                  type: array
-                parameters:
-                  items:
-                    properties:
-                      description:
-                        description: A description of the parameter. Provide more
-                          detailed information for the purpose of the parameter, including
-                          any constraints on the expected value. Descriptions should
-                          use complete sentences to follow the console’s text standards.
-                          Don’t make this a duplicate of the display name.
-                        type: string
-                      displayName:
-                        description: The user-friendly name for the parameter. This
-                          will be displayed to users.
-                        type: string
-                      name:
-                        description: The name of the parameter. This value is used
-                          to reference the parameter within the template.
-                        type: string
-                      regex:
-                        description: Set the "regex" value for the parameter value.
-                          Given "regex" is used to validate parameter value from template
-                          instance.
-                        type: string
-                      required:
-                        description: Indicates this parameter is required, meaning
-                          the user cannot override it with an empty value. If the
-                          parameter does not provide a default or generated value,
-                          the user must supply a value.
-                        type: boolean
-                      value:
-                        anyOf:
-                        - type: integer
-                        - type: string
-                        description: A default value for the parameter which will
-                          be used if the user does not override the value when instantiating
-                          the template. Avoid using default values for things like
-                          passwords, instead use generated parameters in combination
-                          with Secrets.
-                        x-kubernetes-int-or-string: true
-                      valueType:
-                        description: Set the data type of the parameter. You can specify
-                          string and number for a string or integer type. If not specified,
-                          it defaults to string.
-                        enum:
-                        - string
-                        - number
-                        type: string
-                    required:
-                    - name
-                    type: object
-                  type: array
-              type: object
-            gitops:
-              description: Spec for Application CR
-              properties:
-                path:
-                  description: Git repo directory
-                  type: string
-                secret:
-                  description: Secret name which contains user credentials
-                  type: string
-                sourcegitrepo:
-                  description: Git repo. ex)https://github.com/user/repo
-                  type: string
-              type: object
-            template:
-              properties:
-                metadata:
-                  properties:
-                    name:
-                      type: string
-                  type: object
-                objects:
-                  items:
-                    type: object
-                  type: array
-                parameters:
-                  items:
-                    properties:
-                      description:
-                        description: A description of the parameter. Provide more
-                          detailed information for the purpose of the parameter, including
-                          any constraints on the expected value. Descriptions should
-                          use complete sentences to follow the console’s text standards.
-                          Don’t make this a duplicate of the display name.
-                        type: string
-                      displayName:
-                        description: The user-friendly name for the parameter. This
-                          will be displayed to users.
-                        type: string
-                      name:
-                        description: The name of the parameter. This value is used
-                          to reference the parameter within the template.
-                        type: string
-                      regex:
-                        description: Set the "regex" value for the parameter value.
-                          Given "regex" is used to validate parameter value from template
-                          instance.
-                        type: string
-                      required:
-                        description: Indicates this parameter is required, meaning
-                          the user cannot override it with an empty value. If the
-                          parameter does not provide a default or generated value,
-                          the user must supply a value.
-                        type: boolean
-                      value:
-                        anyOf:
-                        - type: integer
-                        - type: string
-                        description: A default value for the parameter which will
-                          be used if the user does not override the value when instantiating
-                          the template. Avoid using default values for things like
-                          passwords, instead use generated parameters in combination
-                          with Secrets.
-                        x-kubernetes-int-or-string: true
-                      valueType:
-                        description: Set the data type of the parameter. You can specify
-                          string and number for a string or integer type. If not specified,
-                          it defaults to string.
-                        enum:
-                        - string
-                        - number
-                        type: string
-                    required:
-                    - name
-                    type: object
-                  type: array
-              type: object
-          type: object
-        status:
-          description: TemplateInstanceStatus defines the observed state of TemplateInstance
-          properties:
-            clustertemplate:
-              properties:
-                metadata:
-                  properties:
-                    name:
-                      type: string
-                  type: object
-                objects:
-                  items:
-                    type: object
-                  type: array
-                parameters:
-                  items:
-                    properties:
-                      description:
-                        description: A description of the parameter. Provide more
-                          detailed information for the purpose of the parameter, including
-                          any constraints on the expected value. Descriptions should
-                          use complete sentences to follow the console’s text standards.
-                          Don’t make this a duplicate of the display name.
-                        type: string
-                      displayName:
-                        description: The user-friendly name for the parameter. This
-                          will be displayed to users.
-                        type: string
-                      name:
-                        description: The name of the parameter. This value is used
-                          to reference the parameter within the template.
-                        type: string
-                      regex:
-                        description: Set the "regex" value for the parameter value.
-                          Given "regex" is used to validate parameter value from template
-                          instance.
-                        type: string
-                      required:
-                        description: Indicates this parameter is required, meaning
-                          the user cannot override it with an empty value. If the
-                          parameter does not provide a default or generated value,
-                          the user must supply a value.
-                        type: boolean
-                      value:
-                        anyOf:
-                        - type: integer
-                        - type: string
-                        description: A default value for the parameter which will
-                          be used if the user does not override the value when instantiating
-                          the template. Avoid using default values for things like
-                          passwords, instead use generated parameters in combination
-                          with Secrets.
-                        x-kubernetes-int-or-string: true
-                      valueType:
-                        description: Set the data type of the parameter. You can specify
-                          string and number for a string or integer type. If not specified,
-                          it defaults to string.
-                        enum:
-                        - string
-                        - number
-                        type: string
-                    required:
-                    - name
-                    type: object
-                  type: array
-              type: object
-            conditions:
-              items:
-                properties:
-                  lastTransitionTime:
-                    format: date-time
-                    type: string
-                  message:
-                    type: string
-                  reason:
-                    type: string
-                  status:
-                    type: string
-                  type:
-                    type: string
-                required:
-                - type
-                type: object
-              type: array
-            objects:
-              items:
-                properties:
-                  ref:
-                    properties:
-                      apiVersion:
-                        type: string
-                      fieldPath:
-                        type: string
-                      kind:
-                        type: string
-                      name:
-                        type: string
-                      namespace:
-                        type: string
-                      resourceVersion:
-                        type: string
-                      uid:
-                        type: string
-                    type: object
-                required:
-                - ref
-                type: object
-              type: array
-            template:
-              properties:
-                metadata:
-                  properties:
-                    name:
-                      type: string
-                  type: object
-                objects:
-                  items:
-                    type: object
-                  type: array
-                parameters:
-                  items:
-                    properties:
-                      description:
-                        description: A description of the parameter. Provide more
-                          detailed information for the purpose of the parameter, including
-                          any constraints on the expected value. Descriptions should
-                          use complete sentences to follow the console’s text standards.
-                          Don’t make this a duplicate of the display name.
-                        type: string
-                      displayName:
-                        description: The user-friendly name for the parameter. This
-                          will be displayed to users.
-                        type: string
-                      name:
-                        description: The name of the parameter. This value is used
-                          to reference the parameter within the template.
-                        type: string
-                      regex:
-                        description: Set the "regex" value for the parameter value.
-                          Given "regex" is used to validate parameter value from template
-                          instance.
-                        type: string
-                      required:
-                        description: Indicates this parameter is required, meaning
-                          the user cannot override it with an empty value. If the
-                          parameter does not provide a default or generated value,
-                          the user must supply a value.
-                        type: boolean
-                      value:
-                        anyOf:
-                        - type: integer
-                        - type: string
-                        description: A default value for the parameter which will
-                          be used if the user does not override the value when instantiating
-                          the template. Avoid using default values for things like
-                          passwords, instead use generated parameters in combination
-                          with Secrets.
-                        x-kubernetes-int-or-string: true
-                      valueType:
-                        description: Set the data type of the parameter. You can specify
-                          string and number for a string or integer type. If not specified,
-                          it defaults to string.
-                        enum:
-                        - string
-                        - number
-                        type: string
-                    required:
-                    - name
-                    type: object
-                  type: array
-              type: object
-          type: object
-      type: object
-  version: v1
   versions:
   - name: v1
+    schema:
+      openAPIV3Schema:
+        description: TemplateInstance is the Schema for the templateinstances API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            oneOf:
+              - required:
+                - clustertemplate
+              - required:
+                - template
+            description: 'TemplateInstanceSpec defines the desired state of TemplateInstance
+              Important: Use only one of the fields Template and ClusterTemplate.
+              Fill in only metadata.name and parameters inside this field.'
+            properties:
+              clustertemplate:
+                properties:
+                  metadata:
+                    properties:
+                      name:
+                        type: string
+                    type: object
+                  objects:
+                    items:
+                      type: object
+                    type: array
+                  parameters:
+                    items:
+                      properties:
+                        description:
+                          description: A description of the parameter. Provide more
+                            detailed information for the purpose of the parameter,
+                            including any constraints on the expected value. Descriptions
+                            should use complete sentences to follow the console’s
+                            text standards. Don’t make this a duplicate of the display
+                            name.
+                          type: string
+                        displayName:
+                          description: The user-friendly name for the parameter. This
+                            will be displayed to users.
+                          type: string
+                        name:
+                          description: The name of the parameter. This value is used
+                            to reference the parameter within the template.
+                          type: string
+                        regex:
+                          description: Set the "regex" value for the parameter value.
+                            Given "regex" is used to validate parameter value from
+                            template instance.
+                          type: string
+                        required:
+                          description: Indicates this parameter is required, meaning
+                            the user cannot override it with an empty value. If the
+                            parameter does not provide a default or generated value,
+                            the user must supply a value.
+                          type: boolean
+                        value:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          description: A default value for the parameter which will
+                            be used if the user does not override the value when instantiating
+                            the template. Avoid using default values for things like
+                            passwords, instead use generated parameters in combination
+                            with Secrets.
+                          x-kubernetes-int-or-string: true
+                        valueType:
+                          description: Set the data type of the parameter. You can
+                            specify string and number for a string or integer type.
+                            If not specified, it defaults to string.
+                          enum:
+                          - string
+                          - number
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    type: array
+                type: object
+              gitops:
+                description: Spec for Application CR
+                properties:
+                  path:
+                    description: Git repo directory
+                    type: string
+                  secret:
+                    description: Secret name which contains user credentials
+                    type: string
+                  sourcegitrepo:
+                    description: Git repo. ex)https://github.com/user/repo
+                    type: string
+                type: object
+              template:
+                properties:
+                  metadata:
+                    properties:
+                      name:
+                        type: string
+                    type: object
+                  objects:
+                    items:
+                      type: object
+                    type: array
+                  parameters:
+                    items:
+                      properties:
+                        description:
+                          description: A description of the parameter. Provide more
+                            detailed information for the purpose of the parameter,
+                            including any constraints on the expected value. Descriptions
+                            should use complete sentences to follow the console’s
+                            text standards. Don’t make this a duplicate of the display
+                            name.
+                          type: string
+                        displayName:
+                          description: The user-friendly name for the parameter. This
+                            will be displayed to users.
+                          type: string
+                        name:
+                          description: The name of the parameter. This value is used
+                            to reference the parameter within the template.
+                          type: string
+                        regex:
+                          description: Set the "regex" value for the parameter value.
+                            Given "regex" is used to validate parameter value from
+                            template instance.
+                          type: string
+                        required:
+                          description: Indicates this parameter is required, meaning
+                            the user cannot override it with an empty value. If the
+                            parameter does not provide a default or generated value,
+                            the user must supply a value.
+                          type: boolean
+                        value:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          description: A default value for the parameter which will
+                            be used if the user does not override the value when instantiating
+                            the template. Avoid using default values for things like
+                            passwords, instead use generated parameters in combination
+                            with Secrets.
+                          x-kubernetes-int-or-string: true
+                        valueType:
+                          description: Set the data type of the parameter. You can
+                            specify string and number for a string or integer type.
+                            If not specified, it defaults to string.
+                          enum:
+                          - string
+                          - number
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    type: array
+                type: object
+            type: object
+          status:
+            description: TemplateInstanceStatus defines the observed state of TemplateInstance
+            properties:
+              clustertemplate:
+                properties:
+                  metadata:
+                    properties:
+                      name:
+                        type: string
+                    type: object
+                  objects:
+                    items:
+                      type: object
+                    type: array
+                  parameters:
+                    items:
+                      properties:
+                        description:
+                          description: A description of the parameter. Provide more
+                            detailed information for the purpose of the parameter,
+                            including any constraints on the expected value. Descriptions
+                            should use complete sentences to follow the console’s
+                            text standards. Don’t make this a duplicate of the display
+                            name.
+                          type: string
+                        displayName:
+                          description: The user-friendly name for the parameter. This
+                            will be displayed to users.
+                          type: string
+                        name:
+                          description: The name of the parameter. This value is used
+                            to reference the parameter within the template.
+                          type: string
+                        regex:
+                          description: Set the "regex" value for the parameter value.
+                            Given "regex" is used to validate parameter value from
+                            template instance.
+                          type: string
+                        required:
+                          description: Indicates this parameter is required, meaning
+                            the user cannot override it with an empty value. If the
+                            parameter does not provide a default or generated value,
+                            the user must supply a value.
+                          type: boolean
+                        value:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          description: A default value for the parameter which will
+                            be used if the user does not override the value when instantiating
+                            the template. Avoid using default values for things like
+                            passwords, instead use generated parameters in combination
+                            with Secrets.
+                          x-kubernetes-int-or-string: true
+                        valueType:
+                          description: Set the data type of the parameter. You can
+                            specify string and number for a string or integer type.
+                            If not specified, it defaults to string.
+                          enum:
+                          - string
+                          - number
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    type: array
+                type: object
+              conditions:
+                items:
+                  properties:
+                    lastTransitionTime:
+                      format: date-time
+                      type: string
+                    message:
+                      type: string
+                    reason:
+                      type: string
+                    status:
+                      type: string
+                    type:
+                      type: string
+                  required:
+                  - type
+                  type: object
+                type: array
+              objects:
+                items:
+                  properties:
+                    ref:
+                      properties:
+                        apiVersion:
+                          type: string
+                        fieldPath:
+                          type: string
+                        kind:
+                          type: string
+                        name:
+                          type: string
+                        namespace:
+                          type: string
+                        resourceVersion:
+                          type: string
+                        uid:
+                          type: string
+                      type: object
+                  required:
+                  - ref
+                  type: object
+                type: array
+              template:
+                properties:
+                  metadata:
+                    properties:
+                      name:
+                        type: string
+                    type: object
+                  objects:
+                    items:
+                      type: object
+                    type: array
+                  parameters:
+                    items:
+                      properties:
+                        description:
+                          description: A description of the parameter. Provide more
+                            detailed information for the purpose of the parameter,
+                            including any constraints on the expected value. Descriptions
+                            should use complete sentences to follow the console’s
+                            text standards. Don’t make this a duplicate of the display
+                            name.
+                          type: string
+                        displayName:
+                          description: The user-friendly name for the parameter. This
+                            will be displayed to users.
+                          type: string
+                        name:
+                          description: The name of the parameter. This value is used
+                            to reference the parameter within the template.
+                          type: string
+                        regex:
+                          description: Set the "regex" value for the parameter value.
+                            Given "regex" is used to validate parameter value from
+                            template instance.
+                          type: string
+                        required:
+                          description: Indicates this parameter is required, meaning
+                            the user cannot override it with an empty value. If the
+                            parameter does not provide a default or generated value,
+                            the user must supply a value.
+                          type: boolean
+                        value:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          description: A default value for the parameter which will
+                            be used if the user does not override the value when instantiating
+                            the template. Avoid using default values for things like
+                            passwords, instead use generated parameters in combination
+                            with Secrets.
+                          x-kubernetes-int-or-string: true
+                        valueType:
+                          description: Set the data type of the parameter. You can
+                            specify string and number for a string or integer type.
+                            If not specified, it defaults to string.
+                          enum:
+                          - string
+                          - number
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    type: array
+                type: object
+            type: object
+        type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""
