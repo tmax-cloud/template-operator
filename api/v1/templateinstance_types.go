@@ -29,7 +29,8 @@ type MetadataSpec struct {
 }
 
 type ObjectInfo struct {
-	Metadata   MetadataSpec           `json:"metadata,omitempty"`
+	Metadata MetadataSpec `json:"metadata,omitempty"`
+	// +kubebuilder:validation:XPreserveUnknownFields
 	Objects    []runtime.RawExtension `json:"objects,omitempty"`
 	Parameters []ParamSpec            `json:"parameters,omitempty"`
 }

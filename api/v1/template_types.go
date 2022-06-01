@@ -172,6 +172,7 @@ type TemplateSpec struct {
 	// Objects can be any valid API object, such as a IntegrationConfig, Deployment, Service, etc.
 	// The object will be created exactly as defined here, with any parameter values substituted in prior to creation.
 	// The definition of these objects can reference parameters defined earlier.
+	// +kubebuilder:validation:XPreserveUnknownFields
 	Objects []runtime.RawExtension `json:"objects"`
 	// Service plan information to be used in the service catalog.
 	Plans []PlanSpec `json:"plans,omitempty"`

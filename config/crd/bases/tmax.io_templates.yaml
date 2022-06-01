@@ -77,8 +77,8 @@ spec:
               definition of these objects can reference parameters defined earlier.
             items:
               type: object
-              x-kubernetes-preserve-unknown-fields: true # 직접 추가 해줘야함
             type: array
+            x-kubernetes-preserve-unknown-fields: true
           parameters:
             description: Parameters allow a value to be supplied by the user or generated
               when the template is instantiated. Then, that value is substituted wherever

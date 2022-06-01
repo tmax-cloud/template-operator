@@ -35,10 +35,10 @@ spec:
             type: object
           spec:
             oneOf:
-              - required:
-                - clustertemplate
-              - required:
-                - template
+            - required:
+              - clustertemplate
+            - required:
+              - template
             description: 'TemplateInstanceSpec defines the desired state of TemplateInstance
               Important: Use only one of the fields Template and ClusterTemplate.
               Fill in only metadata.name and parameters inside this field.'
@@ -54,6 +54,7 @@ spec:
                     items:
                       type: object
                     type: array
+                    x-kubernetes-preserve-unknown-fields: true
                   parameters:
                     items:
                       properties:
@@ -131,6 +132,7 @@ spec:
                     items:
                       type: object
                     type: array
+                    x-kubernetes-preserve-unknown-fields: true
                   parameters:
                     items:
                       properties:
@@ -198,8 +200,8 @@ spec:
                   objects:
                     items:
                       type: object
-                      x-kubernetes-preserve-unknown-fields: true # 직접 추가 해줘야함
                     type: array
+                    x-kubernetes-preserve-unknown-fields: true
                   parameters:
                     items:
                       properties:
@@ -306,6 +308,7 @@ spec:
                     items:
                       type: object
                     type: array
+                    x-kubernetes-preserve-unknown-fields: true
                   parameters:
                     items:
                       properties:
