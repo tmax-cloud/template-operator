@@ -198,6 +198,7 @@ spec:
                   objects:
                     items:
                       type: object
+                      x-kubernetes-preserve-unknown-fields: true # 직접 추가 해줘야함
                     type: array
                   parameters:
                     items:
