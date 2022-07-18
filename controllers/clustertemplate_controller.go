@@ -66,11 +66,11 @@ func (r *ClusterTemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	// if ClusterTemplate was created by claim, claim status must be updated when the ClusterTemplate is deleted
 	if template.GetDeletionTimestamp() != nil && controllerutil.ContainsFinalizer(template, claimFinalizer) {
 		if err := r.updateClaimStatus(reqLogger, template); err != nil {
-			return ctrl.Result{}, err
+			reqLogger.Error(err, "fail to update claim status")
 		}
-
 		controllerutil.RemoveFinalizer(template, claimFinalizer)
-		if r.Client.Update(context.TODO(), template); err != nil {
+		if err := r.Client.Update(context.TODO(), template); err != nil {
+			reqLogger.Error(err, "fail to update template")
 			return ctrl.Result{}, err
 		}
 		return ctrl.Result{}, nil
