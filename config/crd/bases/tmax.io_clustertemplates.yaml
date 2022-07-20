@@ -64,6 +64,10 @@ spec:
           type: string
         metadata:
           type: object
+        object:
+          items:
+            type: string
+          type: array
         objectKinds:
           description: The kind list of objects that will be created by the template.
             Populated by the system. Read-only.
@@ -277,8 +281,6 @@ spec:
         urlDescription:
           description: A URL referencing further documentation for the template.
           type: string
-      required:
-      - objects
       type: object
   version: v1
   versions:

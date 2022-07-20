@@ -50,6 +50,10 @@ spec:
                     name:
                       type: string
                   type: object
+                object:
+                  items:
+                    type: string
+                  type: array
                 objects:
                   items:
                     type: object
@@ -126,6 +130,10 @@ spec:
                     name:
                       type: string
                   type: object
+                object:
+                  items:
+                    type: string
+                  type: array
                 objects:
                   items:
                     type: object
@@ -193,6 +201,10 @@ spec:
                     name:
                       type: string
                   type: object
+                object:
+                  items:
+                    type: string
+                  type: array
                 objects:
                   items:
                     type: object
@@ -298,6 +310,10 @@ spec:
                     name:
                       type: string
                   type: object
+                object:
+                  items:
+                    type: string
+                  type: array
                 objects:
                   items:
                     type: object

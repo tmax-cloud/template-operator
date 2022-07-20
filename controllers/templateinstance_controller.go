@@ -55,6 +55,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 	reqLogger := r.Log.WithValues("Request.Namespace", req.Namespace, "Request.Name", req.Name)
 	reqLogger.Info("Reconciling TemplateInstance")
 
+	globalTemplate := &tmplv1.ClusterTemplate{}
 	// Fetch the TemplateInstance instance
 	instance := &tmplv1.TemplateInstance{}
 	err := r.Client.Get(context.TODO(), req.NamespacedName, instance)
@@ -90,8 +91,10 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 				return r.updateTemplateInstanceStatus(instance, err)
 			}
 
+			globalTemplate = template
 			objectInfo.Metadata.Name = instance.Spec.ClusterTemplate.Metadata.Name
 			objectInfo.Objects = template.Objects
+			objectInfo.Object = template.Object
 			objectInfo.Parameters = template.Parameters
 
 		} else {
@@ -138,6 +141,16 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 		reqLogger.Error(err, "error occurs while checking parameter matches regex")
 		return r.updateTemplateInstanceStatus(instance, fmt.Errorf(m))
 	}
+
+	//////////////////////////test//////////////////////////
+	if len(objectInfo.Object) != 0 {
+		tempObjectInfo.Objects, err = internal.TemplateExec(globalTemplate, totalParam)
+		if err != nil {
+			reqLogger.Error(err, "error occurs while executing go template")
+			return r.updateTemplateInstanceStatus(instance, err)
+		}
+	}
+	//////////////////////////test//////////////////////////
 
 	for key, val := range totalParam {
 		reqLogger := r.Log.WithName("replace k8s object")
@@ -273,7 +286,7 @@ func (r *TemplateInstanceReconciler) createObject(obj *runtime.RawExtension, own
 	if err = r.Client.Create(context.TODO(), unstr); err != nil {
 		return nil, err
 	}
-
+	r.Log.Info(unstr.GetKind())
 	return unstr, nil
 }
 
