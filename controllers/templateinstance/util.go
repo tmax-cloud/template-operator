@@ -41,12 +41,18 @@ func (p *ParamHandler) ReviseParam() error {
 
 	for idx, param := range p.templateParameters {
 		if val, exist := instanceParams[param.Name]; exist {
-			switch {
-			case param.ValueType == numberType && val.Type == intstr.String:
-				param.Value = intstr.IntOrString{Type: intstr.Int, IntVal: int32(val.IntValue())}
-			case param.ValueType == stringType && val.Type == intstr.Int:
-				param.Value = intstr.IntOrString{Type: intstr.String, StrVal: val.String()}
+			convertedVal := val
+			if param.ValueType == numberType && val.Type == intstr.String {
+				convertedVal = intstr.IntOrString{Type: intstr.Int, IntVal: int32(val.IntValue())}
 			}
+			if param.ValueType == stringType && val.Type == intstr.Int {
+				convertedVal = intstr.IntOrString{Type: intstr.String, StrVal: val.String()}
+			}
+			// in case of Service Instance has no value
+			if param.ValueType == stringType && val.Type == intstr.String && len(val.StrVal) == 0 {
+				convertedVal = param.Value
+			}
+			param.Value = convertedVal
 		}
 		// [TODO]: UI 변경되면 확인해야함 (tsb create Template Instance 부분)
 		// If the required field has no value
