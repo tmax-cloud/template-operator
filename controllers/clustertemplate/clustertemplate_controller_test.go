@@ -1,4 +1,4 @@
-package controllers
+package clustertemplate
 
 import (
 	"context"
@@ -16,17 +16,15 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-func TestTemplateController(t *testing.T) {
+func TestClusterTemplateController(t *testing.T) {
 	var (
-		name      = "test"
-		namespace = "template-test"
+		name = "test"
 	)
 
 	// Template object with metadata and Objects Info
-	template := &tmplv1.Template{
+	template := &tmplv1.ClusterTemplate{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
+			Name: name,
 		},
 		TemplateSpec: tmplv1.TemplateSpec{
 			Objects: []runtime.RawExtension{
@@ -44,7 +42,7 @@ func TestTemplateController(t *testing.T) {
 
 	cl := fake.NewFakeClient(objs...)
 
-	r := &TemplateReconciler{
+	r := &ClusterTemplateReconciler{
 		Client: cl,
 		Log:    logf.Log.WithName("test-logger"),
 		Scheme: s,
@@ -52,8 +50,7 @@ func TestTemplateController(t *testing.T) {
 
 	req := reconcile.Request{
 		NamespacedName: types.NamespacedName{
-			Name:      name,
-			Namespace: namespace,
+			Name: name,
 		},
 	}
 
@@ -61,14 +58,16 @@ func TestTemplateController(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check if the correct value is added to the ObjectKinds field
-	tp := &tmplv1.Template{}
-	err = r.Client.Get(context.TODO(), req.NamespacedName, tp)
+	ct := &tmplv1.ClusterTemplate{}
+	err = r.Client.Get(context.TODO(), req.NamespacedName, ct)
 	require.NoError(t, err)
 
-	ok := tp.ObjectKinds
+	ok := ct.ObjectKinds
 	assert.NotEqual(t, 0, len(ok), "ObjectKinds is empty")
 
 	assert.Equal(t, "Deployment", ok[0], "ObjectKinds have unexpected value")
 	assert.Equal(t, "Service", ok[1], "ObjectKinds have unexpected value")
 	assert.Equal(t, "Secret", ok[2], "ObjectKinds have unexpected value")
+
+	// TODO) Test 'Cluster Template Deleted' Status
 }

@@ -14,11 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controllers
+package clustertemplate
 
 import (
 	"context"
 	"fmt"
+	"github.com/tmax-cloud/template-operator/internal"
 	"strings"
 	"time"
 
@@ -32,7 +33,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	tmplv1 "github.com/tmax-cloud/template-operator/api/v1"
-	"github.com/tmax-cloud/template-operator/internal/resolver"
 )
 
 // ClusterTemplateReconciler reconciles a ClusterTemplate object
@@ -64,11 +64,11 @@ func (r *ClusterTemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	}
 
 	// if ClusterTemplate was created by claim, claim status must be updated when the ClusterTemplate is deleted
-	if template.GetDeletionTimestamp() != nil && controllerutil.ContainsFinalizer(template, claimFinalizer) {
+	if template.GetDeletionTimestamp() != nil && controllerutil.ContainsFinalizer(template, internal.ClaimFinalizer) {
 		if err := r.updateClaimStatus(reqLogger, template); err != nil {
 			reqLogger.Error(err, "fail to update claim status")
 		}
-		controllerutil.RemoveFinalizer(template, claimFinalizer)
+		controllerutil.RemoveFinalizer(template, internal.ClaimFinalizer)
 		if err := r.Client.Update(context.TODO(), template); err != nil {
 			reqLogger.Error(err, "fail to update template")
 			return ctrl.Result{}, err
@@ -85,7 +85,7 @@ func (r *ClusterTemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	// copy reconciling template from original
 	updateTemplate := template.DeepCopy()
 
-	templateResolver := resolver.NewTemplateResolver(updateTemplate.GetObjectMeta().GetName(), updateTemplate.TemplateSpec)
+	templateResolver := internal.NewTemplateResolver(updateTemplate.GetObjectMeta().GetName(), updateTemplate.TemplateSpec)
 	templateResolver.SetTemplateDefaultFields()
 	templateResolver.SetParameterDefaultFields()
 	if err := templateResolver.SetObjectKinds(); err != nil {
@@ -122,7 +122,7 @@ func (r *ClusterTemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 func (r *ClusterTemplateReconciler) updateClaimStatus(reqLogger logr.Logger, ct *tmplv1.ClusterTemplate) error {
 	claim := &tmplv1.ClusterTemplateClaim{}
 
-	claimInfo := strings.Split(ct.ObjectMeta.Labels[claimLabel], ".")
+	claimInfo := strings.Split(ct.ObjectMeta.Labels[internal.ClaimLabel], ".")
 	claimNamespacedName := types.NamespacedName{
 		Namespace: claimInfo[1],
 		Name:      claimInfo[0],

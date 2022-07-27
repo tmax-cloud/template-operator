@@ -1,4 +1,4 @@
-package resolver
+package internal
 
 import (
 	tmplv1 "github.com/tmax-cloud/template-operator/api/v1"
@@ -50,7 +50,7 @@ func (r *TemplateResolver) SetParameterDefaultFields() {
 			param.ValueType = "string"
 		}
 
-		// IntOrString default value{0 0 }    for param.go:44
+		// IntOrString default value{0 0 }    for util.go:44
 		if param.ValueType == "string" && len(param.Value.StrVal) == 0 {
 			param.Value = intstr.IntOrString{Type: intstr.String, StrVal: ""}
 		}

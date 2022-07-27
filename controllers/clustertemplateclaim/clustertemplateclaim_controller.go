@@ -14,11 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controllers
+package clustertemplateclaim
 
 import (
 	"context"
 	"fmt"
+	"github.com/tmax-cloud/template-operator/internal"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -39,11 +40,6 @@ type ClusterTemplateClaimReconciler struct {
 	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
-
-const (
-	claimFinalizer = "clustertemplateclaims.tmax.io/finalizer"
-	claimLabel     = "clustertemplateclaims.tmax.io/claim"
-)
 
 // +kubebuilder:rbac:groups=tmax.io,resources=clustertemplateclaims,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=tmax.io,resources=clustertemplateclaims/status,verbs=get;update;patch
@@ -155,13 +151,13 @@ func (r *ClusterTemplateClaimReconciler) createClusterTemplate(claim *tmplv1.Clu
 
 	ct.ObjectMeta = metav1.ObjectMeta{
 		Name:   claim.Spec.ResourceName,
-		Labels: map[string]string{claimLabel: claim.Name + "." + claim.Namespace},
+		Labels: map[string]string{internal.ClaimLabel: claim.Name + "." + claim.Namespace},
 	}
 
 	ct.TemplateSpec = template.TemplateSpec
 
 	// Add finalizer to update claim status when ClusterTemplate is deleted
-	controllerutil.AddFinalizer(ct, claimFinalizer)
+	controllerutil.AddFinalizer(ct, internal.ClaimFinalizer)
 
 	return r.Client.Create(context.TODO(), ct)
 }
