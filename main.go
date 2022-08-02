@@ -18,6 +18,10 @@ package main
 
 import (
 	"flag"
+	"github.com/tmax-cloud/template-operator/controllers/clustertemplate"
+	"github.com/tmax-cloud/template-operator/controllers/clustertemplateclaim"
+	"github.com/tmax-cloud/template-operator/controllers/template"
+	"github.com/tmax-cloud/template-operator/controllers/templateinstance"
 	"os"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -28,7 +32,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	tmaxiov1 "github.com/tmax-cloud/template-operator/api/v1"
-	"github.com/tmax-cloud/template-operator/controllers"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -51,9 +54,12 @@ func main() {
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+	opts := zap.Options{
+		Development: false,
+	}
+	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
-
-	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
+	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
@@ -67,7 +73,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.TemplateReconciler{
+	if err = (&template.TemplateReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("Template"),
 		Scheme: mgr.GetScheme(),
@@ -75,7 +81,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Template")
 		os.Exit(1)
 	}
-	if err = (&controllers.ClusterTemplateReconciler{
+	if err = (&clustertemplate.ClusterTemplateReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("ClusterTemplate"),
 		Scheme: mgr.GetScheme(),
@@ -83,7 +89,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "ClusterTemplate")
 		os.Exit(1)
 	}
-	if err = (&controllers.TemplateInstanceReconciler{
+	if err = (&templateinstance.TemplateInstanceReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("TemplateInstance"),
 		Scheme: mgr.GetScheme(),
@@ -91,7 +97,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "TemplateInstance")
 		os.Exit(1)
 	}
-	if err = (&controllers.ClusterTemplateClaimReconciler{
+	if err = (&clustertemplateclaim.ClusterTemplateClaimReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("ClusterTemplateClaim"),
 		Scheme: mgr.GetScheme(),

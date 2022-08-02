@@ -14,15 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controllers
+package templateinstance
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"reflect"
-	"strings"
-
 	jsonpatch "github.com/evanphx/json-patch"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -31,14 +28,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/intstr"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	tmplv1 "github.com/tmax-cloud/template-operator/api/v1"
-	"github.com/tmax-cloud/template-operator/internal"
 )
 
 // TemplateInstanceReconciler reconciles a TemplateInstance object
@@ -126,25 +122,23 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 	}
 
 	tempObjectInfo := objectInfo.DeepCopy()
-
-	paramHandler := internal.NewParamHandler(tempObjectInfo.Parameters, instanceParameters)
+	paramHandler := NewParamHandler(tempObjectInfo.Parameters, instanceParameters)
 
 	if err := paramHandler.ReviseParam(); err != nil {
 		reqLogger.Error(err, "Required parameter has no value")
 		return r.updateTemplateInstanceStatus(instance, err)
 	}
 
-	totalParam := internal.GetParamAsMap(paramHandler.GetTemplateParameters())
-
+	totalParam := GetParamAsMap(paramHandler.templateParameters)
 	// Regex validating parameter values
-	if matched, m := internal.RegexValidate(totalParam, objectInfo.Parameters); !matched {
+	if matched, m := RegexValidate(totalParam, objectInfo.Parameters); !matched {
 		reqLogger.Error(err, "error occurs while checking parameter matches regex")
 		return r.updateTemplateInstanceStatus(instance, fmt.Errorf(m))
 	}
 
 	//////////////////////////test//////////////////////////
 	if len(objectInfo.Object) != 0 {
-		tempObjectInfo.Objects, err = internal.TemplateExec(globalTemplate, totalParam)
+		tempObjectInfo.Objects, err = TemplateExec(globalTemplate, totalParam)
 		if err != nil {
 			reqLogger.Error(err, "error occurs while executing go template")
 			return r.updateTemplateInstanceStatus(instance, err)
@@ -158,42 +152,42 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 	}
 
 	// gitops options
-	if instance.Annotations["gitops"] == "enable" {
-		// Push template obejcts to given repo
-		for idx := range tempObjectInfo.Objects {
-			if err = r.replaceParamsWithValue(&(tempObjectInfo.Objects[idx]), totalParam); err != nil {
-				reqLogger.Error(err, "error occurs while replace parameters")
-				return r.updateTemplateInstanceStatus(instance, err)
-			}
-
-			if err = internal.SetNamespace(&(tempObjectInfo.Objects[idx]), instance); err != nil {
-				reqLogger.Error(err, "error occurs while update namespace")
-				return r.updateTemplateInstanceStatus(instance, err)
-			}
-
-			if err = internal.PushToGivenRepo(instance, tempObjectInfo.Objects[idx], r.Client); err != nil {
-				reqLogger.Error(err, "error occurs while push objects")
-				return r.updateTemplateInstanceStatus(instance, err)
-			}
-		}
-
-		// set template instance status
-		if res, err := r.updateTemplateInstanceStatus(updateInstance, nil); err != nil {
-			return res, err
-		}
-
-		if err := r.Client.Status().Patch(context.TODO(), updateInstance, client.MergeFrom(instance)); err != nil {
-			reqLogger.Error(err, "could not update template instance status")
-			return ctrl.Result{}, err
-		}
-
-		return ctrl.Result{}, nil
-	}
+	//if instance.Annotations["gitops"] == "enable" {
+	//	// Push template obejcts to given repo
+	//	for idx := range tempObjectInfo.Objects {
+	//		if err = r.replaceParamsWithValue(&(tempObjectInfo.Objects[idx]), totalParam); err != nil {
+	//			reqLogger.Error(err, "error occurs while replace parameters")
+	//			return r.updateTemplateInstanceStatus(instance, err)
+	//		}
+	//
+	//		if err = internal.SetNamespace(&(tempObjectInfo.Objects[idx]), instance); err != nil {
+	//			reqLogger.Error(err, "error occurs while update namespace")
+	//			return r.updateTemplateInstanceStatus(instance, err)
+	//		}
+	//
+	//		if err = internal.PushToGivenRepo(instance, tempObjectInfo.Objects[idx], r.Client); err != nil {
+	//			reqLogger.Error(err, "error occurs while push objects")
+	//			return r.updateTemplateInstanceStatus(instance, err)
+	//		}
+	//	}
+	//
+	//	// set template instance status
+	//	if res, err := r.updateTemplateInstanceStatus(updateInstance, nil); err != nil {
+	//		return res, err
+	//	}
+	//
+	//	if err := r.Client.Status().Patch(context.TODO(), updateInstance, client.MergeFrom(instance)); err != nil {
+	//		reqLogger.Error(err, "could not update template instance status")
+	//		return ctrl.Result{}, err
+	//	}
+	//
+	//	return ctrl.Result{}, nil
+	//}
 
 	// normal case (do not use gitops option)
 	if instance.Status.ClusterTemplate == nil && instance.Status.Template == nil {
 		for idx := range tempObjectInfo.Objects {
-			if err = r.replaceParamsWithValue(&(tempObjectInfo.Objects[idx]), totalParam); err != nil {
+			if err = replaceParamsWithValue(&(tempObjectInfo.Objects[idx]), totalParam); err != nil {
 				reqLogger.Error(err, "error occurs while replace parameters")
 				return r.updateTemplateInstanceStatus(instance, err)
 			}
@@ -227,7 +221,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 
 	if instance.Status.ClusterTemplate != nil || instance.Status.Template != nil {
 		for idx := range tempObjectInfo.Objects {
-			if err = r.replaceParamsWithValue(&(tempObjectInfo.Objects[idx]), totalParam); err != nil {
+			if err = replaceParamsWithValue(&(tempObjectInfo.Objects[idx]), totalParam); err != nil {
 				reqLogger.Error(err, "error occurs while replace parameters")
 				return r.updateTemplateInstanceStatus(instance, err)
 			}
@@ -253,7 +247,7 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 func (r *TemplateInstanceReconciler) createObject(obj *runtime.RawExtension, owner *tmplv1.TemplateInstance) (cache *unstructured.Unstructured, err error) {
 
 	// get unstructured object
-	unstr, err := internal.BytesToUnstructuredObject(obj)
+	unstr, err := BytesToUnstructuredObject(obj)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +287,7 @@ func (r *TemplateInstanceReconciler) createObject(obj *runtime.RawExtension, own
 // Apply changed parameters on existing k8s objects which are populated by templateinstance.
 // Get k8s obejcts as unstructured type and transform to []byte for applying parameters.
 func (r *TemplateInstanceReconciler) updateObject(obj *runtime.RawExtension, ns string) error {
-	updateUnstr, err := internal.BytesToUnstructuredObject(obj)
+	updateUnstr, err := BytesToUnstructuredObject(obj)
 	if err != nil {
 		return err
 	}
@@ -326,7 +320,7 @@ func (r *TemplateInstanceReconciler) updateObject(obj *runtime.RawExtension, ns 
 }
 
 func (r *TemplateInstanceReconciler) checkObjectExist(obj *runtime.RawExtension, ns string) error {
-	unstr, err := internal.BytesToUnstructuredObject(obj)
+	unstr, err := BytesToUnstructuredObject(obj)
 	if err != nil {
 
 		return err
@@ -342,25 +336,6 @@ func (r *TemplateInstanceReconciler) checkObjectExist(obj *runtime.RawExtension,
 			Group:    check.GroupVersionKind().Group,
 			Resource: check.GetKind()}, "namespace: "+check.GetNamespace()+" name: "+check.GetName())
 	}
-	return nil
-}
-
-func (r *TemplateInstanceReconciler) replaceParamsWithValue(obj *runtime.RawExtension, params map[string]intstr.IntOrString) error {
-	reqLogger := r.Log.WithName("replace k8s object")
-	objStr := string(obj.Raw)
-	reqLogger.Info("original object: " + objStr)
-	for key, value := range params {
-		// reqLogger.Info("key: " + key + " value: " + value.String())
-		if value.Type == intstr.Int {
-			objStr = strings.Replace(objStr, "\"${"+key+"}\"", value.String(), -1)
-			objStr = strings.Replace(objStr, "${"+key+"}", value.String(), -1)
-		} else {
-			objStr = strings.Replace(objStr, "${"+key+"}", value.String(), -1)
-		}
-	}
-	reqLogger.Info("replaced object: " + objStr)
-
-	obj.Raw = []byte(objStr)
 	return nil
 }
 

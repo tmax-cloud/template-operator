@@ -14,11 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controllers
+package template
 
 import (
 	"context"
 	"fmt"
+	"github.com/tmax-cloud/template-operator/internal"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -27,7 +28,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	tmplv1 "github.com/tmax-cloud/template-operator/api/v1"
-	"github.com/tmax-cloud/template-operator/internal/resolver"
 )
 
 // TemplateReconciler reconciles a Template object
@@ -67,7 +67,7 @@ func (r *TemplateReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// copy reconciling template from original
 	updateTemplate := template.DeepCopy()
 
-	templateResolver := resolver.NewTemplateResolver(updateTemplate.GetObjectMeta().GetName(), updateTemplate.TemplateSpec)
+	templateResolver := internal.NewTemplateResolver(updateTemplate.GetObjectMeta().GetName(), updateTemplate.TemplateSpec)
 	templateResolver.SetTemplateDefaultFields()
 	templateResolver.SetParameterDefaultFields()
 	if err := templateResolver.SetObjectKinds(); err != nil {

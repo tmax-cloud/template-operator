@@ -19,6 +19,7 @@ spec:
         - /manager
         args:
         - --enable-leader-election
+        - --zap-log-level=error
         image: tmaxcloudck/template-operator:latest
         imagePullPolicy: Always
         name: manager
