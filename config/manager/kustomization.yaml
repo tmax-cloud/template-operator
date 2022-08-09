@@ -1,2 +1,4 @@
 resources:
-- manager.yaml
+- deploy_manager.yaml
+- ../crd/bases/*
+- ../rbac/deploy_admin_rbac.yaml
