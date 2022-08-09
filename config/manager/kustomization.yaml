@@ -1,3 +1,3 @@
 resources:
 - deploy_manager.yaml
-- ../rbac/deploy_admin_rbac.yaml
+- config/rbac/deploy_admin_rbac.yaml
