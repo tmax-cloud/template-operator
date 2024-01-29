@@ -20,6 +20,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
+
 	jsonpatch "github.com/evanphx/json-patch"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -28,7 +30,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
-	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
@@ -253,9 +254,9 @@ func (r *TemplateInstanceReconciler) createObject(obj *runtime.RawExtension, own
 	}
 
 	// set namespace if not exist
-	//if len(unstr.GetNamespace()) == 0 {
-	unstr.SetNamespace(owner.Namespace)
-	//}
+	if len(unstr.GetNamespace()) == 0 {
+		unstr.SetNamespace(owner.Namespace)
+	}
 
 	// set owner reference
 	isController := false
