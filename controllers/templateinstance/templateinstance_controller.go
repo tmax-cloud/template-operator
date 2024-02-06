@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 
 	jsonpatch "github.com/evanphx/json-patch"
 	"github.com/go-logr/logr"
@@ -32,6 +33,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
@@ -61,6 +63,14 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 			return ctrl.Result{}, nil
 		}
 		return ctrl.Result{}, err
+	}
+
+	// 다른 namespace에 생성된 resource는 finalizer 통해서 삭제
+	if instance.GetDeletionTimestamp() != nil {
+		if err := r.removeDependents(instance); err != nil {
+			reqLogger.Error(err, "failed to remove dependents")
+		}
+		return ctrl.Result{}, nil
 	}
 
 	// template/clustertemplate both empty or inserted
@@ -192,19 +202,22 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 				reqLogger.Error(err, "error occurs while replace parameters")
 				return r.updateTemplateInstanceStatus(instance, err)
 			}
-			if err = r.checkObjectExist(&(tempObjectInfo.Objects[idx]), instance.Namespace); err != nil {
+			if err = r.checkObjectExist(&(tempObjectInfo.Objects[idx])); err != nil {
 				reqLogger.Error(err, "exist resource")
 				return r.updateTemplateInstanceStatus(instance, err)
 			}
 		}
 
 		cacheUnstr := []*unstructured.Unstructured{} // cache for case of error
+		finalizers := instance.GetFinalizers()
 
 		//create k8s object
 		for idx := range tempObjectInfo.Objects {
 			cache := &unstructured.Unstructured{}
 
-			if cache, err = r.createObject(&(tempObjectInfo.Objects[idx]), instance); err != nil {
+			var finalizer string
+
+			if cache, finalizer, err = r.createObject(&(tempObjectInfo.Objects[idx]), updateInstance, finalizers); err != nil {
 				reqLogger.Error(err, "error occurs while create k8s object")
 				for _, cacheObj := range cacheUnstr {
 					r.Client.Delete(context.TODO(), cacheObj) // when error occurs during create objects, delete already created objects
@@ -212,6 +225,8 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 				}
 				return r.updateTemplateInstanceStatus(instance, err)
 			}
+
+			finalizers = append(finalizers, finalizer)
 			cacheUnstr = append(cacheUnstr, cache)
 		}
 
@@ -245,44 +260,113 @@ func (r *TemplateInstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, e
 	return ctrl.Result{}, nil
 }
 
-func (r *TemplateInstanceReconciler) createObject(obj *runtime.RawExtension, owner *tmplv1.TemplateInstance) (cache *unstructured.Unstructured, err error) {
+func (r *TemplateInstanceReconciler) removeDependents(instance *tmplv1.TemplateInstance) (err error) {
+
+	var kind string
+	var APIVersion string
+	var ns string
+	var name string
+	var finalizersToBeDeleted []string
+
+	// finalizer 분리해서 kind / ns / name 추출
+	for _, finalizer := range instance.GetFinalizers() {
+		dependentSignature := strings.Split(finalizer, ".-.")
+		APIVersion = dependentSignature[0]
+		kind = dependentSignature[1]
+		ns = dependentSignature[2]
+		name = dependentSignature[3]
+
+		unstr := &unstructured.Unstructured{}
+		unstr.SetAPIVersion(APIVersion)
+		unstr.SetKind(kind)
+		unstr.SetNamespace(ns)
+		unstr.SetName(name)
+
+		if err = r.Client.Delete(context.TODO(), unstr); err != nil {
+			r.Log.Error(err, finalizer+" is not deleted")
+			finalizersToBeDeleted = append(finalizersToBeDeleted, finalizer) // 누군가가 임의로 리소스 삭제해도 finalizer에서는 삭제
+		} else {
+			r.Log.Info(finalizer + " is deleted")
+			finalizersToBeDeleted = append(finalizersToBeDeleted, finalizer)
+		}
+	}
+
+	for _, finalizer := range finalizersToBeDeleted {
+		// instance의 finalizer 삭제 및 업데이트
+		controllerutil.RemoveFinalizer(instance, finalizer)
+		if err := r.Client.Update(context.TODO(), instance); err != nil {
+			r.Log.Error(err, "fail to update instance finalizer")
+			return err
+		}
+	}
+
+	return nil
+
+}
+
+func (r *TemplateInstanceReconciler) createObject(obj *runtime.RawExtension, owner *tmplv1.TemplateInstance, finalizers []string) (cache *unstructured.Unstructured, finalizer string, err error) {
+
+	instanceWithFinalizer := owner.DeepCopy()
 
 	// get unstructured object
 	unstr, err := BytesToUnstructuredObject(obj)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	// set namespace if not exist
+	// namespace 설정을 안해주면 owner의 네임스페이스 설정 및 onwerRef 추가
 	if len(unstr.GetNamespace()) == 0 {
 		unstr.SetNamespace(owner.Namespace)
-	}
 
-	// set owner reference
-	isController := false
-	blockOwnerDeletion := true
+		// set owner reference
+		isController := false
+		blockOwnerDeletion := true
 
-	//Get 하고 추가
-	ownerRefs := unstr.GetOwnerReferences()
-	//reqLogger.Info("before: " + fmt.Sprintf("%+v\n", unstr.GetOwnerReferences()))
-	ownerRef := v1.OwnerReference{
-		APIVersion:         owner.APIVersion,
-		Kind:               owner.Kind,
-		Name:               owner.Name,
-		UID:                owner.UID,
-		Controller:         &isController,
-		BlockOwnerDeletion: &blockOwnerDeletion,
+		//Get 하고 추가
+		ownerRefs := unstr.GetOwnerReferences()
+		//reqLogger.Info("before: " + fmt.Sprintf("%+v\n", unstr.GetOwnerReferences()))
+		ownerRef := v1.OwnerReference{
+			APIVersion:         owner.APIVersion,
+			Kind:               owner.Kind,
+			Name:               owner.Name,
+			UID:                owner.UID,
+			Controller:         &isController,
+			BlockOwnerDeletion: &blockOwnerDeletion,
+		}
+		ownerRefs = append(ownerRefs, ownerRef)
+		unstr.SetOwnerReferences(ownerRefs)
+	} else { // namespace 설정이 있을 시, 해당 APIversion, kind, ns, name으로 finalizer 설정. 이 정보 가지고 추후 gc 진행
+		finalizer = unstr.GetAPIVersion() + ".-." + unstr.GetKind() + ".-." + unstr.GetNamespace() + ".-." + unstr.GetName()
+
+		var filtered []string // 빈 element가 하나 생겨서 일단 한번 필터링 해줌
+		for _, str := range finalizers {
+			if str != "" {
+				filtered = append(filtered, str)
+			}
+		}
+
+		var finalizerArray []string
+		finalizerArray = append(filtered, finalizer)
+
+		instanceWithFinalizer.SetFinalizers(finalizerArray)
+
+		if errUp := r.Client.Patch(context.TODO(), instanceWithFinalizer, client.MergeFrom(owner)); errUp != nil {
+			r.Log.Error(errUp, "could not create template instance")
+			return nil, "", errUp
+		}
+
+		label := make(map[string]string)
+		label["owner"] = owner.Kind + "-" + owner.Name
+		unstr.SetLabels(label)
 	}
-	ownerRefs = append(ownerRefs, ownerRef)
-	unstr.SetOwnerReferences(ownerRefs)
 
 	//reqLogger.Info("after: " + fmt.Sprintf("%+v\n", unstr.GetOwnerReferences()))
 	// create object
 	if err = r.Client.Create(context.TODO(), unstr); err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	r.Log.Info(unstr.GetKind())
-	return unstr, nil
+	r.Log.Info(unstr.GetKind() + " is created")
+	return unstr, finalizer, nil
 }
 
 // Apply changed parameters on existing k8s objects which are populated by templateinstance.
@@ -320,13 +404,13 @@ func (r *TemplateInstanceReconciler) updateObject(obj *runtime.RawExtension, ns 
 	return nil
 }
 
-func (r *TemplateInstanceReconciler) checkObjectExist(obj *runtime.RawExtension, ns string) error {
+func (r *TemplateInstanceReconciler) checkObjectExist(obj *runtime.RawExtension) error {
 	unstr, err := BytesToUnstructuredObject(obj)
 	if err != nil {
 
 		return err
 	}
-	unstr.SetNamespace(ns)
+	// unstr.SetNamespace(ns)
 	// check if the object already exist
 	check := unstr.DeepCopy()
 	if err = r.Client.Get(context.TODO(), types.NamespacedName{
@@ -380,10 +464,23 @@ func ignoreStatusUpdate() predicate.Predicate {
 			// Ignore to call reconcile loop when TemplateInstanceStatus is updated
 			oldSpec := e.ObjectOld.(*tmplv1.TemplateInstance).DeepCopy().Spec
 			newSpec := e.ObjectNew.(*tmplv1.TemplateInstance).DeepCopy().Spec
-			return !reflect.DeepEqual(oldSpec, newSpec)
+			oldMeta := e.MetaOld.GetDeletionTimestamp()
+			newMeta := e.MetaNew.GetDeletionTimestamp()
+			return !reflect.DeepEqual(oldSpec, newSpec) || !reflect.DeepEqual(oldMeta, newMeta)
 		},
 	}
 }
+
+// func ignoreFinalizerUpdate() predicate.Predicate {
+// 	return predicate.Funcs{
+// 		UpdateFunc: func(e event.UpdateEvent) bool {
+// 			// Ignore to call reconcile loop when TemplateInstanceStatus is updated
+// 			oldFinalizer := e.ObjectOld.(*tmplv1.TemplateInstance).DeepCopy().ObjectMeta.Finalizers
+// 			newFinalizer := e.ObjectNew.(*tmplv1.TemplateInstance).DeepCopy().ObjectMeta.Finalizers
+// 			return !reflect.DeepEqual(oldFinalizer, newFinalizer)
+// 		},
+// 	}
+// }
 
 func (r *TemplateInstanceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
